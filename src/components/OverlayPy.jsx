@@ -1,7 +1,6 @@
 import { Scroll, useScroll } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useState } from "react";
-import About1 from "./About1";
 
 const Section = (props) => {
   return (
@@ -24,26 +23,6 @@ const Section = (props) => {
   );
 };
 
-const HeaderSection = (props) => {
-  return (
-    <section
-      className={`h-screen flex flex-col justify-center p-10 ${
-        props.right ? "items-end" : "items-start"
-      }`}
-      style={{
-        opacity: props.opacity,
-      }}
-    >
-      <div className="w-full flex items-center justify-center" style={{height: '100vh'}}>
-        <div className="w-full" style={{height: '90vh'}}>
-          <div className="bg-white  rounded-lg px-8 py-12" style={{height: '90vh'}}>
-            {props.children}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
 
 export const OverlayPy = () => {
     const scroll = useScroll();
@@ -53,16 +32,13 @@ export const OverlayPy = () => {
   
     useFrame(() => {
       setOpacityFirstSection(1 - scroll.range(0, 1 / 10));
-      setOpacitySecondSection(scroll.curve(0.5 / 10, 1 / 10));
-      setOpacityLastSection(scroll.range(1.5 / 10, 1 / 10));
+      setOpacitySecondSection(0);
+      setOpacityLastSection(0);
     });
 
     return (
         <Scroll html>
-        <div class="w-screen">
-          <HeaderSection opacity={opacityFirstSection}>
-            <About1 />
-          </HeaderSection>
+        <div className="w-screen">
           <Section right opacity={opacitySecondSection}>
             <h1 className="font-semibold font-serif text-2xl">
               Python 🐍
@@ -93,10 +69,12 @@ export const OverlayPy = () => {
             </ul>
             <p className="animate-bounce  mt-6">↓</p>
           </Section>
-          <Section opacity={opacityLastSection}>
-          <h1 className="font-semibold font-serif text-2xl">
+          <Section opacity={0}>
+            <a href="https://github.com/JOTALGS">
+            <h1 className="font-semibold font-serif text-2xl">
               React ⚛️
             </h1>
+            
             <p className="text-gray-500">React library knowledge:</p>
             <p className="mt-3">
               <b>Frameworks 🚀</b>
@@ -122,6 +100,7 @@ export const OverlayPy = () => {
               <li>Tailwind CSS</li>
             </ul>
             <p className="animate-bounce  mt-6">↓</p>
+            youtube</a>
           </Section>
           <Section right opacity={opacityLastSection}>
             <h1 className="font-semibold font-serif text-2xl">

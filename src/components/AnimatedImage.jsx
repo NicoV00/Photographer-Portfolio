@@ -1,74 +1,173 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useLayoutEffect, useState } from 'react';
 import * as THREE from 'three';
 import { Canvas, useLoader, useFrame } from '@react-three/fiber';
+import { useScroll } from "@react-three/drei";
+import gsap from "gsap";
 
-const ImageMesh = ({ url, position = [0, 0, 0], rotationY }) => {
-  const texture = useLoader(THREE.TextureLoader, url);
-  const meshRef = useRef();
+const AnimatedCarousel = ({ url, position }) => {
+  
+  // Load three different textures
+  const texture1 = useLoader(THREE.TextureLoader, "./images/DSC00993.jpg");
+  const texture2 = useLoader(THREE.TextureLoader, "./images/DSC00994.jpg");
+  const texture3 = useLoader(THREE.TextureLoader, "./images/DSC00995.jpg");
 
-  // Set position
-  useEffect(() => {
-    if (meshRef.current) {
-      meshRef.current.position.set(position[0], position[1], position[2]);
-    }
-  }, [position]);
+  const meshRef1 = useRef();
+  const meshRef2 = useRef();
+  const meshRef3 = useRef();
+  const ref = useRef();
+  const tl = useRef();
 
-  // Update rotation smoothly using useFrame
+  const scroll = useScroll();
   useFrame(() => {
-    if (meshRef.current) {
-      // Smoothly interpolate position
-      meshRef.current.position.x = THREE.MathUtils.lerp(
-        meshRef.current.position.x,
-        position[0],
-        0.001
-      );
-      meshRef.current.position.y = THREE.MathUtils.lerp(
-        meshRef.current.position.y,
-        position[1],
-        0.001
-      );
-
-      meshRef.current.rotation.y = THREE.MathUtils.lerp(
-        meshRef.current.rotation.y,
-        rotationY,
-        0.05 // Interpolation factor for smoothness
-      );
+    if (tl.current) {
+      tl.current.seek(scroll.offset * tl.current.duration());
     }
   });
 
+  useLayoutEffect(() => {
+    tl.current = gsap.timeline();
+    
+    // FIRST IMAGE(1) ANIMATION
+    tl.current.to(
+      meshRef1.current.position,
+      {
+        duration: 1,
+        x: 0,
+        y: 0,
+        z: -2,
+      },
+      0
+    );
+    tl.current.to(
+      meshRef1.current.rotation,
+      {
+        duration: 1,
+        y: 0,
+      },
+      0
+    );
+
+    tl.current.to(
+      meshRef1.current.position,
+      {
+        duration: 1,
+        z: 1,
+      },
+      1
+    );
+    // SECOND IMAGE(2) ANIMATION
+    tl.current.to(
+      meshRef2.current.position,
+      {
+        duration: 1,
+        y: 2,
+        z: -10,
+      },
+      0
+    )
+    
+    tl.current.to(
+      meshRef2.current.position,
+      {
+        duration: 1,
+        x: 0,
+        y: 0,
+        z: -2,
+      },
+      1
+    )
+    tl.current.to(
+      meshRef2.current.rotation,
+      {
+        duration: 1,
+        y: 0,
+      },
+      1
+    );
+
+    tl.current.to(
+      meshRef2.current.position,
+      {
+        duration: 1,
+        z: 1,
+      },
+      2
+    );
+
+    // THIRD IMAGE(3) ANIMATION
+    tl.current.to(
+      meshRef3.current.position,
+      {
+        duration: 1,
+        x: 0,
+        y: 2,
+        z: -20,
+      },
+      0
+    );
+
+    tl.current.to(
+      meshRef3.current.position,
+      {
+        duration: 1,
+        x: 5,
+        y: -5,
+        z: -10,
+      },
+      1
+    );
+
+    tl.current.to(
+      meshRef3.current.position,
+      {
+        duration: 1,
+        x: 0,
+        y: 0,
+        z: -2,
+      },
+      2
+    );
+    tl.current.to(
+      meshRef3.current.rotation,
+      {
+        duration: 1,
+        y: 0,
+      },
+      2
+    );
+
+    tl.current.to(
+      meshRef3.current.position,
+      {
+        duration: 1,
+        z: 1,
+      },
+      3
+    );
+  }, []);
+ 
   return (
-    <mesh ref={meshRef}>
-      <planeGeometry args={[4, 3]} /> {/* Adjust size as needed */}
-      <meshBasicMaterial map={texture} />
-    </mesh>
+    <group ref={ref}>
+      <group ref={meshRef1} rotation={[0, Math.PI / 2, 0]} position={[-4, 1, -10]}>
+        <mesh>
+          <planeGeometry args={[4, 3]} /> {/* Adjust size as needed */}
+          <meshBasicMaterial map={texture2} />
+        </mesh>
+      </group>
+      <group ref={meshRef2} rotation={[0, -Math.PI / 4, 0]} position={[3, 8, -30]}>
+        <mesh>
+          <planeGeometry args={[4, 3]} /> {/* Adjust size as needed */}
+          <meshBasicMaterial map={texture1} />
+        </mesh>
+      </group>
+      <group ref={meshRef3} rotation={[0, -Math.PI / 4, 0]} position={[-25, 8, -40]}>
+        <mesh>
+          <planeGeometry args={[4, 3]} /> {/* Adjust size as needed */}
+          <meshBasicMaterial map={texture3} />
+        </mesh>
+      </group>
+    </group>
   );
 };
 
-const AnimatedImage = ({ url, position, scroll, scrollEvent }) => {
-  const [rotationY, setRotationY] = useState(0);
-  const [x, setX] = useState(position[0]);
-  const [y, setY] = useState(position[1]);
-
-  // Update rotationY target based on scroll
-  useEffect(() => {
-    if (scroll > scrollEvent - 50 && scroll < scrollEvent + 20) {
-      setRotationY(-1.4);
-      setX(position[0]);
-      setY(position[1]);
-    } else {
-      setRotationY(0);
-      setX(position[0] + 6);
-      setY(position[1] + 8);
-    }
-  }, [scroll, scrollEvent, position]);
-
-  return (
-    <ImageMesh 
-      url={url} 
-      position={[x, y, position[2]]} // Example position
-      rotationY={rotationY}
-    />
-  );
-};
-
-export default AnimatedImage;
+export default AnimatedCarousel;
