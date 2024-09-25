@@ -6,10 +6,10 @@
 
 .photographer-name {
   position: absolute;
-  top: 210px; /* Bajar el texto ajustando esta propiedad */
+  top: 310px; /* Bajar el texto ajustando esta propiedad */
   left: 15px; /* Mantener alejado del borde izquierdo */
   font-family: 'Suisse Int\'l', Helvetica, sans-serif; /* Cambiar la fuente */
-  font-size: 35px; /* Tamaño grande para mayor atención */
+  font-size: 55px; /* Tamaño grande para mayor atención */
   font-weight: bold; /* Hacer el texto más grueso */
   color: black;
   transform: rotate(-90deg); /* Rotación para que esté de abajo hacia arriba */
