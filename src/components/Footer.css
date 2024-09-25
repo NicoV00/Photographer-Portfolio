@@ -14,12 +14,12 @@
   margin: 0 3px; /* Reduce el espaciado entre botones */
   padding: 8px 16px; /* Reduce el espaciado interno del botón */
   border: 2px solid; /* Borde inicial transparente */
-  border-radius: 20px; /* Reduce el radio de bordes */
+  border-radius: 10px; /* Reduce el radio de bordes */
   background-color: #ffffff; /* Color de fondo del botón */
   font-family: 'Courier New', Courier, monospace; /* Fuente estilo máquina de escribir */
   font-size: 12px; /* Reduce el tamaño de la fuente */
   cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
-  transition: border 0.3s ease; /* Suavizar la transición del borde */
+  transition: 'border 0.3s ease, background-color 0.3s ease, border-radius 0.3s ease'; /* Suavizar la transición del borde */
 }
 
 .style-button:hover {

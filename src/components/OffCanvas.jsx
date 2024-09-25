@@ -3,8 +3,11 @@ import { gsap } from 'gsap';
 
 const OffCanvas = ({ name, ...props }) => {
     const [show, setShow] = useState(false);
+    const [hovered, setHovered] = useState(false);
+    const [mouseInsideCanvas, setMouseInsideCanvas] = useState(false); // Track if mouse is inside canvas
     const canvasRef = useRef(null);
     const overlayRef = useRef(null);
+    const cursorRef = useRef(null); // Reference for custom cursor
 
     const handleShow = () => setShow(true);
     const handleClose = () => setShow(false);
@@ -40,24 +43,72 @@ const OffCanvas = ({ name, ...props }) => {
         }
     }, [show]);
 
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (cursorRef.current) {
+                cursorRef.current.style.left = `${e.pageX}px`;
+                cursorRef.current.style.top = `${e.pageY}px`;
+                cursorRef.current.style.visibility = (show && !mouseInsideCanvas) ? 'visible' : 'hidden'; // Show/hide the custom cursor based on state
+            }
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+        };
+    }, [show, mouseInsideCanvas]); // Add mouseInsideCanvas to the dependency array
+
+    const handleOverlayClick = (e) => {
+        // Close the modal if clicking outside of it
+        if (canvasRef.current && !canvasRef.current.contains(e.target)) {
+            handleClose();
+        }
+    };
+
+    const handleMouseEnterCanvas = () => {
+        setMouseInsideCanvas(true); // Mouse enters the canvas
+    };
+
+    const handleMouseLeaveCanvas = () => {
+        setMouseInsideCanvas(false); // Mouse leaves the canvas
+    };
+
     return (
       <>
-        <button style={{ width: '100px', backgroundColor: 'black' }} onClick={handleShow}>
-          {name}
+        <button 
+          style={{
+            ...styles.infoButton,
+            ...(hovered ? styles.infoButtonHover : {})
+          }} 
+          onClick={handleShow}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+        >
+          I
         </button>
 
-        <div ref={overlayRef} style={styles.overlay}>
-          <div ref={canvasRef} style={styles.canvas}>
+        <div 
+          ref={overlayRef} 
+          style={styles.overlay} 
+          onClick={handleOverlayClick} // Handle click on the overlay
+        >
+          <div 
+            ref={canvasRef} 
+            style={styles.canvas} 
+            onMouseEnter={handleMouseEnterCanvas} // Set mouse inside state to true
+            onMouseLeave={handleMouseLeaveCanvas} // Set mouse inside state to false
+          >
             <div style={styles.header}>
               <h2>Offcanvas</h2>
               <button onClick={handleClose} style={styles.closeButton}>X</button>
             </div>
             <div style={styles.body}>
-              Some text as placeholder. In real life you can have the elements you
-              have chosen. Like, text, images, lists, etc.
+              Some text as placeholder. In real life you can have the elements you have chosen. Like, text, images, lists, etc.
             </div>
           </div>
         </div>
+
+        <div id="custom-cursor2" ref={cursorRef} style={styles.customCursor}>✖</div> {/* Custom cursor */}
       </>
     );
 };
@@ -76,7 +127,7 @@ const styles = {
     justifyContent: 'flex-end',
   },
   canvas: {
-    width: '900px',
+    width: '1200px',
     height: '100%',
     color: 'white',
     backgroundColor: 'black',
@@ -100,6 +151,39 @@ const styles = {
   body: {
     marginTop: '20px',
   },
+  infoButton: {
+    margin: '0 3px',
+    padding: '8px 16px',
+    border: '2px solid black', // Initial curved border
+    borderRadius: '20px', // Moderately rounded borders
+    backgroundColor: 'transparent', // Transparent background
+    color: 'black', // Text color
+    fontFamily: 'Courier New, Courier, monospace',
+    fontSize: '16px',
+    cursor: 'pointer',
+    transition: 'border 0.3s ease, background-color 0.3s ease, border-radius 0.3s ease',
+  },
+  infoButtonHover: {
+    border: '2px solid black', // Maintain the border on hover
+    backgroundColor: 'rgba(255, 255, 255, 0.5)', // Background color on hover
+    borderRadius: '0', // Change to square borders on hover
+  },
+  customCursor: {
+    position: 'fixed',
+    width: '20px',
+    height: '20px',
+    backgroundColor: 'white',
+    color: 'black',
+    border: '2px solid black',
+    borderRadius: '0',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    transform: 'translate(-50%, -50%)',
+    pointerEvents: 'none', // Ignore interactions with the cursor
+    zIndex: 1000,
+    visibility: 'hidden', // Hidden by default
+  }
 };
 
 export default OffCanvas;
