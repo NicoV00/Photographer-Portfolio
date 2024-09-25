@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollControls } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
 import AnimatedCarousel from "./AnimatedImage";
 import { OverlayPy } from "./OverlayPy";
 
@@ -15,11 +15,8 @@ const About1 = () => {
       <directionalLight intensity={2.5} position={[5, 5, 0]} castShadow />
       <pointLight position={[-5, 5, -5]} intensity={5.7} />
 
-      {/* Render the hallway model */}
-      <ScrollControls pages={4} damping={0.25}>
-        <AnimatedCarousel />
-        <OverlayPy />
-      </ScrollControls>
+      <OrbitControls />
+      <AnimatedCarousel />
     </>
   );
 };

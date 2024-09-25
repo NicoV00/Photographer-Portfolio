@@ -1,0 +1,35 @@
+.footer {
+  display: flex;
+  justify-content: center; /* Centra los botones en el footer */
+  padding: 20px;
+  background-color: #f8f8f8; /* Color de fondo del footer */
+  border-top: 1px solid #ccc; /* Línea superior para el footer */
+}
+
+.style-button {
+  margin: 0 10px; /* Espaciado entre botones */
+  padding: 10px 20px; /* Espaciado interno del botón */
+  border: 2px solid transparent; /* Borde inicial transparente */
+  border-radius: 25px; /* Bordes redondeados */
+  background-color: #ffffff; /* Color de fondo del botón */
+  font-family: 'Courier New', Courier, monospace; /* Fuente estilo máquina de escribir */
+  font-size: 16px; /* Tamaño de la fuente */
+  cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
+  transition: border 0.3s ease; /* Suavizar la transición del borde */
+}
+
+.style-button:hover {
+  border-color: #000; /* Cambia el color del borde al hacer hover */
+  border-radius: 0; /* Cambia a bordes rectos */
+}
+
+.footer {
+  position: absolute; /* Posición absoluta para colocar el Footer */
+  bottom: 20px; /* Distancia del borde inferior */
+  right: 20px; /* Distancia del borde derecho */
+  background-color: rgba(255, 255, 255, 0.8); /* Fondo blanco con un poco de transparencia */
+  padding: 10px 20px; /* Espaciado interno */
+  border-radius: 5px; /* Bordes redondeados */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Sombra para dar profundidad */
+  z-index: 100; /* Asegúrate de que esté encima de otros elementos */
+}
