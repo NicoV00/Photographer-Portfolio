@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { OrbitControls } from "@react-three/drei";
 import AnimatedCarousel from "./AnimatedImage";
-import { OverlayPy } from "./OverlayPy";
-
+import { useFrame } from "@react-three/fiber";
 
 const About1 = () => {
   return (

@@ -1,20 +1,54 @@
 import { useState, useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 
-const OffCanvas = ({ name, ...props }) => {
+const OffCanvas = ({ name, onShowChange, ...props }) => {
     const [show, setShow] = useState(false);
     const [hovered, setHovered] = useState(false);
-    const [mouseInsideCanvas, setMouseInsideCanvas] = useState(false); // Track if mouse is inside canvas
+    const [mouseInsideCanvas, setMouseInsideCanvas] = useState(false);
     const canvasRef = useRef(null);
     const overlayRef = useRef(null);
-    const cursorRef = useRef(null); // Reference for custom cursor
+    const cursorRef = useRef(null); // Ref for custom cursor
 
     const handleShow = () => setShow(true);
-    const handleClose = () => setShow(false);
+    const handleClose = () => {
+        setMouseInsideCanvas(false);
+        setShow(false);
+        if (onShowChange) onShowChange(false);
+    };
 
     useEffect(() => {
+      const cursor = document.getElementById('custom-cursor2');
+  
+      document.addEventListener('mousemove', (e) => {
+        const x = e.pageX;
+        const y = e.pageY;
+  
+        cursor.style.left = `${x}px`;
+        cursor.style.top = `${y}px`;
+  
+        // Efecto de seguimiento suave
+        const followDelay = 30; // Retraso en milisegundos
+        cursor.style.transition = `transform ${followDelay}ms ease-out`;
+        cursor.style.transform = `translate(-50%, -50%) translate(${Math.sin(Date.now() / 100) * 2}px, ${Math.cos(Date.now() / 100) * 2}px)`;
+      });
+  
+      const rotateCursor = () => {
+        cursor.style.transform += ' rotate(1deg)'; // Gira el cursor
+      };
+  
+      const interval = setInterval(rotateCursor, 16); // Aproximadamente 60 FPS
+  
+      return () => {
+        clearInterval(interval); // Limpiar el intervalo al desmontar
+      };
+    }, []);
+
+    useEffect(() => {
+        if (onShowChange) {
+            onShowChange(show);
+        }
+
         if (show) {
-            // Animate the off-canvas in
             gsap.to(canvasRef.current, { 
                 x: 0, 
                 duration: 0.5, 
@@ -26,13 +60,11 @@ const OffCanvas = ({ name, ...props }) => {
                 duration: 0.5 
             });
         } else {
-            // Animate the off-canvas out
             gsap.to(canvasRef.current, { 
                 x: '100%', 
                 duration: 0.5, 
                 ease: 'power2.in',
                 onComplete: () => {
-                    // Once the off-canvas is out, hide the overlay
                     gsap.set(overlayRef.current, { visibility: 'hidden' });
                 }
             });
@@ -40,15 +72,18 @@ const OffCanvas = ({ name, ...props }) => {
                 opacity: 0, 
                 duration: 0.5 
             });
+
+            if (cursorRef.current) {
+                cursorRef.current.style.visibility = 'hidden'; // Hide cursor when offcanvas is closed
+            }
         }
-    }, [show]);
+    }, [show, onShowChange]);
 
     useEffect(() => {
         const handleMouseMove = (e) => {
             if (cursorRef.current) {
                 cursorRef.current.style.left = `${e.pageX}px`;
                 cursorRef.current.style.top = `${e.pageY}px`;
-                cursorRef.current.style.visibility = (show && !mouseInsideCanvas) ? 'visible' : 'hidden'; // Show/hide the custom cursor based on state
             }
         };
 
@@ -56,134 +91,163 @@ const OffCanvas = ({ name, ...props }) => {
         return () => {
             document.removeEventListener('mousemove', handleMouseMove);
         };
-    }, [show, mouseInsideCanvas]); // Add mouseInsideCanvas to the dependency array
+    }, []);
 
     const handleOverlayClick = (e) => {
-        // Close the modal if clicking outside of it
         if (canvasRef.current && !canvasRef.current.contains(e.target)) {
             handleClose();
         }
     };
 
     const handleMouseEnterCanvas = () => {
-        setMouseInsideCanvas(true); // Mouse enters the canvas
+        setMouseInsideCanvas(true);
+        if (cursorRef.current) {
+            cursorRef.current.style.visibility = 'visible'; // Show cursor when mouse is inside
+        }
     };
 
     const handleMouseLeaveCanvas = () => {
-        setMouseInsideCanvas(false); // Mouse leaves the canvas
+        setMouseInsideCanvas(false);
+        if (cursorRef.current) {
+            cursorRef.current.style.visibility = 'visible'; // Keep cursor visible when mouse leaves canvas
+        }
     };
 
+    // Determine cursor style and character based on mouseInsideCanvas
+    const cursorStyle = mouseInsideCanvas ? styles.customCursorInside : styles.customCursorOutside;
+    const cursorCharacter = mouseInsideCanvas ? ' ' : '✖';
+
     return (
-      <>
-        <button 
-          style={{
-            ...styles.infoButton,
-            ...(hovered ? styles.infoButtonHover : {})
-          }} 
-          onClick={handleShow}
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-        >
-          I
-        </button>
+        <>
+            <button 
+                style={{
+                    ...styles.infoButton,
+                    ...(hovered ? styles.infoButtonHover : {})
+                }} 
+                onClick={handleShow}
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+            >
+                I
+            </button>
 
-        <div 
-          ref={overlayRef} 
-          style={styles.overlay} 
-          onClick={handleOverlayClick} // Handle click on the overlay
-        >
-          <div 
-            ref={canvasRef} 
-            style={styles.canvas} 
-            onMouseEnter={handleMouseEnterCanvas} // Set mouse inside state to true
-            onMouseLeave={handleMouseLeaveCanvas} // Set mouse inside state to false
-          >
-            <div style={styles.header}>
-              <h2>Offcanvas</h2>
-              <button onClick={handleClose} style={styles.closeButton}>X</button>
+            <div 
+                ref={overlayRef} 
+                style={styles.overlay} 
+                onClick={handleOverlayClick}
+            >
+                <div 
+                    ref={canvasRef} 
+                    style={styles.canvas} 
+                    onMouseEnter={handleMouseEnterCanvas} 
+                    onMouseLeave={handleMouseLeaveCanvas} 
+                >
+                    <div style={styles.header}>
+                        <h2>Offcanvas</h2>
+                    </div>
+                    <div style={styles.body}>
+                        Some text as placeholder.
+                    </div>
+                </div>
             </div>
-            <div style={styles.body}>
-              Some text as placeholder. In real life you can have the elements you have chosen. Like, text, images, lists, etc.
-            </div>
-          </div>
-        </div>
 
-        <div id="custom-cursor2" ref={cursorRef} style={styles.customCursor}>✖</div> {/* Custom cursor */}
-      </>
+            <div 
+                id="custom-cursor2" 
+                ref={cursorRef} 
+                style={{ ...cursorStyle, visibility: 'visible' }} // Use dynamic style
+            >
+                {cursorCharacter} {/* Use dynamic character */}
+            </div>
+        </>
     );
 };
 
 const styles = {
-  overlay: {
-    position: 'fixed',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    backgroundColor: 'rgba(1, 1, 1, 0.8)',
-    opacity: 0,
-    visibility: 'hidden',
-    display: 'flex',
-    justifyContent: 'flex-end',
-  },
-  canvas: {
-    width: '1200px',
-    height: '100%',
-    color: 'white',
-    backgroundColor: 'black',
-    padding: '20px',
-    display: 'flex',
-    flexDirection: 'column',
-    transform: 'translateX(100%)', // Initial position (off-screen to the right)
-    position: 'relative',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  closeButton: {
-    backgroundColor: 'transparent',
-    border: 'none',
-    fontSize: '20px',
-    cursor: 'pointer',
-  },
-  body: {
-    marginTop: '20px',
-  },
-  infoButton: {
-    margin: '0 3px',
-    padding: '8px 16px',
-    border: '2px solid black', // Initial curved border
-    borderRadius: '20px', // Moderately rounded borders
-    backgroundColor: 'transparent', // Transparent background
-    color: 'black', // Text color
-    fontFamily: 'Courier New, Courier, monospace',
-    fontSize: '16px',
-    cursor: 'pointer',
-    transition: 'border 0.3s ease, background-color 0.3s ease, border-radius 0.3s ease',
-  },
-  infoButtonHover: {
-    border: '2px solid black', // Maintain the border on hover
-    backgroundColor: 'rgba(255, 255, 255, 0.5)', // Background color on hover
-    borderRadius: '0', // Change to square borders on hover
-  },
-  customCursor: {
-    position: 'fixed',
-    width: '20px',
-    height: '20px',
-    backgroundColor: 'white',
-    color: 'black',
-    border: '2px solid black',
-    borderRadius: '0',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    transform: 'translate(-50%, -50%)',
-    pointerEvents: 'none', // Ignore interactions with the cursor
-    zIndex: 1000,
-    visibility: 'hidden', // Hidden by default
-  }
+    overlay: {
+        position: 'fixed',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        backgroundColor: 'rgba(1, 1, 1, 0.8)',
+        opacity: 0,
+        visibility: 'hidden',
+        display: 'flex',
+        justifyContent: 'flex-end',
+    },
+    canvas: {
+        width: '75vw',
+        height: '100%',
+        color: 'white',
+        backgroundColor: 'black',
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        transform: 'translateX(100%)',
+        position: 'relative',
+    },
+    header: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    closeButton: {
+        backgroundColor: 'transparent',
+        border: 'none',
+        fontSize: '20px',
+        cursor: 'pointer',
+    },
+    body: {
+        marginTop: '20px',
+    },
+    infoButton: {
+        margin: '0 3px',
+        padding: '8px 16px',
+        border: '2px solid black',
+        borderRadius: '25px',
+        backgroundColor: 'transparent',
+        color: 'black',
+        fontFamily: 'Courier New, Courier, monospace',
+        fontSize: '16px',
+        cursor: 'pointer',
+        transition: 'border 0.3s ease, background-color 0.3s ease, border-radius 0.3s ease',
+    },
+    infoButtonHover: {
+        border: '2px solid black',
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+        borderRadius: '0',
+    },
+    customCursorInside: {
+        position: 'fixed',
+        width: '15px',
+        height: '15px',
+        backgroundColor: '#ff000080',
+        color: 'white',
+        borderRadius: '2px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        transform: 'translate(-50%, -50%)',
+        pointerEvents: 'none',
+        zIndex: 1000,
+        transition: 'transform 0.1s', /* Suavizar el movimiento */
+        willChange: 'transform',
+    },
+    customCursorOutside: {
+        position: 'fixed',
+        width: '25px',
+        height: '25px',
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        color: 'black',
+        border: '1px solid black',
+        borderRadius: '0',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        transform: 'translate(-50%, -50%)',
+        pointerEvents: 'none',
+        zIndex: 1000,
+    },
 };
 
 export default OffCanvas;
