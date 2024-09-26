@@ -84,7 +84,7 @@ const OffCanvas = ({ name, ...props }) => {
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
         >
-          I
+          i
         </button>
 
         <div 
@@ -152,10 +152,10 @@ const styles = {
     marginTop: '20px',
   },
   infoButton: {
-    margin: '0 3px',
-    padding: '8px 16px',
-    border: '2px solid black', // Initial curved border
-    borderRadius: '20px', // Moderately rounded borders
+    margin: '0 4px',
+    padding: '6px 13px',
+    border: '1px solid #ccc',
+    borderRadius: '0px', // Moderately rounded borders
     backgroundColor: 'transparent', // Transparent background
     color: 'black', // Text color
     fontFamily: 'Courier New, Courier, monospace',
@@ -164,7 +164,7 @@ const styles = {
     transition: 'border 0.3s ease, background-color 0.3s ease, border-radius 0.3s ease',
   },
   infoButtonHover: {
-    border: '2px solid black', // Maintain the border on hover
+    border: '1px solid black', // Maintain the border on hover
     backgroundColor: 'rgba(255, 255, 255, 0.5)', // Background color on hover
     borderRadius: '0', // Change to square borders on hover
   },

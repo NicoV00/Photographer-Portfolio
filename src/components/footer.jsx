@@ -4,13 +4,13 @@ import OffCanvas from './OffCanvas';
 
 const Footer = () => {
   const styles = [
-    'Illustration',
-    'Landscape',
-    'Plants',
-    'Collage',
-    'Archival',
-    'Portraits',
-    'Digital'
+    'illustration',
+    'landscape',
+    'plants',
+    'collage',
+    'archival',
+    'portraits',
+    'digital'
   ];
 
   return (

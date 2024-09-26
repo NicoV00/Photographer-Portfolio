@@ -1,25 +1,29 @@
 .footer {
   display: flex;
   justify-content: center; /* Centra los botones en el footer */
-  padding: 10px; /* Reduce el espaciado interno */
+  align-items: center; /* Centra verticalmente dentro del footer */
   background-color: transparent; /* Fondo transparente */
   border-top: none; /* Sin borde superior */
   position: fixed; /* Para que el footer permanezca en la parte inferior */
-  bottom: 20px; /* Aumenta la distancia del borde inferior */
-  right: 30px; /* Aumenta la distancia del borde derecho */
+  bottom: 15px; /* Aumenta la distancia del borde inferior */
+  right: 15px; /* Aumenta la distancia del borde derecho */
   z-index: 100; /* Asegúrate de que esté encima de otros elementos */
 }
 
 .style-button {
   margin: 0 3px; /* Reduce el espaciado entre botones */
-  padding: 8px 16px; /* Reduce el espaciado interno del botón */
-  border: 2px solid; /* Borde inicial transparente */
-  border-radius: 10px; /* Reduce el radio de bordes */
+  padding: 0 10px; /* Ajusta el padding horizontal, eliminando el padding vertical */
+  height: 30px; /* Ajusta la altura del botón */
+  display: flex; /* Usa flex para centrar el contenido */
+  align-items: center; /* Centra el texto verticalmente */
+  justify-content: center; /* Centra el texto horizontalmente */
+  border: 1px solid rgba(0, 0, 0, 0.2); /* Borde inicial negro con 20% de opacidad */
+  border-radius: 30px; /* Bordes iniciales redondeados */
   background-color: #ffffff; /* Color de fondo del botón */
   font-family: 'Courier New', Courier, monospace; /* Fuente estilo máquina de escribir */
-  font-size: 12px; /* Reduce el tamaño de la fuente */
+  font-size: 12px; /* Tamaño de la fuente */
   cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
-  transition: 'border 0.3s ease, background-color 0.3s ease, border-radius 0.3s ease'; /* Suavizar la transición del borde */
+  transition: border 0.3s ease, background-color 0.3s ease, border-radius 0.3s ease; /* Suavizar la transición del borde */
 }
 
 .style-button:hover {
