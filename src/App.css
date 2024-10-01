@@ -1,41 +1,45 @@
-.container {
+/* Contenedor principal */
+.containerCloud {
   position: relative;
   width: 100vw;
   height: 100vh;
 }
 
+/* Estilo para el nombre del fotógrafo */
 .photographer-name {
   position: absolute;
-  top: 280px; /* Bajar el texto ajustando esta propiedad */
-  left: 15px; /* Mantener alejado del borde izquierdo */
-  font-family: 'Suisse Int\'l', Helvetica, sans-serif; /* Cambiar la fuente */
-  font-size: 50px; /* Tamaño grande para mayor atención */
+  top: 150px; /* Ajusta esta propiedad para bajar el texto */
+  left: 5px; /* Mantén alejado del borde izquierdo */
+  font-family: 'PPSupplyMono', Helvetica, sans-serif; /* Cambia la fuente a PPSupplyMono */
+  font-size: 55px; /* Tamaño grande para mayor atención */
   font-weight: bold; /* Hacer el texto más grueso */
   color: black;
   transform: rotate(-90deg); /* Rotación para que esté de abajo hacia arriba */
   transform-origin: top left;
-  z-index: 10; /* Colocar encima del canvas */
+  z-index: 10; /* Coloca el texto por encima del canvas */
 }
 
+/* Estilos para aplicar efectos a cada letra */
 .letter {
   display: inline-block; /* Permite aplicar efectos a cada letra */
-  transition: color 0.3s ease; /* Transición suave para el cambio de color */
+  transition: color 0.2s ease; /* Transición suave para el cambio de color */
 }
 
+/* Cursor personalizado */
 #custom-cursor {
   position: fixed;
   width: 15px; /* Tamaño del cuadrado del cursor */
   height: 15px; /* Tamaño del cuadrado del cursor */
   background-color: rgba(0, 0, 0, 0.5); /* Color del cuadrado */
   border-radius: 2px; /* Esquinas redondeadas opcionalmente */
-  pointer-events: none; /* Ignorar interacciones con el cursor */
-  transform: translate(-50%, -50%); /* Centrar el cursor */
-  transition: transform 0.1s; /* Suavizar el movimiento */
+  pointer-events: none; /* Ignora interacciones con el cursor */
+  transform: translate(-50%, -50%); /* Centra el cursor */
+  transition: transform 0.1s; /* Suaviza el movimiento */
   will-change: transform; /* Mejora el rendimiento */
-  z-index: 1000; /* Asegúrate de que esté encima de todo */
+  z-index: 1000; /* Asegura que esté por encima de todo */
 }
 
-/* Estilos para los puntos en los vértices */
+/* Estilos para los puntos en los vértices del cursor */
 .point {
   position: absolute;
   width: 5px; /* Tamaño de los puntos */
@@ -44,26 +48,36 @@
   border-radius: 50%; /* Puntos redondeados */
 }
 
+/* Posicionamiento de los puntos */
 #point1 {
-  top: -5px; 
+  top: -5px;
   left: -5px;
 }
 
 #point2 {
-  top: -5px; 
+  top: -5px;
   right: -5px;
 }
 
 #point3 {
-  bottom: -5px; 
+  bottom: -5px;
   left: -5px;
 }
 
 #point4 {
-  bottom: -5px; 
+  bottom: -5px;
   right: -5px;
 }
 
+/* Oculta el cursor predeterminado del navegador */
 body {
   cursor: none; /* Oculta el cursor predeterminado */
+}
+
+/* Definición de la fuente PPSupplyMono-Regular */
+@font-face {
+  font-family: 'PPSupplyMono';
+  src: url('./fonts/PPSupplyMono-Regular.otf') format('opentype'); /* Asegúrate que la ruta sea correcta */
+  font-weight: normal;
+  font-style: normal;
 }

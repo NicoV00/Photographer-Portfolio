@@ -1,29 +1,27 @@
 .footer {
   display: flex;
-  justify-content: center; /* Centra los botones en el footer */
-  align-items: center; /* Centra verticalmente dentro del footer */
-  background-color: transparent; /* Fondo transparente */
-  border-top: none; /* Sin borde superior */
-  position: fixed; /* Para que el footer permanezca en la parte inferior */
-  bottom: 15px; /* Aumenta la distancia del borde inferior */
-  right: 15px; /* Aumenta la distancia del borde derecho */
-  z-index: 100; /* Asegúrate de que esté encima de otros elementos */
+  justify-content: center;
+  padding: 10px;
+  background-color: transparent;
+  border-top: none;
+  position: fixed;
+  bottom: -10px; /* Baja el footer más allá del límite visible */
+  right: 5px;  
+  z-index: 100;
 }
 
 .style-button {
-  margin: 0 3px; /* Reduce el espaciado entre botones */
-  padding: 0 10px; /* Ajusta el padding horizontal, eliminando el padding vertical */
-  height: 30px; /* Ajusta la altura del botón */
-  display: flex; /* Usa flex para centrar el contenido */
-  align-items: center; /* Centra el texto verticalmente */
-  justify-content: center; /* Centra el texto horizontalmente */
-  border: 1px solid rgba(0, 0, 0, 0.2); /* Borde inicial negro con 20% de opacidad */
-  border-radius: 30px; /* Bordes iniciales redondeados */
-  background-color: #ffffff; /* Color de fondo del botón */
-  font-family: 'Courier New', Courier, monospace; /* Fuente estilo máquina de escribir */
-  font-size: 12px; /* Tamaño de la fuente */
-  cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
-  transition: border 0.3s ease, background-color 0.3s ease, border-radius 0.3s ease; /* Suavizar la transición del borde */
+  margin: 0 2px; 
+  padding: 3px;
+  height: 24px;
+  line-height: 22px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 25px;
+  background-color: #ffffff;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border 0.3s ease, background-color 0.3s ease, border-radius 0.3s ease;
 }
 
 .style-button:hover {

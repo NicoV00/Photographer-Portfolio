@@ -1,15 +1,21 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './App.css';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import About1 from './components/About1';
 import Footer from './components/footer';
 import OffCanvas from './components/OffCanvas';
 
 function App() {
-  const photographerName = "Enzo Cimilo";
+  const photographerName = "ENZO";
   const lettersRef = useRef([]);
   const cursorRef = useRef(null);
-  
+  const [isOffCanvasOpen, setIsOffCanvasOpen] = useState(false);
+
+  const handleOffCanvasState = (show) => {
+    setIsOffCanvasOpen(show);
+    console.log('OffCanvas state in App:', show);
+  };
+
   useEffect(() => {
     const handleMouseOver = () => {
       lettersRef.current.forEach((letter, index) => {
@@ -52,7 +58,7 @@ function App() {
     });
 
     const rotateCursor = () => {
-      cursor.style.transform += ' rotate(1deg)'; // Gira el cursor
+      cursor.style.transform += ' rotate(2deg)'; // Gira el cursor
     };
 
     const interval = setInterval(rotateCursor, 16); // Aproximadamente 60 FPS
@@ -62,8 +68,17 @@ function App() {
     };
   }, []);
 
+  const CameraLogger = () => {
+    const { camera } = useThree(); // Get the camera
+
+    useFrame(() => {
+    });
+
+    return null; // No need to render anything
+  };
+
   return (
-    <div className="container">
+    <div className="containerCloud">
       <div className="photographer-name">
         {photographerName.split('').map((letter, index) => (
           <span 
@@ -80,17 +95,19 @@ function App() {
       <Canvas
         camera={{
           fov: 64,
-          position: [0, 0, 50],
+          position: [25, 0, 35],
         }}
       >
         <About1 />
+        <CameraLogger />
       </Canvas>
-      <Footer />
-      <div id="custom-cursor">
-        <div className="point" id="point1"></div>
-        <div className="point" id="point2"></div>
-        <div className="point" id="point3"></div>
-        <div className="point" id="point4"></div>
+      <Footer onShowChange={handleOffCanvasState}/>
+      <div 
+        id="custom-cursor"
+        style={{
+          visibility: isOffCanvasOpen ? 'hidden' : 'visible' // Oculta el cursor personalizado cuando OffCanvas está activo
+        }}
+      >
       </div>
     </div>
   );

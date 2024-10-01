@@ -1,16 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Footer.css'; // Asegúrate de crear este archivo CSS
 import OffCanvas from './OffCanvas';
 
-const Footer = () => {
+const Footer = ({ onShowChange }) => {
   const styles = [
-    'illustration',
-    'landscape',
-    'plants',
-    'collage',
-    'archival',
-    'portraits',
-    'digital'
+    'MUF',
+    'A.del.Amour',
+    'Blua',
+    'Kiosko	',
+    'Archivo',
+    'Lenoir',
+    'CH1MA'
   ];
 
   return (
@@ -20,7 +20,7 @@ const Footer = () => {
           {style}
         </button>
       ))}
-      <OffCanvas />
+      <OffCanvas onShowChange={onShowChange} />
     </footer>
   );
 };

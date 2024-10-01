@@ -1,13 +1,22 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
-import { Canvas, useLoader, useFrame } from '@react-three/fiber';
-import OffCanvas from './OffCanvas';
+import { useLoader, useFrame } from '@react-three/fiber';
+import { gsap } from 'gsap'; // Import GSAP
 
 const ImageMesh = ({ position, texture, refProp, onClick }) => {
+  const [aspectRatio, setAspectRatio] = useState(1);
+
+  useEffect(() => {
+    if (texture.image) {
+      // Calculate the aspect ratio of the image
+      setAspectRatio(texture.image.width / texture.image.height);
+    }
+  }, [texture]);
+
   return (
     <group ref={refProp} position={position}>
       <mesh onClick={onClick}>
-        <planeGeometry args={[4, 3]} /> {/* Adjust size as needed */}
+        <planeGeometry args={[5 * aspectRatio, 5]} />
         <meshBasicMaterial map={texture} />
       </mesh>
     </group>
@@ -15,68 +24,132 @@ const ImageMesh = ({ position, texture, refProp, onClick }) => {
 };
 
 const AnimatedCarousel = () => {
-  // Load original textures
-  const texture1 = useLoader(THREE.TextureLoader, "./images/DSC00993.jpg");
-  const texture2 = useLoader(THREE.TextureLoader, "./images/DSC00994.jpg");
-  const texture3 = useLoader(THREE.TextureLoader, "./images/DSC00995.jpg");
-
-  // Load placeholder textures
-  const placeholderTexture = useLoader(THREE.TextureLoader, "https://picsum.photos/400/300");
-
-  // Create an array of refs and positions for 20 images
-  const refs = Array.from({ length: 20 }, () => useRef());
-  const positions = [
-    [-8, -5, -10], [-1, -2, -23],  // [n, n, n]
-    [8, -1, -12], [4, -1, -4],  // [p, n, n]
-    [4, 4, -20], [12, 8, -11], // [p, p, n]
-    [0, 1, 25], [10, 2, 8], // [p, p, p]
-    [-10, -4, 5], [-2, -3, 18], [11, 5, -13],// [n, nn, p]
-    [-12, 5, 12], [-7, 3, 22], [-7, 2, -14],// [n, p, p]
-    [8, -2, 15], [5, -1, 19], [9, 2, -17], // [p, n, p]
-    [-12, 6, -10], [-10, 3, -20], [-1, 4, -18], // [n, p, n]
+  const textures = [
+    useLoader(THREE.TextureLoader, "./images/blua_constelaciones_finales.jpg"),
+    useLoader(THREE.TextureLoader, "./images/LF-11.jpg"),
+    useLoader(THREE.TextureLoader, "./images/LFF-15.jpg"),
+    useLoader(THREE.TextureLoader, "./images/D2F-10.jpg"),
+    useLoader(THREE.TextureLoader, "./images/PLATA-2.jpg"),
+    useLoader(THREE.TextureLoader, "./images/L-5.jpg"),
+    useLoader(THREE.TextureLoader, "./images/L-8.jpg"),
   ];
 
-  const [isOpen, setIsOpen] = useState(false);
+  const refs = Array.from({ length: textures.length }, () => useRef());
+  const originalPositions = [
+    [-8, -5, -10], [-1, -2, -23],
+    [8, -1, -12], [4, -1, -4],
+    [4, 4, -20], [-4, -4, -20],
+    [-8, 2, -15],
+  ];
+
   const [selectedImage, setSelectedImage] = useState(null);
+  const cameraRef = useRef();
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+  const groupRef = useRef();
 
   const handleClick = (index) => {
-    setSelectedImage(index);
-    setIsOpen(true);
+    if (selectedImage === index) {
+      resetImagePositions(); // Si ya está seleccionada, resetea
+    } else {
+      setSelectedImage(index);
+      animateImageToFront(index);
+    }
+  };
+
+  const animateImageToFront = (index) => {
+    const ref = refs[index]?.current;
+    if (ref && cameraRef.current) {
+      gsap.to(ref.position, {
+        x: 0,
+        y: 0,
+        z: -2, // Acerca la imagen más a la cámara
+        duration: 1,
+      });
+
+      // Aumentar el tamaño de la imagen
+      gsap.to(ref.scale, {
+        x: 6, // Tamaño en el eje X
+        y: 6, // Tamaño en el eje Y
+        z: 6, // Tamaño en el eje Z
+        duration: 1,
+      });
+
+      // Añadir desenfoque al fondo
+      gsap.to(refs.map((r) => r.current).filter((r, i) => i !== index), {
+        scale: 0.5, // Reducir el tamaño de las imágenes en el fondo
+        duration: 1,
+      });
+    }
   };
 
   useFrame(({ camera }) => {
-    // Make each mesh look at the camera
+    cameraRef.current = camera;
     refs.forEach(ref => {
       if (ref.current) {
         ref.current.lookAt(camera.position);
       }
     });
+
+    // Rota el grupo en sentido antihorario alrededor del eje Y
+    if (groupRef.current) {
+      groupRef.current.rotation.x += 0.001; // Cambio a rotación en Y
+    }
   });
 
-  const closePanel = () => {
-    setIsOpen(false);
+  const resetImagePositions = () => {
+    refs.forEach((ref, index) => {
+      if (ref.current) {
+        gsap.to(ref.current.position, {
+          x: originalPositions[index][0],
+          y: originalPositions[index][1],
+          z: originalPositions[index][2],
+          duration: 1,
+        });
+        // Resetear el tamaño de las imágenes
+        gsap.to(ref.current.scale, {
+          x: 1, // Tamaño original en el eje X
+          y: 1, // Tamaño original en el eje Y
+          z: 1, // Tamaño original en el eje Z
+          duration: 1,
+        });
+      }
+    });
+    setSelectedImage(null); // Reiniciar la imagen seleccionada
   };
 
-  return (
-    <>
-      <group>
-        {/* Use the first 3 textures for the first 3 images */}
-        <ImageMesh refProp={refs[0]} position={positions[0]} texture={texture1} onClick={() => handleClick(0)} />
-        <ImageMesh refProp={refs[1]} position={positions[1]} texture={texture2} onClick={() => handleClick(1)} />
-        <ImageMesh refProp={refs[2]} position={positions[2]} texture={texture3} onClick={() => handleClick(2)} />
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, cameraRef.current);
+      const intersects = refs.map(ref => ref.current).filter(ref => ref).reduce((acc, ref) => {
+        const intersection = raycaster.intersectObject(ref);
+        return acc.concat(intersection);
+      }, []);
+      if (intersects.length === 0) {
+        resetImagePositions(); // Restablecer posiciones si se hace clic fuera
+      }
+    };
 
-        {/* Usa la textura placeholder para las imágenes restantes */}
-        {refs.slice(3).map((ref, index) => (
-          <ImageMesh
-            key={index + 3}
-            refProp={ref}
-            position={positions[index + 3]}
-            texture={placeholderTexture}
-            onClick={() => handleClick(index + 3)} // Captura el clic
-          />
-        ))}
-      </group>
-    </>
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [refs]);
+
+  return (
+    <group ref={groupRef}>
+      {textures.map((texture, index) => (
+        <ImageMesh
+          key={index}
+          refProp={refs[index]}
+          position={originalPositions[index]}
+          texture={texture}
+          onClick={() => handleClick(index)}
+        />
+      ))}
+    </group>
   );
 };
 
