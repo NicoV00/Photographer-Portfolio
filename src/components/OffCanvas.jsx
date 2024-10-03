@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 
-const OffCanvas = ({ name, ...props }) => {
+const OffCanvas = ({ name, onShowChange, ...props }) => {
     const [show, setShow] = useState(false);
     const [mouseInsideCanvas, setMouseInsideCanvas] = useState(false); // Track if mouse is inside canvas
     const canvasRef = useRef(null);
@@ -9,8 +9,8 @@ const OffCanvas = ({ name, ...props }) => {
     const cursorRef = useRef(null); // Reference for custom cursor
     const [isHovered, setIsHovered] = useState(false); // State to track hover
 
-    const handleShow = () => setShow(true);
-    const handleClose = () => setShow(false);
+    const handleShow = () => {setShow(true); if (onShowChange) onShowChange(true);};
+    const handleClose = () => {setShow(false); if (onShowChange) onShowChange(false);};
 
     useEffect(() => {
         if (show) {
@@ -118,7 +118,7 @@ const OffCanvas = ({ name, ...props }) => {
           onClick={handleCursorClick} // Close modal on cursor click
         >
           ✖
-        </div> {/* Custom cursor */}
+        </div>
       </>
     );
 };
@@ -130,7 +130,7 @@ const styles = {
     right: 0,
     bottom: 0,
     left: 0,
-    backgroundColor: 'rgba(1, 1, 1, 0.8)',
+    backgroundColor: 'rgba(1, 1, 1, 0.2)',
     opacity: 0,
     visibility: 'hidden',
     display: 'flex',

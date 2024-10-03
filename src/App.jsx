@@ -4,12 +4,23 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import About1 from './components/About1';
 import Footer from './components/footer';
 import OffCanvas from './components/OffCanvas';
+import { OverlayPy } from './components/OverlayPy';
 
 function App() {
   const photographerName = "ENZO";
   const lettersRef = useRef([]);
-  const cursorRef = useRef(null);
+  const [showDiv, setShowDiv] = useState(false);
+  const [index, setIndex] = useState('false');
   const [isOffCanvasOpen, setIsOffCanvasOpen] = useState(false);
+  const images = [
+    "./images/blua_constelaciones_finales.jpg",
+    "./images/LF-11.jpg",
+    "./images/LFF-15.jpg",
+    "./images/D2F-10.jpg",
+    "./images/PLATA-2.jpg",
+    "./images/L-5.jpg",
+    "./images/L-8.jpg",
+  ]
 
   const handleOffCanvasState = (show) => {
     setIsOffCanvasOpen(show);
@@ -17,6 +28,7 @@ function App() {
   };
 
   useEffect(() => {
+
     const handleMouseOver = () => {
       lettersRef.current.forEach((letter, index) => {
         letter.style.transitionDelay = `${index * 50}ms`; // Retraso por letra
@@ -42,6 +54,7 @@ function App() {
   }, []);
 
   useEffect(() => {
+
     const cursor = document.getElementById('custom-cursor');
 
     document.addEventListener('mousemove', (e) => {
@@ -68,47 +81,39 @@ function App() {
     };
   }, []);
 
-  const CameraLogger = () => {
-    const { camera } = useThree(); // Get the camera
-
-    useFrame(() => {
-    });
-
-    return null; // No need to render anything
-  };
-
   return (
     <div className="containerCloud">
-      <div className="photographer-name">
-        {photographerName.split('').map((letter, index) => (
-          <span 
-            key={index} 
-            className="letter" 
-            ref={el => lettersRef.current[index] = el} // Guardar referencia de cada letra
-          >
-            {letter}
-          </span>
-        ))}
-      </div>
+      
+        <div className="photographer-name">
+          {photographerName.split('').map((letter, index) => (
+            <span 
+              key={index} 
+              className="letter" 
+              ref={el => lettersRef.current[index] = el} // Guardar referencia de cada letra
+            >
+              {letter}
+            </span>
+          ))}
+        </div>
 
-      {/* Canvas de Three.js */}
-      <Canvas
-        camera={{
-          fov: 64,
-          position: [25, 0, 35],
-        }}
-      >
-        <About1 />
-        <CameraLogger />
-      </Canvas>
-      <Footer onShowChange={handleOffCanvasState}/>
-      <div 
-        id="custom-cursor"
-        style={{
-          visibility: isOffCanvasOpen ? 'hidden' : 'visible' // Oculta el cursor personalizado cuando OffCanvas está activo
-        }}
-      >
-      </div>
+        {/* Canvas de Three.js */}
+        <Canvas
+          camera={{
+            fov: 64,
+            position: [0, 0, 35],
+          }}
+        >
+          <About1 setIndex={setIndex} setShowDiv={setShowDiv}/>
+        </Canvas>
+        <OverlayPy image={images[index]} showDiv={showDiv}/>
+        <Footer onShowChange={handleOffCanvasState}/>
+        <div 
+          id="custom-cursor"
+          style={{
+            visibility: isOffCanvasOpen ? 'hidden' : 'visible' // Oculta el cursor personalizado cuando OffCanvas está activo
+          }}
+        >
+        </div>
     </div>
   );
 }

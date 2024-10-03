@@ -1,9 +1,8 @@
 import React, { useEffect } from "react";
 import { OrbitControls } from "@react-three/drei";
 import AnimatedCarousel from "./AnimatedImage";
-import { useFrame } from "@react-three/fiber";
 
-const About1 = () => {
+const About1 = ({ setIndex, setShowDiv }) => {
   return (
     <>
       {/* Ambient and Directional Lights */}
@@ -15,7 +14,7 @@ const About1 = () => {
       <pointLight position={[-5, 5, -5]} intensity={5.7} />
 
       <OrbitControls />
-      <AnimatedCarousel />
+      <AnimatedCarousel setIndex={setIndex} setShowDiv={setShowDiv} />
     </>
   );
 };
