@@ -91,6 +91,9 @@ function App() {
         ))}
       </div>
 
+      {/* Logo */}
+      <img src="./images/logoo.gif" alt="Logo" className="logo" />
+
       {/* Canvas de Three.js */}
       <Canvas
         camera={{

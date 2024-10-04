@@ -19,6 +19,27 @@
   z-index: 10; /* Coloca el texto por encima del canvas */
 }
 
+/* Estilo para el logo */
+.logo {
+  position: absolute;
+  top: 250px; /* Ajusta según necesites para que quede debajo de ENZO */
+  left: 20px; /* Ajusta el valor según la alineación que desees */
+  width: 150px; /* Ajusta el tamaño según sea necesario */
+  height: auto;
+  z-index: 9; /* Coloca el logo detrás del texto pero por delante de otros elementos */
+  filter: invert(100%); /* Invertir los colores del logo */
+}
+
+.logo {
+  position: absolute;
+  top: 150px; /* Ajusta según necesites para que quede debajo de ENZO */
+  left: 7px; /* Ajusta el valor según la alineación que desees */
+  width: 65px; /* Ajusta el tamaño según sea necesario */
+  height: auto;
+  z-index: 9; /* Coloca el logo detrás del texto pero por delante de otros elementos */
+  filter: invert(100%); /* Invertir los colores del logo */
+}
+
 /* Estilos para aplicar efectos a cada letra */
 .letter {
   display: inline-block; /* Permite aplicar efectos a cada letra */
