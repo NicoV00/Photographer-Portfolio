@@ -19,27 +19,6 @@
   z-index: 10; /* Coloca el texto por encima del canvas */
 }
 
-/* Estilo para el logo */
-.logo {
-  position: absolute;
-  top: 250px; /* Ajusta según necesites para que quede debajo de ENZO */
-  left: 20px; /* Ajusta el valor según la alineación que desees */
-  width: 150px; /* Ajusta el tamaño según sea necesario */
-  height: auto;
-  z-index: 9; /* Coloca el logo detrás del texto pero por delante de otros elementos */
-  filter: invert(100%); /* Invertir los colores del logo */
-}
-
-.logo {
-  position: absolute;
-  top: 150px; /* Ajusta según necesites para que quede debajo de ENZO */
-  left: 7px; /* Ajusta el valor según la alineación que desees */
-  width: 65px; /* Ajusta el tamaño según sea necesario */
-  height: auto;
-  z-index: 9; /* Coloca el logo detrás del texto pero por delante de otros elementos */
-  filter: invert(100%); /* Invertir los colores del logo */
-}
-
 /* Estilos para aplicar efectos a cada letra */
 .letter {
   display: inline-block; /* Permite aplicar efectos a cada letra */
@@ -58,36 +37,6 @@
   transition: transform 0.1s; /* Suaviza el movimiento */
   will-change: transform; /* Mejora el rendimiento */
   z-index: 1000; /* Asegura que esté por encima de todo */
-}
-
-/* Estilos para los puntos en los vértices del cursor */
-.point {
-  position: absolute;
-  width: 5px; /* Tamaño de los puntos */
-  height: 5px; /* Tamaño de los puntos */
-  background-color: rgba(255, 0, 0, 0.5); /* Color de los puntos */
-  border-radius: 50%; /* Puntos redondeados */
-}
-
-/* Posicionamiento de los puntos */
-#point1 {
-  top: -5px;
-  left: -5px;
-}
-
-#point2 {
-  top: -5px;
-  right: -5px;
-}
-
-#point3 {
-  bottom: -5px;
-  left: -5px;
-}
-
-#point4 {
-  bottom: -5px;
-  right: -5px;
 }
 
 /* Oculta el cursor predeterminado del navegador */

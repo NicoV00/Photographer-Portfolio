@@ -23,7 +23,7 @@ const ImageMesh = ({ position, texture, refProp, onClick }) => {
   );
 };
 
-const AnimatedCarousel = () => {
+const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
   const textures = [
     useLoader(THREE.TextureLoader, "./images/blua_constelaciones_finales.jpg"),
     useLoader(THREE.TextureLoader, "./images/LF-11.jpg"),
@@ -32,59 +32,141 @@ const AnimatedCarousel = () => {
     useLoader(THREE.TextureLoader, "./images/PLATA-2.jpg"),
     useLoader(THREE.TextureLoader, "./images/L-5.jpg"),
     useLoader(THREE.TextureLoader, "./images/L-8.jpg"),
+    useLoader(THREE.TextureLoader, "./images/CAT-17.jpg"),
+    useLoader(THREE.TextureLoader, "./images/D-09.jpg"),
+    useLoader(THREE.TextureLoader, "./images/KA_PUENTE1.1-04.jpg"),
+    useLoader(THREE.TextureLoader, "./images/L-1.jpg"),
+    useLoader(THREE.TextureLoader, "./images/L-12.jpg"),
+    useLoader(THREE.TextureLoader, "./images/MARCOS-34.jpg"),
+    useLoader(THREE.TextureLoader, "./images/NWB&W-09.jpg"),
+    useLoader(THREE.TextureLoader, "./images/O4-1.jpg"),
+    useLoader(THREE.TextureLoader, "./images/PLATA-2.jpg"),
+    useLoader(THREE.TextureLoader, "./images/S-1.jpg")
   ];
 
   const refs = Array.from({ length: textures.length }, () => useRef());
   const originalPositions = [
-    [-8, -5, -10], [-1, -2, -23],
-    [8, -1, -12], [4, -1, -4],
-    [4, 4, -20], [-4, -4, -20],
-    [-8, 2, -15],
+    [4, 1, 4], [1, 5, 8], [12, 6, 10],  // Quadrant (1) (+, +, +)
+    [8, 5, -12], [4, 3, -5], // Quadrant (2) (+, +, -)
+    [8, -2, 15], [3, -2, 1.], // Quadrant (3) (+, -, +)
+    [1, -2, -13], [6, 0, -6], // Quadrant (4) (+, -, -)
+    [-4, 4, 12], [-7, 1, 14], // Quadrant (5) (-, +, +)
+    [-8, 4, -10], [-2, 3, 12], // Quadrant (6) (-, +, -)
+    [-4, -4, 12], [-1, -5, 10], // Quadrant (7) (-, -, +)
+    [-8, -5, -15], [4, -3, -9], // Quadrant (8) (-, -, -)
   ];
 
-  const [selectedImage, setSelectedImage] = useState(null);
+  const groupRef = useRef();
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState([]);
+  const [isImageUpFront, setIsImageUpFront] = useState(false);
   const cameraRef = useRef();
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
-  const groupRef = useRef();
 
   const handleClick = (index) => {
-    if (selectedImage === index) {
-      resetImagePositions(); // Si ya está seleccionada, resetea
-    } else {
-      setSelectedImage(index);
-      animateImageToFront(index);
-    }
-  };
+    // Check if the image is already selected to avoid duplicates
+    if (!(selectedImage.includes(index))) {
+      // Update the selected images state
+      setSelectedImage((prev) => {
+          const updatedList = [...prev, index]; // Add the new index          
+          // Trigger animation for the closest image after the state update
+          const closestImageIndex = findClosestImage(updatedList); // Pass updated list here
+          if (closestImageIndex !== null) {
+              animateImageToFront(closestImageIndex);
+          } else {
+              animateImageToFront(index);
+          }
+          return updatedList; // Return the updated list
+      });
+      //console.log(`Image ${index} clicked`);
+  } else {
+      resetImagePositions();
+  }
+};
 
-  const animateImageToFront = (index) => {
-    const ref = refs[index]?.current;
-    if (ref && cameraRef.current) {
+const animateImageToFront = (index) => {
+  setIsImageUpFront(true);
+  refs.forEach((ref, i) => {
+      if (i === index) {
+          return;
+      }
+      console.log('sabias', originalPositions[i])
+      gsap.to(ref.current.position, {
+          x: originalPositions[i][0] + 20,
+          y: originalPositions[i][1] + 20,
+          z: originalPositions[i][2] + 20,
+          duration: 1,
+      });
+  })
+
+  const ref = refs[index]?.current; // Use optional chaining
+  if (ref && cameraRef.current) {
+      const camera = cameraRef.current;
+      console.log('camera position:', camera.position);
+ 
+      // Get camera's forward direction vector
+      const forwardVector = new THREE.Vector3();
+      camera.getWorldDirection(forwardVector); // Gets the normalized vector of the camera's forward direction
+      
+      // Calculate the position in front of the camera (e.g., 5 units in front)
+      const distanceFromCamera = 1; // You can change this to the desired distance
+      const targetPosition = new THREE.Vector3();
+      targetPosition.copy(camera.position).add(forwardVector.multiplyScalar(distanceFromCamera));
+      setIndex(index);
+      setShowDiv(true);
+      // Animate the image to the target position in front of the camera
       gsap.to(ref.position, {
-        x: 0,
-        y: 0,
-        z: -2, // Acerca la imagen más a la cámara
-        duration: 1,
+          x: 0,
+          y: 0,
+          z: 0,
+          duration: 1,
+          onComplete: () => {
+              // Logic after animation completes, if needed
+              const closestImageIndex = findClosestImage(selectedImage); // Pass selectedImage if required
+              console.log('image position:', ref.position);
+          },
       });
+      // Animate the camera to the new position
+      gsap.to(camera.position, {
+        x: 3,
+        y: 3,
+        z: 3,
+        duration: 1,
+        onComplete: () => {
+            // You can handle additional logic here if needed
+            console.log('Camera moved to:', camera.position);
+            setIndex(index);
+            setShowDiv(true);
+        },
+    });
+  }
+};
 
-      // Aumentar el tamaño de la imagen
-      gsap.to(ref.scale, {
-        x: 6, // Tamaño en el eje X
-        y: 6, // Tamaño en el eje Y
-        z: 6, // Tamaño en el eje Z
-        duration: 1,
-      });
-
-      // Añadir desenfoque al fondo
-      gsap.to(refs.map((r) => r.current).filter((r, i) => i !== index), {
-        scale: 0.5, // Reducir el tamaño de las imágenes en el fondo
-        duration: 1,
-      });
-    }
-  };
+const findClosestImage = (updatedList) => { // Accept updated list as a parameter
+  if (updatedList.length === 0) {
+      return null;
+  }
+  const cameraPosition = cameraRef.current.position.clone();
+  let closestIndex = updatedList[0]; // Start with the first selected image
+  let closestDistance = Infinity; // Initialize closestDistance to Infinity
+  // Iterate only over the provided list of selected images
+  updatedList.forEach((index) => {
+      const ref = refs[index]; // Get the reference for the selected image
+      if (ref && ref.current) { // Check if the ref and current position exist
+          const distance = ref.current.position.distanceTo(cameraPosition);
+          if (distance < closestDistance) {
+              closestDistance = distance;
+              closestIndex = index; // Update closestIndex to the current index if distance is smaller
+          }
+      }
+  });
+  return closestIndex; // Return the closest selected image index
+};
 
   useFrame(({ camera }) => {
     cameraRef.current = camera;
+    //console.log('camera position:', camera.position);
     refs.forEach(ref => {
       if (ref.current) {
         ref.current.lookAt(camera.position);
@@ -92,12 +174,15 @@ const AnimatedCarousel = () => {
     });
 
     // Rota el grupo en sentido antihorario alrededor del eje Y
-    if (groupRef.current) {
+    if (groupRef.current && !isImageUpFront) {
       groupRef.current.rotation.x += 0.001; // Cambio a rotación en Y
     }
   });
 
   const resetImagePositions = () => {
+    setShowDiv(false);
+    const camera = cameraRef.current;
+
     refs.forEach((ref, index) => {
       if (ref.current) {
         gsap.to(ref.current.position, {
@@ -106,16 +191,22 @@ const AnimatedCarousel = () => {
           z: originalPositions[index][2],
           duration: 1,
         });
-        // Resetear el tamaño de las imágenes
-        gsap.to(ref.current.scale, {
-          x: 1, // Tamaño original en el eje X
-          y: 1, // Tamaño original en el eje Y
-          z: 1, // Tamaño original en el eje Z
-          duration: 1,
-        });
       }
     });
-    setSelectedImage(null); // Reiniciar la imagen seleccionada
+    if (isImageUpFront) {
+      gsap.to(camera.position, {
+        x: 0,
+        y: 0,
+        z: 35,
+        duration: 1,
+        onComplete: () => {
+                // You can handle additional logic here if needed
+                console.log('Camera moved to:', camera.position);
+                },
+        });
+      }
+    setIsImageUpFront(false);
+    setSelectedImage([]); // Reiniciar la imagen seleccionada
   };
 
   useEffect(() => {
