@@ -117,7 +117,7 @@ function App() {
         <About1 setIndex={setIndex} setShowDiv={setShowDiv} />
       </Canvas>
 
-      <OverlayPy image={images[index]} showDiv={showDiv} />
+      {/*<OverlayPy image={images[index]} showDiv={showDiv} /> */}
       <Footer onShowChange={handleOffCanvasState} />
 
       {/* Cursor personalizado */}
