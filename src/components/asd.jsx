@@ -8,7 +8,7 @@ const ImageMesh = ({ position, texture, refProp, onClick }) => {
   return (
     <group ref={refProp} position={position}>
       <mesh onClick={onClick}>
-        <planeGeometry args={[4, 3]} /> {/* Adjust size as needed */}
+        <planeGeometry args={[5, 4]} /> {/* Adjust size as needed */}
         <meshBasicMaterial map={texture} />
       </mesh>
     </group>
@@ -25,17 +25,19 @@ const AnimatedCarousel = () => {
   const placeholderTexture = useLoader(THREE.TextureLoader, "https://picsum.photos/400/300");
 
   // Create an array of refs and positions for images
-  const refs = Array.from({ length: 20 }, () => useRef());
   const originalPositions = [
-    [-8, -5, -10], [-1, -2, -23],
-    [8, -1, -12], [4, -1, -4],
-    [4, 4, -20], [12, 8, -11],
-    [0, 1, 25], [10, 2, 8],
-    [-10, -4, 5], [-2, -3, 18], [11, 5, -13],
-    [-12, 5, 12], [-7, 3, 22], [-7, 2, -14],
-    [8, -2, 15], [5, -1, 19], [9, 2, -17],
-    [-12, 6, -10], [-10, 3, -20], [-1, 4, -18],
-  ];
+  [-20, -10, -30], [15, 5, -25],
+  [10, -8, -12], [5, 0, -5],  
+  [0, 12, -20], [-15, -5, -10], 
+  [8, -2, 15], [-10, 6, 8],
+  [12, 4, 5], [-5, 1, -7],   
+  [-2, -4, 12], [0, 0, 0],  // Imagen en el centro
+  [7, -1, 2], [-6, 3, -5],  
+  [20, -5, -8], [-17, 8, -3],  
+  [3, -7, 20], [5, 10, -12], 
+  [-10, 2, -18], [-3, 4, -22],
+];
+
 
   const [isOpen, setIsOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState([]);
@@ -129,15 +131,9 @@ const findClosestImage = (updatedList) => { // Accept updated list as a paramete
     return closestIndex; // Return the closest selected image index
 };
 
-  useFrame(({ camera }) => {
-    cameraRef.current = camera; // Update camera reference
-    // Make each mesh look at the camera
-    refs.forEach(ref => {
-      if (ref.current) {
-        ref.current.lookAt(camera.position);
-      }
-    });
-  });
+useFrame(({ camera }) => {
+  cameraRef.current = camera; // Actualiza la referencia de la cámara
+});
 
   const closePanel = () => {
     setIsOpen(false);

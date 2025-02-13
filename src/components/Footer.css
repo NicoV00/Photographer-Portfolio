@@ -1,30 +1,43 @@
 .footer {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 10px;
   padding: 10px;
   background-color: transparent;
   border-top: none;
   position: fixed;
-  bottom: -10px; /* Baja el footer más allá del límite visible */
-  right: 5px;  
+  bottom: 5px;
+  right: 5px;
   z-index: 100;
 }
 
 .style-button {
-  margin: 0 2px; 
-  padding: 3px;
-  height: 24px;
-  line-height: 22px;
+  padding: 0 10px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 25px;
-  background-color: #ffffff;
+  border-radius: 15px;
+  background-color: transparent;
+  color: #000;
   font-family: 'Courier New', Courier, monospace;
   font-size: 14px;
   cursor: pointer;
-  transition: border 0.3s ease, background-color 0.3s ease, border-radius 0.3s ease;
+  transition: all 0.3s ease;
+  text-align: center;
+  line-height: 1; /* Alineación perfecta */
+}
+
+.gallery-button {
+  /* Estilo especial para el botón de galería */
+  position: relative;
 }
 
 .style-button:hover {
-  border-color: #000; /* Cambia el color del borde al hacer hover */
-  border-radius: 0; /* Cambia a bordes rectos */
+  border-color: #000;
+  border-radius: 0;
+  color: #666;
+  transform: translateY(-2px);
 }

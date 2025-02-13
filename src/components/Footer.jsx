@@ -1,25 +1,39 @@
 import React, { useState } from 'react';
-import './Footer.css'; // Asegúrate de crear este archivo CSS
+import './Footer.css';
 import OffCanvas from './OffCanvas';
 
-const Footer = ({ onShowChange }) => {
+const Footer = ({ onShowChange, onGalleryToggle }) => {
   const styles = [
-    'MUF',
-    'A.del.Amour',
-    'Blua',
-    'Kiosko	',
-    'Archivo',
-    'Lenoir',
-    'CH1MA'
+    'muf',
+    'a.del.amour',
+    'blua',
+    'kiosko',
+    'archivo',
+    'lenoir',
+    'CH1MA',
   ];
 
   return (
     <footer className="footer">
       {styles.map((style, index) => (
-        <button key={index} className="style-button">
+        <button 
+          key={index} 
+          className="style-button"
+        >
           {style}
         </button>
       ))}
+      {/* Botón de Gallery separado y con estilo distintivo */}
+      <button 
+        className="style-button gallery-button"
+        onClick={onGalleryToggle}
+        style={{
+          color: 'red',  // Temporalmente en rojo para hacerlo visible
+          fontWeight: 'bold'
+        }}
+      >
+        Gallery
+      </button>
       <OffCanvas onShowChange={onShowChange} />
     </footer>
   );

@@ -8,10 +8,9 @@
 /* Estilo para el nombre del fotógrafo */
 .photographer-name {
   position: absolute;
-  top: 150px; /* Ajusta esta propiedad para bajar el texto */
-  left: 5px; /* Mantén alejado del borde izquierdo */
+  top: 160px; /* Ajusta esta propiedad para bajar el texto */
   font-family: 'PPSupplyMono', Helvetica, sans-serif; /* Cambia la fuente a PPSupplyMono */
-  font-size: 55px; /* Tamaño grande para mayor atención */
+  font-size: 60px; /* Tamaño grande para mayor atención */
   font-weight: bold; /* Hacer el texto más grueso */
   color: black;
   transform: rotate(-90deg); /* Rotación para que esté de abajo hacia arriba */
@@ -30,7 +29,7 @@
   position: fixed;
   width: 15px; /* Tamaño del cuadrado del cursor */
   height: 15px; /* Tamaño del cuadrado del cursor */
-  background-color: rgba(0, 0, 0, 0.5); /* Color del cuadrado */
+  background-color: rgb(255, 0, 0); /* Color del cuadrado */
   border-radius: 2px; /* Esquinas redondeadas opcionalmente */
   pointer-events: none; /* Ignora interacciones con el cursor */
   transform: translate(-50%, -50%); /* Centra el cursor */

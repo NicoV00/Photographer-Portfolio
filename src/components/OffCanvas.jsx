@@ -60,51 +60,6 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
         if (!mouseInsideCanvas) handleClose();
     };
 
-    // Efecto de glitch en el texto (rápido y con muchos cambios)
-    useEffect(() => {
-        const originalText = `#############################################
-#               CONTACT INFO                #
-#############################################
-
-Photographer: Enzo Cimillo
-Location: Montevideo, Uruguay
-
----------------------------------------------
-|  LinkedIn:                               |
-|  https://www.linkedin.com/in/enzocimillo |
-|  Instagram:                              |
-|  https://instagram.com/enzocimillo       |
-|  Email:                                  |
-|  enzo.cimillo@email.com                  |
-|  Phone:                                  |
-|  +598 1234 5678                          |
----------------------------------------------
-
-Press "✖" to close this contact modal.`;
-
-        let glitchInterval;
-        let index = 0;
-
-        const glitchEffect = () => {
-            const glitchText = originalText.split('');
-            
-            // Realiza múltiples cambios de caracteres aleatorios
-            for (let i = 0; i < 5; i++) { // Cambiar 5 caracteres por intervalo
-                const randomIndex = Math.floor(Math.random() * glitchText.length);
-                glitchText[randomIndex] = String.fromCharCode(33 + Math.floor(Math.random() * 94)); // Caracter aleatorio
-            }
-            
-            setGlitchedText(glitchText.join(''));
-
-            index = (index + 1) % originalText.length;
-        };
-
-        // Cambia el texto más rápido y con mayor frecuencia
-        glitchInterval = setInterval(glitchEffect, 20); // 20ms para cambios rápidos
-
-        return () => clearInterval(glitchInterval);
-    }, []);
-
     return (
         <>
             <button 
@@ -131,14 +86,46 @@ Press "✖" to close this contact modal.`;
                     onMouseEnter={handleMouseEnterCanvas}
                     onMouseLeave={handleMouseLeaveCanvas}
                 >
-                    <div style={styles.body}>
-                        <pre style={styles.asciiText}>
-                            {glitchedText}
-                        </pre>
+                    <div className="absolute top-0 left-0 w-full flex justify-center">
+                        <p style={{ 
+                            fontFamily: 'Helvetica, Arial, sans-serif', 
+                            textTransform: 'uppercase', 
+                            fontSize: '9rem', 
+                            letterSpacing: '1px', 
+                            fontWeight: 'bold', 
+                            color: 'white',
+                        }}>
+                            ENZO CIMILLO
+                        </p>
+                    </div>
+                    <div className="absolute top-[15rem] left-8 right-8 flex space-x-8">
+                    <div className="flex flex-col justify-start">
+                        <p className="font-bold text-sm">(BASED IN MONTEVIDEO, URUGUAY)</p>
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-sm leading-6 mb-4">
+                            I’M A GRAPHIC DESIGNER SPECIALIZING IN CRAFTING STRIKING TITLE SEQUENCES AND LOGOS FOR MUSIC VIDEOS, SHORT FILMS, AND VISUAL PROJECTS. WITH EXPERTISE IN TYPOGRAPHY, MOTION DESIGN, AND ART DIRECTION, I DEVELOP BOLD CONCEPTS THAT ELEVATE STORYTELLING THROUGH DYNAMIC VISUALS. MY FOCUS IS ON COLLABORATING CLOSELY WITH ARTISTS AND FILMMAKERS TO BRING THEIR VISION TO LIFE, CREATING DESIGNS THAT ARE BOTH IMPACTFUL AND VISUALLY COMPELLING.
+                        </p>
+                        <p className="text-sm leading-6">
+                            IN ADDITION TO TITLE DESIGN, I BRING EXTENSIVE EXPERIENCE IN BRANDING FOR ARTISTS, MUSICIANS, AND CREATIVE PROJECTS. FROM DEVELOPING UNIQUE LOGOS TO CRAFTING COHESIVE VISUAL IDENTITIES, I ENSURE EVERY ELEMENT REFLECTS THE CLIENT’S PERSONALITY AND ARTISTIC VISION. WHETHER IT’S DESIGNING KEY VISUALS FOR ALBUM RELEASES, PROMOTIONAL CAMPAIGNS, OR MERCHANDISE, MY GOAL IS TO CREATE BRANDING THAT RESONATES DEEPLY WITH AUDIENCES AND STANDS OUT ACROSS PLATFORMS.
+                        </p>
+                        <p className="font-bold text-sm">REEL 2024</p>
+                    </div>
+                    </div>
+                    <div className="absolute bottom-12 left-8 right-8 flex space-x-8">
+                    <div className="flex flex-col justify-start">
+                        <p className="font-bold text-sm">(CONTACT)</p>
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-sm leading-6 mb-4">AVAILABLE FOR COMMISSION AND FREELANCE WORK.</p>
+                        <div className="flex space-x-4">
+                            <a href="#" className="text-sm underline">EMAIL</a>
+                            <a href="#" className="text-sm underline">INSTAGRAM</a>
+                        </div>
+                    </div>
                     </div>
                 </div>
             </div>
-
             <div 
                 id="custom-cursor2" 
                 ref={cursorRef} 
@@ -195,7 +182,6 @@ const styles = {
         cursor: 'pointer',
         transition: 'border 0.3s ease, background-color 0.3s ease, border-radius 0.3s ease, color 0.3s ease',
         position: 'relative',
-        top: '-10px',
     },
     customCursor: {
         position: 'fixed',
@@ -213,15 +199,6 @@ const styles = {
         visibility: 'hidden',
         cursor: 'none',
     },
-    asciiText: {
-        color: '#0f0',
-        backgroundColor: 'black',
-        padding: '10px',
-        borderRadius: '5px',
-        fontSize: '16px',
-        lineHeight: '1.5',
-        whiteSpace: 'pre-wrap',
-    }
 };
 
 export default OffCanvas;
