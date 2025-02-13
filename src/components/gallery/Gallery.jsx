@@ -40,10 +40,29 @@ const Gallery = ({ images }) => {
     };
   }, []);
 
-  // Función para renderizar los items de la galería con el iframe de Spotify
+  // Función para renderizar los items de la galería con los iframes de Spotify
   const renderGalleryItems = () => {
     const items = [];
     images.forEach((src, index) => {
+      // Agregar el primer Spotify embed después de la quinta imagen
+      if (index === 4) {
+        items.push(
+          <SpotifyContainer key="spotify-embed-1">
+            <iframe 
+              style={{ borderRadius: '12px' }}
+              src="https://open.spotify.com/embed/track/3VEQBNtshnnRnad8e0UhKV?utm_source=generator"
+              width="100%"
+              height="352"
+              frameBorder="0"
+              allowFullScreen=""
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+            />
+          </SpotifyContainer>
+        );
+      }
+
+      // Agregar la imagen
       items.push(
         <GalleryItem key={`image-${index}`} onClick={() => handleImageClick(src)}>
           <img 
@@ -54,15 +73,15 @@ const Gallery = ({ images }) => {
         </GalleryItem>
       );
 
-      // Insertar el iframe de Spotify después de la quinta imagen
-      if (index === 4) {
+      // Agregar el segundo Spotify embed antes de la última imagen
+      if (index === images.length - 2) {
         items.push(
-          <SpotifyContainer key="spotify-embed">
+          <SpotifyContainer key="spotify-embed-2">
             <iframe 
-              style={{ borderRadius: '5x' }}
-              src="https://open.spotify.com/embed/track/3VEQBNtshnnRnad8e0UhKV?utm_source=generator"
+              style={{ borderRadius: '12px' }}
+              src="https://open.spotify.com/embed/track/3BP4REyXj5TppWeyJWP1Nk?utm_source=generator"
               width="100%"
-              height="340"
+              height="352"
               frameBorder="0"
               allowFullScreen=""
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
@@ -106,13 +125,13 @@ const Backdrop = styled.div`
 const SelectedImage = styled.img`
   max-height: 80vh;
   border-radius: 1px;
-  box-shadow: 0 10px 20px rgba(12, 12, 12, 0.5);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
 `;
 
 const GalleryContainer = styled.div`
   overflow-x: auto;
   overflow-y: hidden;
-  background-color:rgb(13, 5, 5);
+  background-color:rgb(0, 2, 10);
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -130,7 +149,7 @@ const GalleryContainer = styled.div`
 const GalleryWrapper = styled.div`
   display: flex;
   align-items: center;
-  gap: 150px; /* Aumentado el espacio entre elementos */
+  gap: 100px;
   padding: 40px;
   height: 100%;
   width: max-content;
@@ -146,7 +165,7 @@ const GalleryItem = styled.div`
     max-height: 70vh;
     object-fit: cover;
     border-radius: 1px;
-    box-shadow: 0 4px 8px rgb(4, 4, 4);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     transition: transform 0.3s ease;
   }
   &:hover img {
@@ -156,7 +175,7 @@ const GalleryItem = styled.div`
 
 const SpotifyContainer = styled.div`
   flex-shrink: 0;
-  width: 400px; /* Ancho fijo para el contenedor de Spotify */
+  width: 400px;
   height: 352px;
   display: flex;
   align-items: center;
