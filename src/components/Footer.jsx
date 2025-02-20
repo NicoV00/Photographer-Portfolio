@@ -28,7 +28,7 @@ const Footer = ({ onShowChange, onGalleryToggle }) => {
         className="style-button gallery-button"
         onClick={onGalleryToggle}
         style={{
-          color: 'red',  // Temporalmente en rojo para hacerlo visible
+          color: 'white',  // Temporalmente en rojo para hacerlo visible
           fontWeight: 'bold'
         }}
       >

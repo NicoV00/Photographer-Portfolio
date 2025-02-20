@@ -87,11 +87,11 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                     onMouseLeave={handleMouseLeaveCanvas}
                 >
                     <div className="absolute top-0 left-0 w-full flex justify-center">
-                        <p style={{ 
-                            fontFamily: 'Helvetica, Arial, sans-serif', 
+                        <p style={{
+                            fontFamily: 'Medium, sans-serif', 
                             textTransform: 'uppercase', 
-                            fontSize: '9rem', 
-                            letterSpacing: '1px', 
+                            fontSize: '6rem', 
+                            letterSpacing: '5px', 
                             fontWeight: 'bold', 
                             color: 'white',
                         }}>
@@ -104,10 +104,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                     </div>
                     <div className="flex-1">
                         <p className="text-sm leading-6 mb-4">
-                            I’M A GRAPHIC DESIGNER SPECIALIZING IN CRAFTING STRIKING TITLE SEQUENCES AND LOGOS FOR MUSIC VIDEOS, SHORT FILMS, AND VISUAL PROJECTS. WITH EXPERTISE IN TYPOGRAPHY, MOTION DESIGN, AND ART DIRECTION, I DEVELOP BOLD CONCEPTS THAT ELEVATE STORYTELLING THROUGH DYNAMIC VISUALS. MY FOCUS IS ON COLLABORATING CLOSELY WITH ARTISTS AND FILMMAKERS TO BRING THEIR VISION TO LIFE, CREATING DESIGNS THAT ARE BOTH IMPACTFUL AND VISUALLY COMPELLING.
-                        </p>
-                        <p className="text-sm leading-6">
-                            IN ADDITION TO TITLE DESIGN, I BRING EXTENSIVE EXPERIENCE IN BRANDING FOR ARTISTS, MUSICIANS, AND CREATIVE PROJECTS. FROM DEVELOPING UNIQUE LOGOS TO CRAFTING COHESIVE VISUAL IDENTITIES, I ENSURE EVERY ELEMENT REFLECTS THE CLIENT’S PERSONALITY AND ARTISTIC VISION. WHETHER IT’S DESIGNING KEY VISUALS FOR ALBUM RELEASES, PROMOTIONAL CAMPAIGNS, OR MERCHANDISE, MY GOAL IS TO CREATE BRANDING THAT RESONATES DEEPLY WITH AUDIENCES AND STANDS OUT ACROSS PLATFORMS.
+                            I AM A YOUNG PHOTOGRAPHER AND VIDEOGRAPHER WITH A STRONG INCLINATION TOWARD FASHION PRODUCTIONS.   
                         </p>
                         <p className="font-bold text-sm">REEL 2024</p>
                     </div>
@@ -116,11 +113,15 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                     <div className="flex flex-col justify-start">
                         <p className="font-bold text-sm">(CONTACT)</p>
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1" style={{ paddingLeft: '11rem' }}>
                         <p className="text-sm leading-6 mb-4">AVAILABLE FOR COMMISSION AND FREELANCE WORK.</p>
                         <div className="flex space-x-4">
-                            <a href="#" className="text-sm underline">EMAIL</a>
-                            <a href="#" className="text-sm underline">INSTAGRAM</a>
+                            <a href="mailto:cimillo.enzo@gmail.com" className="text-sm underline">
+                                EMAIL
+                            </a>
+                            <a href="https://www.instagram.com/enzocimillo" target="_blank" rel="noopener noreferrer" className="text-sm underline">
+                                INSTAGRAM
+                            </a>
                         </div>
                     </div>
                     </div>
@@ -156,7 +157,7 @@ const styles = {
         justifyContent: 'flex-end',
     },
     canvas: {
-        width: '1200px',
+        width: '1100px',
         height: '100%',
         color: 'white',
         backgroundColor: 'black',

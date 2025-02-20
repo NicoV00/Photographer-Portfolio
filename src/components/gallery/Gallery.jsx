@@ -49,10 +49,10 @@ const Gallery = ({ images }) => {
         items.push(
           <SpotifyContainer key="spotify-embed-1">
             <iframe 
-              style={{ borderRadius: '12px' }}
+              style={{ borderRadius: '8px' }}
               src="https://open.spotify.com/embed/track/3VEQBNtshnnRnad8e0UhKV?utm_source=generator"
               width="100%"
-              height="352"
+              height="250"
               frameBorder="0"
               allowFullScreen=""
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
@@ -81,7 +81,7 @@ const Gallery = ({ images }) => {
               style={{ borderRadius: '12px' }}
               src="https://open.spotify.com/embed/track/3BP4REyXj5TppWeyJWP1Nk?utm_source=generator"
               width="100%"
-              height="352"
+              height="250"
               frameBorder="0"
               allowFullScreen=""
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
@@ -149,8 +149,8 @@ const GalleryContainer = styled.div`
 const GalleryWrapper = styled.div`
   display: flex;
   align-items: center;
-  gap: 100px;
-  padding: 40px;
+  gap: 350px;
+  padding: 80px 80px;
   height: 100%;
   width: max-content;
 `;

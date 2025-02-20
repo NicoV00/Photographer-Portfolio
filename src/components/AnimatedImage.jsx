@@ -1,13 +1,13 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { useLoader, useFrame } from '@react-three/fiber';
-import { gsap } from 'gsap'; // Import GSAP
+import { gsap } from 'gsap';
 import { Html } from '@react-three/drei';
 
 const QualitySwitch = ({ isHighQuality, onChange }) => {
   return (
-    <Html position={[0, 0, 0]} // Adjust position as needed
-          zIndexRange={[50, 0]} // Set appropriate z-index for layering
+    <Html position={[0, 0, 0]}
+          zIndexRange={[50, 0]}
     >
       <div className="absolute z-50 flex items-center gap-2 bg-black/30 p-2 rounded-lg" style={{ top: '400px', right: '750px' }}>
         <span className="text-white text-sm">Quality:</span>
@@ -125,16 +125,42 @@ const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
       loader.setCrossOrigin('anonymous');
     }
   );
+  
   const refs = Array.from({ length: textures.length }, () => useRef());
 
   const originalPositions = useMemo(() => {
-    const radius = 15;
+    const areaWidth = 35;
+    const areaHeight = 25;
+    const areaDepth = 30;
+    
     return imageUrls.map((_, index) => {
-      const angle = (index / imageUrls.length) * Math.PI * 2;
-      const x = Math.cos(angle) * radius;
-      const z = Math.sin(angle) * radius;
-      const y = (Math.random() - 0.5) * 10;
-      return [x, y, z];
+      // Crear clusters de imágenes
+      const cluster = Math.floor(index / 4); // Dividir imágenes en grupos
+      const intraClusterIndex = index % 4;
+      
+      // Base positions para cada cluster
+      let baseX = (cluster % 3 - 1) * (areaWidth / 2); // Distribuir clusters horizontalmente
+      let baseZ = Math.floor(cluster / 3) * (areaDepth / 2) - areaDepth / 4; // Distribuir clusters en profundidad
+      
+      // Ajustar posiciones dentro del cluster
+      const angleInCluster = (intraClusterIndex / 4) * Math.PI * 2;
+      const clusterRadius = 8;
+      
+      // Añadir variaciones aleatorias controladas
+      const randomOffset = () => (Math.random() - 0.5) * 5;
+      
+      const x = baseX + Math.cos(angleInCluster) * clusterRadius + randomOffset();
+      const y = (Math.random() - 0.5) * areaHeight; // Altura aleatoria
+      const z = baseZ + Math.sin(angleInCluster) * clusterRadius + randomOffset();
+      
+      // Añadir variación adicional basada en el índice
+      const indexVariation = Math.sin(index * 0.5) * 3;
+      
+      return [
+        x + indexVariation,
+        y + Math.cos(index * 0.7) * 2, // Variación suave en altura
+        z + indexVariation * 0.5
+      ];
     });
   }, [imageUrls.length]);
 
@@ -179,17 +205,26 @@ const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
 
   const animateImageToFront = (index) => {
     setIsImageUpFront(true);
+    
+    // Animar las otras imágenes para que se alejen de manera más orgánica
     refs.forEach((ref, i) => {
-      if (i === index) {
-        return;
-      }
+      if (i === index) return;
+      
+      const direction = new THREE.Vector3(
+        ref.current.position.x - refs[index].current.position.x,
+        ref.current.position.y - refs[index].current.position.y,
+        ref.current.position.z - refs[index].current.position.z
+      ).normalize();
+      
       gsap.to(ref.current.position, {
-        x: originalPositions[i][0] + 20,
-        y: originalPositions[i][1] + 20,
-        z: originalPositions[i][2] + 20,
-        duration: 1,
+        x: originalPositions[i][0] + direction.x * 15,
+        y: originalPositions[i][1] + direction.y * 15,
+        z: originalPositions[i][2] + direction.z * 15,
+        duration: 1.2,
+        ease: "power2.inOut"
       });
     });
+
     const ref = refs[index]?.current;
     if (ref && cameraRef.current) {
       const camera = cameraRef.current;
@@ -198,14 +233,24 @@ const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
       const distanceFromCamera = 1;
       const targetPosition = new THREE.Vector3();
       targetPosition.copy(camera.position).add(forwardVector.multiplyScalar(distanceFromCamera));
+      
       setIndex(index);
       setShowDiv(true);
-      gsap.to(ref.position, { x: 0, y: 0, z: 0, duration: 1 });
+      
+      gsap.to(ref.position, {
+        x: 0,
+        y: 0,
+        z: 0,
+        duration: 1.2,
+        ease: "power2.inOut"
+      });
+      
       gsap.to(camera.position, {
         x: 3,
         y: 3,
         z: 3,
-        duration: 1,
+        duration: 1.2,
+        ease: "power2.inOut",
         onComplete: () => {
           console.log('Camera moved to:', camera.position);
           setIndex(index);
@@ -244,7 +289,7 @@ const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
     });
 
     if (groupRef.current && !isImageUpFront) {
-      groupRef.current.rotation.x += 0.001;
+      groupRef.current.rotation.y += 0.0003; // Añadir ligera rotación en Y
     }
   });
 
