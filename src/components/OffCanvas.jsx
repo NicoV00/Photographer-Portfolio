@@ -8,6 +8,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
     const canvasRef = useRef(null);
     const overlayRef = useRef(null);
     const cursorRef = useRef(null);
+    const cursorRef2 = useRef(null);
     const [isHovered, setIsHovered] = useState(false);
 
     const handleShow = () => {
@@ -41,6 +42,11 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                 cursorRef.current.style.left = `${e.pageX}px`;
                 cursorRef.current.style.top = `${e.pageY}px`;
                 cursorRef.current.style.visibility = show && !mouseInsideCanvas ? 'visible' : 'hidden';
+            }
+            if (cursorRef2.current) {
+                cursorRef2.current.style.left = `${e.pageX}px`;
+                cursorRef2.current.style.top = `${e.pageY}px`;
+                cursorRef2.current.style.visibility = show && mouseInsideCanvas ? 'visible' : 'hidden';
             }
         };
 
@@ -139,6 +145,20 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
             >
                 ✖
             </div>
+            {show && mouseInsideCanvas && (
+                <div
+                    id="custom-cursor3" 
+                    ref={cursorRef2} 
+                    style={{
+                        ...styles.customCursor,
+                        backgroundColor: mouseInsideCanvas ? 'black' : 'white',
+                        color: mouseInsideCanvas ? 'white' : 'black',
+                    }} 
+                    onClick={handleCursorClick}
+                >
+                    EC
+                </div>
+            )}
         </>
     );
 };

@@ -1,8 +1,33 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import * as THREE from 'three';
+import './AnimatedCarousel.css';
 import { useLoader, useFrame } from '@react-three/fiber';
 import { gsap } from 'gsap';
 import { Html } from '@react-three/drei';
+import styled, { keyframes } from 'styled-components';
+
+const fadeInDelayed = keyframes`
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+`;
+
+const StyledDiv = styled.div`
+  position: absolute;
+  bottom: 330px;
+  right: 50%;
+  transform: translateX(-50%);
+  background-color: black;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  opacity: 0;
+  animation: ${fadeInDelayed} 0.5s ease-in-out 2s forwards;
+`;
 
 const QualitySwitch = ({ isHighQuality, onChange }) => {
   return (
@@ -33,15 +58,37 @@ const ImageMesh = React.memo(({ position, textureUrl, refProp, onClick, isHighQu
     let mounted = true;
 
     const loadTexture = async () => {
-      const loader = new THREE.TextureLoader();
-      loader.load(textureUrl, (tex) => {
-        if (mounted) {
-          tex.encoding = THREE.sRGBEncoding;
-          tex.minFilter = THREE.LinearFilter;
-          tex.generateMipmaps = false;
-          setTexture(tex);
+      if (isHighQuality) {
+        // High quality loading using useLoader
+        try {
+          const loadedTexture = await new Promise((resolve) => {
+            const loader = new THREE.TextureLoader();
+            loader.load(textureUrl, (tex) => {
+              if (mounted) {
+                tex.encoding = THREE.sRGBEncoding;
+                tex.minFilter = THREE.LinearMipmapLinearFilter;
+                tex.magFilter = THREE.LinearFilter;
+                tex.generateMipmaps = true;
+                tex.anisotropy = 16;
+                resolve(tex);
+              }
+            });
+          });
+          setTexture(loadedTexture);
+        } catch (error) {
+          console.error('Error loading high quality texture:', error);
         }
-      });
+      } else {
+        // Lite quality loading
+        const loader = new THREE.TextureLoader();
+        loader.load(textureUrl, (tex) => {
+          if (mounted) {
+            tex.minFilter = THREE.LinearFilter;
+            tex.generateMipmaps = false;
+            setTexture(tex);
+          }
+        });
+      }
     };
 
     loadTexture();
@@ -52,7 +99,7 @@ const ImageMesh = React.memo(({ position, textureUrl, refProp, onClick, isHighQu
         texture.dispose();
       }
     };
-  }, [textureUrl]);
+  }, [textureUrl, isHighQuality]);
 
   useEffect(() => {
     if (texture?.image) {
@@ -74,22 +121,9 @@ const ImageMesh = React.memo(({ position, textureUrl, refProp, onClick, isHighQu
       </mesh>
       {isSelected && (
         <Html position={[0, 0, 0]} zIndexRange={[50, 0]}>
-          <div
-            style={{
-              position: 'absolute',
-              top: '-20px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              backgroundColor: 'black',
-              color: 'white',
-              padding: '10px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-            }}
-            onClick={onPortfolioClick}
-          >
+          <StyledDiv onClick={onPortfolioClick}>
             ENTER PORTFOLIO
-          </div>
+          </StyledDiv>
         </Html>
       )}
     </group>
