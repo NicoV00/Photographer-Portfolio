@@ -50,7 +50,7 @@ const QualitySwitch = ({ isHighQuality, onChange }) => {
   );
 };
 
-const ImageMesh = React.memo(({ position, textureUrl, refProp, onClick, isHighQuality, isSelected, onPortfolioClick }) => {
+const ImageMesh = React.memo(({ position, textureUrl, refProp, onClick, isHighQuality, isSelected, onGalleryToggle }) => {
   const [texture, setTexture] = useState(null);
   const [aspectRatio, setAspectRatio] = useState(1);
 
@@ -121,7 +121,7 @@ const ImageMesh = React.memo(({ position, textureUrl, refProp, onClick, isHighQu
       </mesh>
       {isSelected && (
         <Html position={[0, 0, 0]} zIndexRange={[50, 0]}>
-          <StyledDiv onClick={onPortfolioClick}>
+          <StyledDiv onClick={onGalleryToggle}>
             ENTER PORTFOLIO
           </StyledDiv>
         </Html>
@@ -130,7 +130,7 @@ const ImageMesh = React.memo(({ position, textureUrl, refProp, onClick, isHighQu
   );
 });
 
-const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
+const AnimatedCarousel = ({ setShowCollection, setCollection, setIndex }) => {
   const [isHighQuality, setIsHighQuality] = useState(false);
   const imageUrls = useMemo(() => [
     "./images/blua_constelaciones_finales.jpg",
@@ -163,9 +163,9 @@ const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
   const refs = Array.from({ length: textures.length }, () => useRef());
 
   const originalPositions = useMemo(() => {
-    const areaWidth = 35;
+    const areaWidth = 25;
     const areaHeight = 25;
-    const areaDepth = 30;
+    const areaDepth = 20;
     
     return imageUrls.map((_, index) => {
       // Crear clusters de imágenes
@@ -232,6 +232,7 @@ const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
         }
         return updatedList;
       });
+      console.log(`Image ${index} clicked, selected images: ${selectedImage}`);
     } else {
       resetImagePositions();
     }
@@ -275,7 +276,6 @@ const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
       targetPosition.copy(camera.position).add(forwardVector.multiplyScalar(distanceFromCamera));
       
       setIndex(index);
-      setShowDiv(true);
       
       gsap.to(ref.position, {
         x: 0,
@@ -294,7 +294,6 @@ const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
         onComplete: () => {
           console.log('Camera moved to:', camera.position);
           setIndex(index);
-          setShowDiv(true);
         },
       });
     }
@@ -334,7 +333,6 @@ const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
   });
 
   const resetImagePositions = () => {
-    setShowDiv(false);
     const camera = cameraRef.current;
     refs.forEach((ref, index) => {
       if (ref.current) {
@@ -357,7 +355,7 @@ const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
       gsap.to(camera.position, {
         x: 0,
         y: 0,
-        z: 35,
+        z: 45,
         duration: 1,
       });
     }
@@ -397,7 +395,7 @@ const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
           onClick={() => handleClick(index)}
           isHighQuality={isHighQuality}
           isSelected={selectedImage.includes(index)}
-          onPortfolioClick={() => setShowDiv(true)}
+          onGalleryToggle={() => { setShowCollection(true); setCollection(imageUrls[index]); }}
         />
       ))}
     </group>

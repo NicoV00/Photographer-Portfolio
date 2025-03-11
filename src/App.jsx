@@ -14,16 +14,28 @@ function App() {
   const [index, setIndex] = useState('false');
   const [isOffCanvasOpen, setIsOffCanvasOpen] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [collection, setCollection] = useState("");
+  const [matchedCollection, setMatchedCollection] = useState(null);
 
   const images = [
-    "./images/blua_constelaciones_finales.jpg",
-    "./images/LF-11.jpg",
-    "./images/LFF-15.jpg",
-    "./images/D2F-10.jpg",
-    "./images/PLATA-2.jpg",
-    "./images/L-5.jpg",
-    "./images/L-8.jpg",
-  ];
+    {
+      "collection-1": [
+        "./images/LF-11.jpg",
+        "./images/LFF-15.jpg",
+        "./images/D2F-10.jpg",
+        "./images/L-5.jpg",
+        "./images/L-8.jpg",
+      ]
+    },
+    {
+      "collection-5": [
+        "./images/blua_constelaciones_finales.jpg",
+        "./images/PLATA-2.jpg",
+        "./images/L-5.jpg",
+        "./images/L-8.jpg",
+      ]
+    }
+]
 
   const handleOffCanvasState = (show) => {
     setIsOffCanvasOpen(show);
@@ -89,6 +101,21 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const foundCollection = images.find(obj =>
+      Object.values(obj)[0].includes(collection)
+    );
+  
+    if (foundCollection) {
+      setMatchedCollection(Object.values(foundCollection)[0]); // Save the matched list
+    } else {
+      setMatchedCollection([]); // Reset if no match is found
+    }
+  
+    console.log("Collection:", collection);
+    console.log("Matched Collection:", foundCollection ? Object.values(foundCollection)[0] : "Not found");
+  }, [collection]);
+
   return (
     <div className="containerCloud">
       <div className="photographer-name">
@@ -107,13 +134,13 @@ function App() {
         <Canvas
           camera={{
             fov: 64,
-            position: [0, 0, 35],
+            position: [0, 0, 45],
           }}
         >
-          <About1 setIndex={setIndex} setShowDiv={setShowDiv} />
+          <About1 setIndex={setIndex} setShowCollection={() => {setShowGallery(!showGallery)}} setCollection={(index) => { setCollection(index);}} />
         </Canvas>
       ) : (
-        <Gallery images={images} />
+        <Gallery images={matchedCollection} />
       )}
 
       <Footer 

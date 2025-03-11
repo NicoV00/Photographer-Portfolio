@@ -23,18 +23,32 @@ const Gallery = ({ images }) => {
 
   useEffect(() => {
     const container = containerRef.current;
-    const gallery = galleryRef.current;
-
+    
     const handleWheel = (e) => {
       e.preventDefault();
-      const delta = e.deltaY || e.deltaX;
-      const scrollSpeed = 5;
       
-      container.scrollLeft += delta * scrollSpeed * 10;
+      // Use a smaller multiplier for slower scrolling
+      const scrollSpeed = 3;
+      
+      // Make sure we're using deltaY for vertical wheel movement
+      // deltaY is positive when scrolling down and negative when scrolling up
+      const delta = e.deltaY;
+      
+      // Apply the delta with the reduced speed
+      container.scrollLeft += delta * scrollSpeed;
+      
+      // For smoother scrolling, you can use smooth scroll behavior
+      // But this would replace the direct scrollLeft manipulation above
+      /*
+      container.scrollTo({
+        left: container.scrollLeft + (delta * scrollSpeed),
+        behavior: 'smooth'
+      });
+      */
     };
-
+  
     container.addEventListener('wheel', handleWheel, { passive: false });
-
+  
     return () => {
       container.removeEventListener('wheel', handleWheel);
     };
