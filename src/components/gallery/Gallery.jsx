@@ -28,9 +28,9 @@ const Gallery = ({ images }) => {
     const handleWheel = (e) => {
       e.preventDefault();
       const delta = e.deltaY || e.deltaX;
-      const scrollSpeed = 1.5;
+      const scrollSpeed = 5;
       
-      container.scrollLeft += delta * scrollSpeed;
+      container.scrollLeft += delta * scrollSpeed * 10;
     };
 
     container.addEventListener('wheel', handleWheel, { passive: false });

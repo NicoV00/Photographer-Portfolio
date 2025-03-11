@@ -244,6 +244,9 @@ const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
     refs.forEach((ref, i) => {
       if (i === index) return;
       
+      const mesh = ref.current;
+      if (!mesh) return;
+
       const direction = new THREE.Vector3(
         ref.current.position.x - refs[index].current.position.x,
         ref.current.position.y - refs[index].current.position.y,
@@ -251,11 +254,14 @@ const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
       ).normalize();
       
       gsap.to(ref.current.position, {
-        x: originalPositions[i][0] + direction.x * 15,
-        y: originalPositions[i][1] + direction.y * 15,
-        z: originalPositions[i][2] + direction.z * 15,
-        duration: 1.2,
-        ease: "power2.inOut"
+        x: originalPositions[i][0] + direction.x * 500,
+        y: originalPositions[i][1] + direction.y * 500,
+        z: originalPositions[i][2] + direction.z * 500,
+        duration: 1,
+        ease: "power2.inOut",
+        onComplete: () => {
+          mesh.visible = false;
+        }
       });
     });
 
@@ -332,6 +338,13 @@ const AnimatedCarousel = ({ setShowDiv, setIndex }) => {
     const camera = cameraRef.current;
     refs.forEach((ref, index) => {
       if (ref.current) {
+
+        const mesh = ref.current;
+        if (!mesh) return;
+      
+        // Make the mesh invisible
+        mesh.visible = true;
+
         gsap.to(ref.current.position, {
           x: originalPositions[index][0],
           y: originalPositions[index][1],
