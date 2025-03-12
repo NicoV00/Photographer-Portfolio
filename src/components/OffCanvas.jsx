@@ -785,7 +785,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                 <SequentialGlitchText 
                   text="I AM A YOUNG PHOTOGRAPHER AND VIDEOGRAPHER WITH A STRONG INCLINATION TOWARD FASHION PRODUCTIONS."
                   fontSize="1rem"
-                  lineHeight="1.4rem"
+                  lineHeight="1.2rem"
                   fontWeight="500"
                   style={{ marginBottom: '1rem' }}
                   initialGlitch={canvasReady}
