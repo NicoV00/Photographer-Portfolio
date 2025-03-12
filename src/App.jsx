@@ -35,7 +35,7 @@ function App() {
         "./images/L-8.jpg",
       ]
     }
-]
+  ]
 
   const handleOffCanvasState = (show) => {
     setIsOffCanvasOpen(show);
@@ -61,15 +61,27 @@ function App() {
     const handleMouseOver = () => {
       lettersRef.current.forEach((letter, index) => {
         letter.style.transitionDelay = `${index * 50}ms`;
-        letter.style.color = 'rgba(255, 0, 0, 1)';
+        // Cambio al color verde neón específico
+        letter.style.color = '#00ff00';
+        // Añadir un efecto de resplandor SUTIL
+        letter.style.textShadow = '0 0 2px rgba(0, 255, 0, 0.5), 0 0 3px rgba(0, 255, 0, 0.3)';
+        // Conservar el efecto glitch
         glitchEffect(letter, photographerName[index]);
       });
+      
+      // Aplicar el espaciado aumentado a las letras
+      nameContainer.style.letterSpacing = '1px';
     };
 
     const handleMouseOut = () => {
       lettersRef.current.forEach(letter => {
         letter.style.color = 'black';
+        // Eliminar el efecto de resplandor cuando sale el mouse
+        letter.style.textShadow = 'none';
       });
+      
+      // Restablecer el espaciado original
+      nameContainer.style.letterSpacing = '0px';
     };
 
     nameContainer.addEventListener('mouseover', handleMouseOver);

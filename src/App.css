@@ -9,19 +9,22 @@
 .photographer-name {
   position: absolute;
   top: 160px; /* Ajusta esta propiedad para bajar el texto */
-  font-family: 'PPSupplyMono', Helvetica, sans-serif; /* Cambia la fuente a PPSupplyMono */
-  font-size: 60px; /* Tamaño grande para mayor atención */
+  font-family: 'Medium', Helvetica, sans-serif; /* Cambiado a Medium */
+  font-size: 35px; /* Tamaño grande para mayor atención */
   font-weight: bold; /* Hacer el texto más grueso */
   color: black;
   transform: rotate(-90deg); /* Rotación para que esté de abajo hacia arriba */
   transform-origin: top left;
   z-index: 10; /* Coloca el texto por encima del canvas */
+  letter-spacing: 0px; /* Espaciado normal por defecto, cambiará en hover */
+  transition: letter-spacing 0.3s ease; /* Transición suave para el espaciado */
 }
 
 /* Estilos para aplicar efectos a cada letra */
 .letter {
   display: inline-block; /* Permite aplicar efectos a cada letra */
-  transition: color 0.2s ease; /* Transición suave para el cambio de color */
+  transition: color 0.2s ease, text-shadow 0.3s ease; /* Transición suave para color y resplandor */
+  margin-right: 0.5px; /* Muy pequeño espaciado adicional entre letras */
 }
 
 /* Cursor personalizado */
@@ -41,14 +44,6 @@
 /* Oculta el cursor predeterminado del navegador */
 body {
   cursor: none; /* Oculta el cursor predeterminado */
-}
-
-/* Definición de la fuente PPSupplyMono-Regular */
-@font-face {
-  font-family: 'PPSupplyMono';
-  src: url('./fonts/PPSupplyMono-Regular.otf') format('opentype'); /* Asegúrate que la ruta sea correcta */
-  font-weight: normal;
-  font-style: normal;
 }
 
 @font-face {
