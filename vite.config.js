@@ -9,7 +9,10 @@ export default defineConfig({
     strictPort: true,
     cors: true,  // Allow cross-origin requests
     hmr: {
-      clientPort: 443, // Required for ngrok HTTPS tunnels
+      // Eliminar clientPort o configurarlo para que coincida con el puerto del servidor
+      protocol: 'ws', // Usar protocolo WebSocket no seguro en vez de wss
+      host: 'localhost', // Especificar el host explícitamente
+      port: 3001 // Usar el mismo puerto que el servidor
     }
   }
 })
