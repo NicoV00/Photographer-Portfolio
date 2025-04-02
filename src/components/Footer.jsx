@@ -95,11 +95,6 @@ const StyleButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-const GalleryButton = styled(StyleButton)(({ theme }) => ({
-  color: 'white',
-  fontWeight: 'bold',
-  position: 'relative',
-}));
 
 // Menú hamburguesa sin borde en pantallas pequeñas
 const MenuIconButton = styled(IconButton)(({ theme }) => ({
@@ -145,7 +140,7 @@ const StyledMenuItem = styled(MenuItem)(({ theme }) => ({
   }
 }));
 
-const Footer = ({ onShowChange, onGalleryToggle }) => {
+const Footer = ({ onShowChange }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isVerySmall = useMediaQuery('(max-width:480px)');
@@ -190,14 +185,6 @@ const Footer = ({ onShowChange, onGalleryToggle }) => {
         </StyleButton>
       ))}
       
-      {/* Botón Gallery siempre visible pero adaptado para pantallas pequeñas */}
-      <GalleryButton 
-        onClick={onGalleryToggle}
-        disableRipple={true}
-        disableElevation={true}
-      >
-        Gallery
-      </GalleryButton>
       
       {/* Menú desplegable para pantallas pequeñas */}
       {menuStyles.length > 0 && (

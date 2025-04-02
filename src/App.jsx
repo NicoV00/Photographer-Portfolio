@@ -10,6 +10,8 @@ import { styled } from '@mui/material/styles';
 // Lazy loaded galleries - actualizadas a nuevas rutas
 const AnaLivniGallery = lazy(() => import('./components/Galleries/AnaLivniGallery'));
 const BluaGallery = lazy(() => import('./components/Galleries/BluaGallery'));
+const MaisonGallery = lazy(() => import('./components/Galleries/MaisonGallery'));
+const VestimeTeoGallery = lazy(() => import('./components/Galleries/VestimeTeoGallery')); // Nueva importación
 
 // Font loading and global styles
 const GlobalStyle = styled('style')({
@@ -92,7 +94,9 @@ function App() {
   // Collection mapping
   const specialCollections = {
     "./images/S-1.jpg": "ana-livni",
-    "./images/blua_constelaciones_finales.jpg": "blua"
+    "./images/blua_constelaciones_finales.jpg": "blua",
+    "./images/MDLST/MDLST-1.png": "maison",
+    "./images/TEO/V1.jpg": "vestimeteo" // Nueva entrada para VestimeTeo
   };
 
   const handleOffCanvasState = (show) => {
@@ -233,6 +237,18 @@ function App() {
         return (
           <Suspense fallback={loadingComponent}>
             <BluaGallery onBack={handleBackToCarousel} />
+          </Suspense>
+        );
+      } else if (collectionType === "maison") {
+        return (
+          <Suspense fallback={loadingComponent}>
+            <MaisonGallery onBack={handleBackToCarousel} />
+          </Suspense>
+        );
+      } else if (collectionType === "vestimeteo") {
+        return (
+          <Suspense fallback={loadingComponent}>
+            <VestimeTeoGallery onBack={handleBackToCarousel} />
           </Suspense>
         );
       } else {

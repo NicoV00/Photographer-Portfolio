@@ -24,7 +24,9 @@ const AnimatedCarousel = ({ setShowCollection, setCollection, setIndex }) => {
     "./images/NWB&W-09.jpg",
     "./images/O4-1.jpg",
     "./images/PLATA-2.jpg",
-    "./images/S-1.jpg"
+    "./images/S-1.jpg",
+    "./images/MDLST/MDLST-1.png",
+    "./images/TEO/V1.jpg" // Nueva imagen para VestimeTeo
   ], []);
 
   const textures = useLoader(

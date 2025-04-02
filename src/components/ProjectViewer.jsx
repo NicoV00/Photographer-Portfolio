@@ -5,16 +5,26 @@ import { Box, CircularProgress } from '@mui/material';
 // Importación perezosa de las galerías para mejorar rendimiento
 const BluaGallery = lazy(() => import('./Galleries/BluaGallery')); 
 const AnaLivniGallery = lazy(() => import('./Galleries/AnaLivniGallery'));
+const MaisonGallery = lazy(() => import('./Galleries/MaisonGallery'));
+const VestimeTeoGallery = lazy(() => import('./Galleries/VestimeTeoGallery')); // Nueva importación
 
 // Mapeo de imágenes a componentes de galería
 const galleryMap = {
   "./images/blua_constelaciones_finales.jpg": {
-    component: BluaGallery, // Ahora usa directamente BluaGallery
-    props: {} // Props adicionales si son necesarios
+    component: BluaGallery,
+    props: {}
   },
   "./images/S-1.jpg": {
     component: AnaLivniGallery,
-    props: {} // Props adicionales si son necesarios
+    props: {}
+  },
+  "./images/MDLST/MDLST-1.png": {
+    component: MaisonGallery,
+    props: {}
+  },
+  "./images/TEO/V1.jpg": { // Nueva entrada para VestimeTeo
+    component: VestimeTeoGallery,
+    props: {}
   }
   // Agrega más mapeos aquí para otros proyectos
 };

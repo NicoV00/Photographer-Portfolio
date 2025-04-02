@@ -29,15 +29,32 @@ const LoadingScreen = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   zIndex: 9999,
   transition: 'opacity 0.5s ease-out',
+  overflow: 'hidden', // Prevent any overflow during animations
 }));
 
-const LoadingText = styled(Box)(({ theme }) => ({
+// Separate components for ANA LIVNI and 2024
+const LoadingTitle = styled(Box)(({ theme }) => ({
   fontFamily: '"Medium OTF", sans-serif',
-  fontSize: '32px',
+  fontSize: '45px',
   fontWeight: 'bold',
   color: 'black',
   letterSpacing: '2px',
-  marginBottom: '30px', // Espacio para el círculo abajo
+  position: 'relative', // For positioning relative to container
+  transform: 'translateY(100px)', // Start below viewport (for animation)
+  opacity: 0,
+}));
+
+const LoadingYear = styled(Box)(({ theme }) => ({
+  fontFamily: '"Medium OTF", sans-serif',
+  fontSize: '40px',
+  fontWeight: 'bold',
+  color: 'black',
+  letterSpacing: '2px',
+  marginTop: '8px', // Space between the title and year
+  position: 'relative', // For positioning relative to container
+  transform: 'translateY(100px)', // Start below viewport (for animation)
+  opacity: 0,
+  marginBottom: '40px', // Space between text and loading circle
 }));
 
 // Main container with horizontal scroll - Optimizado con will-change
@@ -124,6 +141,11 @@ const AnaLivniGallery = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
 
+  // Referencias para los elementos de animación
+  const titleRef = useRef(null);
+  const yearRef = useRef(null);
+  const loadingScreenRef = useRef(null);
+
   // Referencia para la imagen 7 que tendrá animación
   const image7Ref = useRef(null);
   const containerRef = useRef(null);
@@ -154,6 +176,37 @@ const AnaLivniGallery = ({ onBack }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
+  // Efecto para animar el título y año en la pantalla de carga
+  useEffect(() => {
+    if (!loading) return;
+    
+    // Asegurarse de que las referencias existen
+    if (titleRef.current && yearRef.current) {
+      // Animación de entrada desde abajo
+      gsap.to(titleRef.current, {
+        y: 0,
+        opacity: 1,
+        duration: 1,
+        ease: "power2.out",
+        delay: 0.3, // Pequeño retraso para que sea más natural
+      });
+      
+      gsap.to(yearRef.current, {
+        y: 0,
+        opacity: 1,
+        duration: 1,
+        ease: "power2.out",
+        delay: 0.5, // El año aparece después del título
+      });
+    }
+    
+    // Limpieza de la animación al desmontar
+    return () => {
+      gsap.killTweensOf(titleRef.current);
+      gsap.killTweensOf(yearRef.current);
+    };
+  }, [loading]);
+  
   // Efecto para controlar la pantalla de carga con progreso
   useEffect(() => {
     let interval;
@@ -165,8 +218,31 @@ const AnaLivniGallery = ({ onBack }) => {
           const next = prev + (Math.random() * 15);
           if (next >= 100) {
             clearInterval(interval);
-            // Dar un poco de tiempo para mostrar el 100% antes de cerrar
-            setTimeout(() => setLoading(false), 300);
+            
+            // Animación de salida hacia arriba cuando la carga está completa
+            if (titleRef.current && yearRef.current && loadingScreenRef.current) {
+              // Primero animamos los textos hacia arriba
+              gsap.to([titleRef.current, yearRef.current], {
+                y: -100,
+                opacity: 0,
+                duration: 0.8,
+                ease: "power2.in",
+                stagger: 0.1,
+                onComplete: () => {
+                  // Luego desvanecemos toda la pantalla de carga
+                  gsap.to(loadingScreenRef.current, {
+                    opacity: 0,
+                    duration: 0.5,
+                    delay: 0.2,
+                    onComplete: () => setLoading(false)
+                  });
+                }
+              });
+            } else {
+              // Fallback si las referencias no están disponibles
+              setTimeout(() => setLoading(false), 500);
+            }
+            
             return 100;
           }
           return next;
@@ -596,12 +672,19 @@ const AnaLivniGallery = ({ onBack }) => {
     <>
       <GlobalStyle />
       
-      {/* Pantalla de carga con círculo de progreso */}
+      {/* Pantalla de carga con texto animado y círculo de progreso */}
       {loading && (
-        <LoadingScreen>
-          <LoadingText>
-            ANA LIVNI 2024
-          </LoadingText>
+        <LoadingScreen ref={loadingScreenRef}>
+          {/* Título "ANA LIVNI" con animación de entrada desde abajo */}
+          <LoadingTitle ref={titleRef}>
+            ANA LIVNI
+          </LoadingTitle>
+          
+          {/* Año "2024" debajo con su propia animación */}
+          <LoadingYear ref={yearRef}>
+            2024
+          </LoadingYear>
+          
           <CircularProgress 
             variant="determinate" 
             value={loadProgress} 

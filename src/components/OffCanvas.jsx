@@ -14,7 +14,6 @@ import SmoothGlowingTitle from './SmoothGlowingTitle';
 import UruguayTime from './UruguayTime';
 import { 
   InfoButton, 
-  CustomCursor, 
   OverlayBackdrop, 
   CloseButton 
 } from './StyledComponents';
@@ -32,9 +31,12 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
   const drawerRef = useRef(null);
   const overlayRef = useRef(null);
   const cursorRef = useRef(null);
-  const cursorRGBRef = useRef(null);
-  const cursorRedRef = useRef(null);
-  const cursorBlueRef = useRef(null);
+  const cursorCloseRef = useRef(null);
+  
+  // Estados para el cursor personalizado
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isClicking, setIsClicking] = useState(false);
+  const [cursorText, setCursorText] = useState('');
 
   const handleOpen = () => {
     setOpen(true);
@@ -100,55 +102,42 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
   useEffect(() => {
     if (isMobile || isTablet || !open) return;
 
-    const handleMouseMove = (e) => {
-      // Cursor X (solo visible fuera del canvas)
-      if (cursorRef.current) {
-        cursorRef.current.style.left = `${e.clientX}px`;
-        cursorRef.current.style.top = `${e.clientY}px`;
-        cursorRef.current.style.visibility = !mouseInsideCanvas ? 'visible' : 'hidden';
-      }
+    const updatePosition = (e) => {
+      setPosition({ x: e.clientX, y: e.clientY });
+    };
 
-      // Cursores RGB (solo visibles dentro del canvas)
-      if (mouseInsideCanvas) {
-        // Cursor principal (verde)
-        if (cursorRGBRef.current) {
-          cursorRGBRef.current.style.left = `${e.clientX}px`;
-          cursorRGBRef.current.style.top = `${e.clientY}px`;
-          cursorRGBRef.current.style.visibility = 'visible';
-        }
-        
-        // Cursor rojo - con mayor desplazamiento
-        if (cursorRedRef.current) {
-          cursorRedRef.current.style.left = `${e.clientX - 5}px`; // -5px a la izquierda
-          cursorRedRef.current.style.top = `${e.clientY}px`;
-          cursorRedRef.current.style.visibility = 'visible';
-        }
-        
-        // Cursor azul - con mayor desplazamiento
-        if (cursorBlueRef.current) {
-          cursorBlueRef.current.style.left = `${e.clientX + 5}px`; // +5px a la derecha
-          cursorBlueRef.current.style.top = `${e.clientY}px`;
-          cursorBlueRef.current.style.visibility = 'visible';
-        }
-      } else {
-        // Ocultar cursores RGB cuando está fuera del canvas
-        if (cursorRGBRef.current) cursorRGBRef.current.style.visibility = 'hidden';
-        if (cursorRedRef.current) cursorRedRef.current.style.visibility = 'hidden';
-        if (cursorBlueRef.current) cursorBlueRef.current.style.visibility = 'hidden';
+    const handleMouseDown = () => setIsClicking(true);
+    const handleMouseUp = () => setIsClicking(false);
+
+    const handleMouseEnter = (e) => {
+      const target = e.target;
+      if (target.dataset.cursorText) {
+        setCursorText(target.dataset.cursorText);
+      } else if (target.closest('[data-cursor-hover]')) {
+        const hoverElement = target.closest('[data-cursor-hover]');
+        setCursorText(hoverElement.dataset.cursorHover || '');
       }
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
+    const handleMouseLeave = () => {
+      setCursorText('');
     };
-  }, [isMobile, isTablet, open, mouseInsideCanvas]);
 
-  // Eliminar el cursor nativo dentro del canvas
-  useEffect(() => {
-    if (!open || isMobile || isTablet) return;
+    // Add event listeners to all interactive elements
+    const interactiveElements = document.querySelectorAll(
+      'a, button, [data-cursor-hover], [data-cursor-text]'
+    );
+
+    interactiveElements.forEach((element) => {
+      element.addEventListener('mouseenter', handleMouseEnter);
+      element.addEventListener('mouseleave', handleMouseLeave);
+    });
+
+    document.addEventListener('mousemove', updatePosition);
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
     
+    // Esconder el cursor nativo
     if (drawerRef.current) {
       drawerRef.current.style.cursor = 'none';
       const elements = drawerRef.current.querySelectorAll('*');
@@ -156,7 +145,20 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
         element.style.cursor = 'none';
       });
     }
-  }, [open, isMobile, isTablet]);
+    document.body.style.cursor = 'none';
+    
+    return () => {
+      interactiveElements.forEach((element) => {
+        element.removeEventListener('mouseenter', handleMouseEnter);
+        element.removeEventListener('mouseleave', handleMouseLeave);
+      });
+      
+      document.removeEventListener('mousemove', updatePosition);
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'auto';
+    };
+  }, [isMobile, isTablet, open]);
 
   const handleMouseEnterCanvas = () => {
     setMouseInsideCanvas(true);
@@ -180,7 +182,6 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         sx={{ 
-          // Movemos el estilo condicional al objeto sx para evitar pasar isHovered como prop DOM
           backgroundColor: isHovered ? 'white' : 'black',
           color: isHovered ? 'black' : 'white',
           boxShadow: isHovered ? '0 0 8px rgba(255,255,255,0.8)' : 'none'
@@ -512,12 +513,12 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
         </OverlayBackdrop>
       )}
       
-      {/* Custom cursors only for desktop */}
+      {/* Custom cursors - solo para desktop */}
       {!isMobile && !isTablet && open && (
         <>
-          {/* Cursor X - solo visible FUERA del modal */}
+          {/* Cursor X - solo visible FUERA del canvas */}
           <Box
-            ref={cursorRef}
+            ref={cursorCloseRef}
             onClick={handleCursorClick}
             sx={{
               position: 'fixed',
@@ -529,86 +530,65 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               fontSize: '24px',
               fontWeight: 'bold',
               fontFamily: 'monospace',
-              backgroundColor: 'black', // Cambiado a negro
-              color: 'white', // Cambiado a blanco para contraste
-              border: '2px solid white', // Borde blanco para definir el cuadrado
-              borderRadius: '0', // Cuadrado en lugar de círculo
+              backgroundColor: 'black',
+              color: 'white',
+              border: '2px solid white',
+              borderRadius: '0',
               transform: 'translate(-50%, -50%)',
               pointerEvents: 'none',
               zIndex: 10000,
               cursor: 'none',
-              left: '50%',
-              top: '50%'
+              left: `${position.x}px`,
+              top: `${position.y}px`,
+              visibility: mouseInsideCanvas ? 'hidden' : 'visible',
             }}
           >
             ✖
           </Box>
           
-          {/* Cursores RGB con mayor separación para destacar en fondo negro */}
-          {/* Cursor verde (principal) */}
+          {/* Cursor circular - solo visible DENTRO del canvas */}
           <Box
-            ref={cursorRGBRef}
+            ref={cursorRef}
+            className="cursor-dot bg-white mix-blend-difference"
             sx={{
               position: 'fixed',
-              width: '32px',
-              height: '32px',
-              transform: 'translate(-10px, -5px)',
+              width: '30px',
+              height: '30px',
+              borderRadius: '50%',
+              backgroundColor: 'white',
+              mixBlendMode: 'difference',
               pointerEvents: 'none',
-              zIndex: 9999,
-              visibility: 'hidden',
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath fill='%2300FF00' d='M8,4 L24,20 L17,20 L22,28 L19,30 L14,22 L8,28 z'/%3E%3C/svg%3E")`,
-              backgroundRepeat: 'no-repeat',
-              backgroundSize: 'contain',
-              mixBlendMode: 'screen',
-              left: '50%',
-              top: '50%',
-              filter: 'brightness(1.2)' // Hacer más brillante para destacar en fondo negro
+              zIndex: 10000,
+              transform: 'translate(-50%, -50%)',
+              left: `${position.x}px`,
+              top: `${position.y}px`,
+              scale: mouseInsideCanvas ? (isClicking ? 0.8 : 2) : 0,
+              transition: 'scale 0.3s ease',
+              visibility: mouseInsideCanvas ? 'visible' : 'hidden',
             }}
           />
           
-          {/* Cursor rojo */}
-          <Box
-            ref={cursorRedRef}
-            sx={{
-              position: 'fixed',
-              width: '32px',
-              height: '32px',
-              transform: 'translate(-15px, -5px)', // Mayor desplazamiento horizontal
-              pointerEvents: 'none',
-              zIndex: 9998,
-              visibility: 'hidden',
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath fill='%23FF0000' d='M8,4 L24,20 L17,20 L22,28 L19,30 L14,22 L8,28 z'/%3E%3C/svg%3E")`,
-              backgroundRepeat: 'no-repeat',
-              backgroundSize: 'contain',
-              opacity: 0.8, // Más opaco
-              mixBlendMode: 'screen',
-              left: '50%',
-              top: '50%',
-              filter: 'brightness(1.2)' // Hacer más brillante para destacar en fondo negro
-            }}
-          />
-          
-          {/* Cursor azul */}
-          <Box
-            ref={cursorBlueRef}
-            sx={{
-              position: 'fixed',
-              width: '32px',
-              height: '32px',
-              transform: 'translate(-5px, -5px)', // Mayor desplazamiento horizontal
-              pointerEvents: 'none',
-              zIndex: 9998,
-              visibility: 'hidden',
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath fill='%230000FF' d='M8,4 L24,20 L17,20 L22,28 L19,30 L14,22 L8,28 z'/%3E%3C/svg%3E")`,
-              backgroundRepeat: 'no-repeat',
-              backgroundSize: 'contain',
-              opacity: 0.8, // Más opaco
-              mixBlendMode: 'screen',
-              left: '50%',
-              top: '50%',
-              filter: 'brightness(1.2)' // Hacer más brillante para destacar en fondo negro
-            }}
-          />
+          {/* Texto del cursor cuando corresponda */}
+          {cursorText && mouseInsideCanvas && (
+            <Box
+              sx={{
+                position: 'fixed',
+                left: `${position.x}px`,
+                top: `${position.y + 30}px`,
+                transform: 'translate(-50%, -50%)',
+                color: 'white',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                pointerEvents: 'none',
+                zIndex: 10001,
+                padding: '2px 4px',
+                opacity: 1,
+                transition: 'opacity 0.3s ease',
+              }}
+            >
+              {cursorText}
+            </Box>
+          )}
         </>
       )}
     </>
