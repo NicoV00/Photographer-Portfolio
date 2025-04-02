@@ -32,6 +32,18 @@ const LoadingScreen = styled(Box)(({ theme }) => ({
   overflow: 'hidden', // Prevent any overflow during animations
 }));
 
+// Scroll progress bar - color set to white for dark background
+const ScrollProgressBar = styled(Box)(({ theme, progress = 0 }) => ({
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  height: '3px',
+  width: `${progress}%`,
+  backgroundColor: 'white', // Changed to white for dark background
+  zIndex: 100,
+  transition: 'width 0.2s ease-out',
+}));
+
 // Separate components for MAISON and 2024
 const LoadingTitle = styled(Box)(({ theme }) => ({
   fontFamily: '"Medium OTF", sans-serif',
@@ -173,6 +185,7 @@ const MaisonGallery = ({ onBack }) => {
   // Loading screen state
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0); // Added for progress bar
 
   // References for animation elements
   const titleRef = useRef(null);
@@ -345,10 +358,16 @@ const MaisonGallery = ({ onBack }) => {
 
     container.addEventListener('wheel', handleWheel, { passive: false });
     
+    // Modified to calculate scroll progress percentage
     const handleScroll = throttle(() => {
-      setScrollLeft(container.scrollLeft);
+      const currentScroll = container.scrollLeft;
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      const progress = (currentScroll / maxScroll) * 100;
+      
+      setScrollProgress(progress);
+      setScrollLeft(currentScroll);
       checkVisibility();
-    }, 150);
+    }, 100);
     
     container.addEventListener('scroll', handleScroll, { passive: true });
 
@@ -703,6 +722,11 @@ const MaisonGallery = ({ onBack }) => {
             sx={{ color: 'black' }}
           />
         </LoadingScreen>
+      )}
+      
+      {/* Scroll progress bar - only visible after loading */}
+      {!loading && (
+        <ScrollProgressBar progress={scrollProgress} />
       )}
       
       {/* Navigation arrow */}

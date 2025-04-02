@@ -32,6 +32,18 @@ const LoadingScreen = styled(Box)(({ theme }) => ({
   overflow: 'hidden', // Prevent any overflow during animations
 }));
 
+// Scroll progress bar
+const ScrollProgressBar = styled(Box)(({ theme, progress = 0 }) => ({
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  height: '3px',
+  width: `${progress}%`,
+  backgroundColor: '#000',
+  zIndex: 100,
+  transition: 'width 0.2s ease-out',
+}));
+
 // Separate components for ANA LIVNI and 2024
 const LoadingTitle = styled(Box)(({ theme }) => ({
   fontFamily: '"Medium OTF", sans-serif',
@@ -84,7 +96,7 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
 const GalleryContent = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  width: '4800px', // Aumentado desde 4500px para el mayor espaciado
+  width: '7500px', // Aumentado desde 4500px para el mayor espaciado
   height: '100%',
   padding: '40px',
   paddingRight: '300px', // Extra padding at the end
@@ -140,14 +152,13 @@ const AnaLivniGallery = ({ onBack }) => {
   // Estado para la pantalla de carga
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   // Referencias para los elementos de animación
   const titleRef = useRef(null);
   const yearRef = useRef(null);
   const loadingScreenRef = useRef(null);
 
-  // Referencia para la imagen 7 que tendrá animación
-  const image7Ref = useRef(null);
   const containerRef = useRef(null);
   const [scrollLeft, setScrollLeft] = useState(0);
   
@@ -344,9 +355,14 @@ const AnaLivniGallery = ({ onBack }) => {
     
     // Event listener para detectar cambios de scroll (tanto manuales como animados)
     const handleScroll = throttle(() => {
-      setScrollLeft(container.scrollLeft);
+      const currentScroll = container.scrollLeft;
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      const progress = (currentScroll / maxScroll) * 100;
+      
+      setScrollProgress(progress);
+      setScrollLeft(currentScroll);
       checkVisibility();
-    }, 150); // Checking visibility no necesita ser tan frecuente
+    }, 100); // Checking visibility no necesita ser tan frecuente
     
     container.addEventListener('scroll', handleScroll, { passive: true });
 
@@ -397,51 +413,6 @@ const AnaLivniGallery = ({ onBack }) => {
       container.removeEventListener('scroll', handleScroll);
     };
   }, [isMobile, checkVisibility]);
-
-  // Configurar la animación de la imagen 7 solo cuando se comienza a hacer scroll
-  useEffect(() => {
-    if (isMobile || !image7Ref.current || !containerRef.current || loading) return;
-
-    // Configuración inicial - posición más a la izquierda y completamente fuera de la imagen 8
-    const originalLeft = 1950; // Posición final actualizada para coincidir con el nuevo espaciado
-    const startLeft = 1700;    // Posición inicial más a la izquierda (fuera de la imagen 6)
-
-    // Primero configuramos la posición inicial - sin cambio de opacidad
-    gsap.set(image7Ref.current, {
-      left: startLeft,
-    });
-
-    // Variable para rastrear si ya se ha activado la animación
-    let animationTriggered = false;
-
-    // Función que maneja el evento de scroll con throttle
-    const handleScroll = throttle(() => {
-      // Solo activar la animación la primera vez que se hace scroll
-      if (!animationTriggered && containerRef.current.scrollLeft > 0) {
-        animationTriggered = true;
-        
-        // Animar la imagen 7 a su posición final - solo movimiento
-        gsap.to(image7Ref.current, {
-          left: originalLeft,
-          duration: 1.5, // Duración ligeramente mayor para mayor distancia
-          ease: "power2.out"
-        });
-        
-        // Eliminar el event listener después de que se activa
-        containerRef.current.removeEventListener('scroll', handleScroll);
-      }
-    }, 50);
-
-    // Agregar el event listener para el scroll
-    containerRef.current.addEventListener('scroll', handleScroll, { passive: true });
-
-    // Limpieza
-    return () => {
-      if (containerRef.current) {
-        containerRef.current.removeEventListener('scroll', handleScroll);
-      }
-    };
-  }, [isMobile, loading]);
 
   // Mobile view rendering con lazy loading
   const renderMobileView = () => (
@@ -504,9 +475,8 @@ const AnaLivniGallery = ({ onBack }) => {
       <ImageItem 
         ref={el => imageRefs.current[0] = el}
         top="50%"
-        left="80px"
-        width="400px"
-        height="650px"
+        left="450px"
+        height="85vh"
         zIndex={2}
         isVisible={visibleImages[0] !== false}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
@@ -519,11 +489,11 @@ const AnaLivniGallery = ({ onBack }) => {
         ref={el => imageRefs.current[1] = el}
         sx={{ 
           position: 'absolute', 
-          top: '75%', 
-          left: '550px', 
+          top: '85%', 
+          left: '1300px', 
           transform: 'translateY(-50%)',
           zIndex: 2,
-          width: '120px',
+          width: '170px',
           display: 'flex',
           flexDirection: 'column',
           opacity: visibleImages[1] !== false ? 1 : 0,
@@ -537,10 +507,9 @@ const AnaLivniGallery = ({ onBack }) => {
       
       <ImageItem 
         ref={el => imageRefs.current[2] = el}
-        top="15%" 
-        left="700px" 
-        width="270px" 
-        height="380px" 
+        top="1%" 
+        left="1500px" 
+        height="55vh" 
         zIndex={2}
         isVisible={visibleImages[2] !== false}
       >
@@ -550,10 +519,9 @@ const AnaLivniGallery = ({ onBack }) => {
       {/* Aumentamos el espaciado horizontal entre imágenes */}
       <ImageItem 
         ref={el => imageRefs.current[3] = el}
-        top="50%" 
-        left="970px" 
-        width="270px" 
-        height="380px" 
+        top="44%" 
+        left="1875px" 
+        height="55vh" 
         zIndex={2}
         isVisible={visibleImages[3] !== false}
       >
@@ -564,9 +532,8 @@ const AnaLivniGallery = ({ onBack }) => {
       <ImageItem 
         ref={el => imageRefs.current[4] = el}
         top="50%" 
-        left="1360px" // Aumentado el espaciado
-        width="280px" 
-        height="380px" 
+        left="2460px" // Aumentado el espaciado
+        height="50vh" 
         zIndex={1}
         isVisible={visibleImages[4] !== false}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
@@ -574,13 +541,12 @@ const AnaLivniGallery = ({ onBack }) => {
         <Box component="img" src={images.L6} alt="ANA LIVNI 6" loading="eager" />
       </ImageItem>
       
-      {/* Imagen 7 con animación activada por scroll - solo movimiento */}
+      {/* Imagen 7 ahora es estática - ya no tiene animación */}
       <ImageItem 
-        ref={image7Ref}
+        ref={el => imageRefs.current[5] = el}
         top="50%" 
-        left="1950px" // Posición final aumentada para mayor separación
-        width="430px" 
-        height="380px" 
+        left="3100px" 
+        height="50vh" 
         zIndex={2}
         isVisible={visibleImages[5] !== false}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
@@ -591,9 +557,8 @@ const AnaLivniGallery = ({ onBack }) => {
       <ImageItem 
         ref={el => imageRefs.current[6] = el}
         top="50%" 
-        left="2250px" // Aumentado el espaciado
-        width="450px" 
-        height="790px" 
+        left="3750px" // Aumentado el espaciado
+        height="100vh" 
         zIndex={1}
         isVisible={visibleImages[6] !== false}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
@@ -604,9 +569,8 @@ const AnaLivniGallery = ({ onBack }) => {
       <ImageItem 
         ref={el => imageRefs.current[7] = el}
         top="50%" 
-        left="2850px" // Aumentado el espaciado
-        width="280px" 
-        height="380px" 
+        left="5650px" // Aumentado el espaciado
+        height="55vh"
         zIndex={2}
         isVisible={visibleImages[7] !== false}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
@@ -617,9 +581,8 @@ const AnaLivniGallery = ({ onBack }) => {
       <ImageItem 
         ref={el => imageRefs.current[8] = el}
         top="50%" 
-        left="3200px" // Aumentado el espaciado
-        width="280px" 
-        height="380px" 
+        left="5250px" // Aumentado el espaciado
+        height="55vh"
         zIndex={3}
         isVisible={visibleImages[8] !== false}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
@@ -630,9 +593,8 @@ const AnaLivniGallery = ({ onBack }) => {
       <ImageItem 
         ref={el => imageRefs.current[9] = el}
         top="50%" 
-        left="3550px" // Aumentado el espaciado
-        width="280px" 
-        height="380px" 
+        left="4850px" // Aumentado el espaciado
+        height="55vh" 
         zIndex={2}
         isVisible={visibleImages[9] !== false}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
@@ -642,10 +604,9 @@ const AnaLivniGallery = ({ onBack }) => {
       
       <ImageItem 
         ref={el => imageRefs.current[10] = el}
-        top="25%" 
-        left="3950px" // Aumentado el espaciado
-        width="380px" 
-        height="430px" 
+        top="40%" 
+        left="6400px" // Aumentado el espaciado
+        height="70vh" 
         zIndex={2}
         isVisible={visibleImages[10] !== false}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
@@ -656,9 +617,8 @@ const AnaLivniGallery = ({ onBack }) => {
       <ImageItem 
         ref={el => imageRefs.current[11] = el}
         top="65%" 
-        left="4150px" // Aumentado el espaciado
-        width="480px" 
-        height="630px" 
+        left="6800px" // Aumentado el espaciado
+        height="70vh" 
         zIndex={1}
         isVisible={visibleImages[11] !== false}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
@@ -693,6 +653,11 @@ const AnaLivniGallery = ({ onBack }) => {
             sx={{ color: 'black' }}
           />
         </LoadingScreen>
+      )}
+      
+      {/* Barra de progreso del scroll */}
+      {!loading && (
+        <ScrollProgressBar progress={scrollProgress} />
       )}
       
       {/* Flecha de navegación que siempre es visible en móvil */}

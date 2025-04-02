@@ -32,6 +32,36 @@ const LoadingScreen = styled(Box)(({ theme }) => ({
   zIndex: 9999,
   transition: 'opacity 0.5s ease-out',
   overflow: 'hidden',
+  padding: '20px',
+}));
+
+// Scroll progress bar
+const ScrollProgressBar = styled(Box)(({ theme, progress = 0 }) => ({
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  height: '3px',
+  width: `${progress}%`,
+  backgroundColor: '#000',
+  zIndex: 100,
+  transition: 'width 0.2s ease-out',
+}));
+
+// Art Image container for the loading screen
+const LoadingArtImage = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  top: '30px',
+  right: '30px',
+  width: '450px', // Even larger
+  height: 'auto',
+  opacity: 0,
+  transform: 'translateY(20px)',
+  transition: 'opacity 0.5s ease, transform 0.5s ease',
+  [theme.breakpoints.down('sm')]: {
+    width: '320px',
+    top: '20px',
+    right: '20px',
+  },
 }));
 
 // Components for VESTIMETEO and 2024
@@ -44,6 +74,12 @@ const LoadingTitle = styled(Box)(({ theme }) => ({
   position: 'relative',
   transform: 'translateY(100px)',
   opacity: 0,
+  textAlign: 'center',
+  width: '100%',
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '32px',
+    letterSpacing: '1.5px',
+  },
 }));
 
 const LoadingYear = styled(Box)(({ theme }) => ({
@@ -57,6 +93,14 @@ const LoadingYear = styled(Box)(({ theme }) => ({
   transform: 'translateY(100px)',
   opacity: 0,
   marginBottom: '40px',
+  textAlign: 'center',
+  width: '100%',
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '28px',
+    letterSpacing: '1.5px',
+    marginTop: '5px',
+    marginBottom: '30px',
+  },
 }));
 
 // Gallery container con degradado dinámico
@@ -64,7 +108,7 @@ const GalleryContainer = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'scrollPosition'
 })(({ theme, scrollPosition = 0 }) => {
   // Valor de scroll donde comienza la transición (después de la tercera imagen)
-  const scrollThreshold = 1200;
+  const scrollThreshold = 3500;
   // Cantidad de scroll necesaria para completar la transición
   const transitionLength = 800;
   // Progreso de la transición (0 a 1)
@@ -190,6 +234,7 @@ const VestimeTeoGallery = ({ onBack }) => {
   // Loading state
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   // Refs for animation elements
   const titleRef = useRef(null);
@@ -403,10 +448,16 @@ const VestimeTeoGallery = ({ onBack }) => {
     container.addEventListener('mouseleave', handleMouseLeave);
     container.addEventListener('mousemove', handleMouseMove);
     
+    // Calculate scroll progress
     const handleScroll = throttle(() => {
-      setScrollLeft(container.scrollLeft);
+      const currentScroll = container.scrollLeft;
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      const progress = (currentScroll / maxScroll) * 100;
+      
+      setScrollProgress(progress);
+      setScrollLeft(currentScroll);
       checkVisibility();
-    }, 150);
+    }, 100);
     
     container.addEventListener('scroll', handleScroll, { passive: true });
 
@@ -525,23 +576,6 @@ const VestimeTeoGallery = ({ onBack }) => {
           component="img" 
           src={images[3]} 
           alt="Vestimeteo 4" 
-          loading="lazy"
-        />
-      </ImageItem>
-
-      {/* Art graphic between photos */}
-      <ImageItem 
-        ref={el => imageRefs.current[4] = el}
-        isMobile={true}
-        width="90%"
-        height="auto"
-        isVisible={visibleImages[4] !== false}
-        isPhoto={false}
-      >
-        <Box 
-          component="img" 
-          src={artImage} 
-          alt="Vestimeteo Art" 
           loading="lazy"
         />
       </ImageItem>
@@ -699,24 +733,6 @@ const VestimeTeoGallery = ({ onBack }) => {
         />
       </ImageItem>
 
-      {/* Art graphic */}
-      <ImageItem 
-        ref={el => imageRefs.current[4] = el}
-        top="50%"
-        left="3170px" // Reposicionado
-        height="100vh" // Ajustando el tamaño para mantener proporción
-        zIndex={3}
-        isVisible={visibleImages[4] !== false}
-        isPhoto={false}
-      >
-        <Box 
-          component="img" 
-          src={artImage} 
-          alt="Vestimeteo Art" 
-          loading="lazy"
-        />
-      </ImageItem>
-
       {/* V6 */}
       <ImageItem 
         ref={el => imageRefs.current[5] = el}
@@ -822,11 +838,19 @@ const VestimeTeoGallery = ({ onBack }) => {
           <CircularProgress 
             variant="determinate" 
             value={loadProgress} 
-            size={60} 
-            thickness={4}
-            sx={{ color: 'black' }}
+            size={70} 
+            thickness={3}
+            sx={{ 
+              color: 'black',
+              marginTop: '10px',
+            }}
           />
         </LoadingScreen>
+      )}
+      
+      {/* Scroll progress bar */}
+      {!loading && (
+        <ScrollProgressBar progress={scrollProgress} />
       )}
       
       {/* Navigation arrow */}
