@@ -3,23 +3,23 @@ import * as THREE from 'three';
 import { gsap } from 'gsap';
 import PortfolioButton from './PortfolioButton';
 
-const ImageMesh = React.memo(({ 
-  position, 
-  textureUrl, 
-  refProp, 
-  onClick, 
-  isHighQuality, 
-  isSelected, 
-  onGalleryToggle 
+const ImageMesh = React.memo(({
+  position,
+  textureUrl,
+  refProp,
+  onClick,
+  isHighQuality,
+  isSelected,
+  onGalleryToggle
 }) => {
   const [texture, setTexture] = useState(null);
   const [aspectRatio, setAspectRatio] = useState(1);
   const [isHovered, setIsHovered] = useState(false);
   const meshRef = useRef();
-
+  
   useEffect(() => {
     let mounted = true;
-
+    
     const loadTexture = async () => {
       if (isHighQuality) {
         // High quality loading
@@ -53,9 +53,9 @@ const ImageMesh = React.memo(({
         });
       }
     };
-
+    
     loadTexture();
-
+    
     return () => {
       mounted = false;
       if (texture) {
@@ -63,17 +63,30 @@ const ImageMesh = React.memo(({
       }
     };
   }, [textureUrl, isHighQuality]);
-
+  
   useEffect(() => {
     if (texture?.image) {
       setAspectRatio(texture.image.width / texture.image.height);
     }
   }, [texture]);
-
-  // Handle hover effect
+  
+  // Si está seleccionada, aplicar el efecto de escala inmediatamente (como estado fijo)
+  useEffect(() => {
+    if (isSelected && meshRef.current) {
+      // Si está seleccionada, establecer escala fija sin animación
+      meshRef.current.scale.set(1.05, 1.05, 1.05);
+    } else if (!isHovered && meshRef.current) {
+      // Si no está seleccionada ni hover, volver al tamaño normal
+      meshRef.current.scale.set(1, 1, 1);
+    }
+  }, [isSelected]);
+  
+  // Handle hover effect - solo si no está seleccionada
   const handlePointerOver = () => {
     setIsHovered(true);
-    if (meshRef.current) {
+    
+    // Solo aplicar efecto hover si la imagen no está seleccionada
+    if (!isSelected && meshRef.current) {
       gsap.to(meshRef.current.scale, {
         x: 1.05,
         y: 1.05,
@@ -83,10 +96,12 @@ const ImageMesh = React.memo(({
       });
     }
   };
-
+  
   const handlePointerOut = () => {
     setIsHovered(false);
-    if (meshRef.current) {
+    
+    // Solo restaurar tamaño si la imagen no está seleccionada
+    if (!isSelected && meshRef.current) {
       gsap.to(meshRef.current.scale, {
         x: 1,
         y: 1,
@@ -96,9 +111,9 @@ const ImageMesh = React.memo(({
       });
     }
   };
-
+  
   if (!texture) return null;
-
+  
   return (
     <group ref={refProp} position={position}>
       <mesh 
@@ -115,7 +130,10 @@ const ImageMesh = React.memo(({
         />
       </mesh>
       {isSelected && (
-        <PortfolioButton onClick={onGalleryToggle} />
+        <PortfolioButton 
+          onClick={onGalleryToggle} 
+          imageMeshRef={meshRef} 
+        />
       )}
     </group>
   );

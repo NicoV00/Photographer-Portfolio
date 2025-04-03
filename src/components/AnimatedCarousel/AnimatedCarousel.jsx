@@ -8,6 +8,7 @@ import ImageMesh from './ImageMesh';
 const AnimatedCarousel = ({ setShowCollection, setCollection, setIndex }) => {
   const [isHighQuality, setIsHighQuality] = useState(false);
   const imageUrls = useMemo(() => [
+    "./images/CALDO/CALDO-1 (PORTADA).jpg", // Añadida imagen de CALDO
     "./images/blua_constelaciones_finales.jpg",
     "./images/LF-11.jpg",
     "./images/LFF-15.jpg",
@@ -26,7 +27,7 @@ const AnimatedCarousel = ({ setShowCollection, setCollection, setIndex }) => {
     "./images/PLATA-2.jpg",
     "./images/S-1.jpg",
     "./images/MDLST/MDLST-1.png",
-    "./images/TEO/V1.jpg" // Nueva imagen para VestimeTeo
+    "./images/TEO/V1.jpg"
   ], []);
 
   const textures = useLoader(

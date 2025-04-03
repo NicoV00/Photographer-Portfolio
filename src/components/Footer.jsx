@@ -175,6 +175,7 @@ const Footer = ({ onShowChange }) => {
   return (
     <FooterContainer>
       {/* Botones de estilo directamente visibles */}
+      {/* 
       {visibleStyles.map((style, index) => (
         <StyleButton 
           key={index} 
@@ -184,9 +185,11 @@ const Footer = ({ onShowChange }) => {
           {style}
         </StyleButton>
       ))}
+      */}
       
       
       {/* Menú desplegable para pantallas pequeñas */}
+      {/* 
       {menuStyles.length > 0 && (
         <>
           <MenuIconButton
@@ -196,7 +199,6 @@ const Footer = ({ onShowChange }) => {
             onClick={handleClick}
             disableRipple={true}
           >
-            {/* Ícono personalizado en móvil, estándar en desktop */}
             {isMobile ? (
               <TwoLineMenu>
                 <div className="line"></div>
@@ -225,6 +227,7 @@ const Footer = ({ onShowChange }) => {
           </StyledMenu>
         </>
       )}
+      */}
       
       <OffCanvas onShowChange={onShowChange} />
     </FooterContainer>

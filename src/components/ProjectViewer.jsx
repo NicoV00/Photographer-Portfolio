@@ -2,14 +2,21 @@ import React, { useState, lazy, Suspense } from 'react';
 import AnimatedCarousel from './AnimatedCarousel';
 import { Box, CircularProgress } from '@mui/material';
 
-// Importación perezosa de las galerías para mejorar rendimiento
-const BluaGallery = lazy(() => import('./Galleries/BluaGallery')); 
-const AnaLivniGallery = lazy(() => import('./Galleries/AnaLivniGallery'));
-const MaisonGallery = lazy(() => import('./Galleries/MaisonGallery'));
-const VestimeTeoGallery = lazy(() => import('./Galleries/VestimeTeoGallery')); // Nueva importación
+// Importación de todas las galerías desde el punto centralizado
+import {
+  BluaGallery,
+  AnaLivniGallery,
+  MaisonGallery,
+  VestimeTeoGallery,
+  CaldoGallery
+} from './Galleries';
 
 // Mapeo de imágenes a componentes de galería
 const galleryMap = {
+  "./images/CALDO/CALDO-1 (PORTADA).jpg": {
+    component: CaldoGallery,
+    props: {}
+  },
   "./images/blua_constelaciones_finales.jpg": {
     component: BluaGallery,
     props: {}
@@ -22,11 +29,10 @@ const galleryMap = {
     component: MaisonGallery,
     props: {}
   },
-  "./images/TEO/V1.jpg": { // Nueva entrada para VestimeTeo
+  "./images/TEO/V1.jpg": {
     component: VestimeTeoGallery,
     props: {}
   }
-  // Agrega más mapeos aquí para otros proyectos
 };
 
 const ProjectViewer = () => {

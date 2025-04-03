@@ -11,7 +11,8 @@ import { styled } from '@mui/material/styles';
 const AnaLivniGallery = lazy(() => import('./components/Galleries/AnaLivniGallery'));
 const BluaGallery = lazy(() => import('./components/Galleries/BluaGallery'));
 const MaisonGallery = lazy(() => import('./components/Galleries/MaisonGallery'));
-const VestimeTeoGallery = lazy(() => import('./components/Galleries/VestimeTeoGallery')); // Nueva importación
+const VestimeTeoGallery = lazy(() => import('./components/Galleries/VestimeTeoGallery'));
+const CaldoGallery = lazy(() => import('./components/Galleries/CaldoGallery')); // Nueva importación para CALDO
 
 // Font loading and global styles
 const GlobalStyle = styled('style')({
@@ -93,10 +94,11 @@ function App() {
 
   // Collection mapping
   const specialCollections = {
+    "./images/CALDO/CALDO-1 (PORTADA).jpg": "caldo", // Nueva entrada para CALDO
     "./images/S-1.jpg": "ana-livni",
     "./images/blua_constelaciones_finales.jpg": "blua",
     "./images/MDLST/MDLST-1.png": "maison",
-    "./images/TEO/V1.jpg": "vestimeteo" // Nueva entrada para VestimeTeo
+    "./images/TEO/V1.jpg": "vestimeteo"
   };
 
   const handleOffCanvasState = (show) => {
@@ -192,6 +194,14 @@ function App() {
     setCollection("");
   };
 
+  // Para depuración - registro cuando cambia collection
+  useEffect(() => {
+    if (collection) {
+      console.log("Seleccionada colección:", collection);
+      console.log("Tipo de colección:", specialCollections[collection]);
+    }
+  }, [collection]);
+
   // Determine content to show
   const renderContent = () => {
     if (!showGallery) {
@@ -251,6 +261,12 @@ function App() {
             <VestimeTeoGallery onBack={handleBackToCarousel} />
           </Suspense>
         );
+      } else if (collectionType === "caldo") {
+        return (
+          <Suspense fallback={loadingComponent}>
+            <CaldoGallery onBack={handleBackToCarousel} />
+          </Suspense>
+        );
       } else {
         // Fallback for collections without specific component
         return (
@@ -264,6 +280,7 @@ function App() {
           }}>
             <h2>Proyecto en desarrollo</h2>
             <p>Este proyecto aún no tiene una galería específica.</p>
+            <p>Ruta de imagen: {collection}</p>
             <button 
               onClick={handleBackToCarousel}
               style={{

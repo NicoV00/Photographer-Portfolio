@@ -22,7 +22,7 @@ const LoadingScreen = styled(Box)(({ theme }) => ({
   left: 0,
   width: '100vw',
   height: '100vh',
-  backgroundColor: '#f5f5f5', // Color grisáceo
+  backgroundColor: 'rgb(30,30,29)', // Color grisáceo
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center',

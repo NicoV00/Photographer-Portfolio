@@ -17,7 +17,7 @@
     "@mui/icons-material": "^6.4.7",
     "@mui/material": "^6.4.7",
     "@react-three/drei": "^9.108.1",
-    "@react-three/fiber": "^8.17.14",
+    "@react-three/fiber": "^8.18.0",
     "@react-three/postprocessing": "^2.16.2",
     "@studio-freight/lenis": "^1.0.42",
     "bootstrap": "^5.3.3",
