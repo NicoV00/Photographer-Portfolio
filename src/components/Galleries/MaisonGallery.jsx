@@ -3,6 +3,11 @@ import { Box, useTheme, useMediaQuery, CircularProgress } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
+import useSmoothScroll from './useSmoothScroll';
+import { getGalleryColors } from '../utils/galleryColors';
+
+// Get the color theme for this gallery
+const galleryTheme = getGalleryColors('maison');
 
 // Custom font loading
 const GlobalStyle = styled('style')({
@@ -22,37 +27,39 @@ const LoadingScreen = styled(Box)(({ theme }) => ({
   left: 0,
   width: '100vw',
   height: '100vh',
-  backgroundColor: 'rgb(30,30,29)', // Color grisáceo
+  backgroundColor: galleryTheme.main,
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center',
   alignItems: 'center',
   zIndex: 9999,
   transition: 'opacity 0.5s ease-out',
-  overflow: 'hidden', // Prevent any overflow during animations
+  overflow: 'hidden',
 }));
 
-// Scroll progress bar - color set to white for dark background
-const ScrollProgressBar = styled(Box)(({ theme, progress = 0 }) => ({
+// Optimized scroll progress bar with GPU acceleration
+const ScrollProgressBar = styled(Box)({
   position: 'fixed',
   top: 0,
   left: 0,
   height: '3px',
-  width: `${progress}%`,
-  backgroundColor: 'white', // Changed to white for dark background
-  zIndex: 100,
-  transition: 'width 0.2s ease-out',
-}));
+  width: '0%',
+  backgroundColor: galleryTheme.highlight,
+  zIndex: 9999,
+  transform: 'translateZ(0)',  // Force GPU acceleration
+  willChange: 'width',
+  boxShadow: '0 0 3px rgba(255,255,255,0.2)',
+});
 
 // Separate components for MAISON and 2024
 const LoadingTitle = styled(Box)(({ theme }) => ({
   fontFamily: '"Medium OTF", sans-serif',
   fontSize: '45px',
   fontWeight: 'bold',
-  color: 'black',
+  color: galleryTheme.text,
   letterSpacing: '2px',
-  position: 'relative', // For positioning relative to container
-  transform: 'translateY(100px)', // Start below viewport (for animation)
+  position: 'relative',
+  transform: 'translateY(100px)',
   opacity: 0,
 }));
 
@@ -60,23 +67,26 @@ const LoadingYear = styled(Box)(({ theme }) => ({
   fontFamily: '"Medium OTF", sans-serif',
   fontSize: '40px',
   fontWeight: 'bold',
-  color: 'black',
+  color: galleryTheme.text,
   letterSpacing: '2px',
-  marginTop: '8px', // Space between the title and year
-  position: 'relative', // For positioning relative to container
-  transform: 'translateY(100px)', // Start below viewport (for animation)
+  marginTop: '8px',
+  position: 'relative',
+  transform: 'translateY(100px)',
   opacity: 0,
-  marginBottom: '40px', // Space between text and loading circle
+  marginBottom: '40px',
 }));
 
-// Main container with horizontal scroll
+// Optimized container with GPU acceleration for smoother scrolling
 const GalleryContainer = styled(Box)(({ theme }) => ({
-  backgroundColor: 'rgb(30,30,29)', // Dark background color as specified
+  backgroundColor: galleryTheme.main,
   width: '100vw',
   height: '100vh',
   position: 'relative',
   overflowX: 'auto',
   overflowY: 'hidden',
+  transform: 'translateZ(0)',  // Force GPU acceleration
+  perspective: '1000px',      // Enhance GPU acceleration
+  backfaceVisibility: 'hidden', // Further GPU optimization
   willChange: 'scroll-position',
   '-webkit-overflow-scrolling': 'touch',
   '&::-webkit-scrollbar': {
@@ -92,15 +102,16 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
   },
 }));
 
-// Content container - Updated width to 7000px
+// Content container
 const GalleryContent = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  width: '10100px', // Updated from 4800px to 7000px as per image requirements
+  width: '10100px',
   height: '100%',
   padding: '40px',
-  paddingRight: '300px', // Extra padding at the end
+  paddingRight: '300px',
   position: 'relative',
+  transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
     width: '100%',
     flexDirection: 'column',
@@ -109,7 +120,7 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   },
 }));
 
-// Image item
+// Image item with GPU acceleration
 const ImageItem = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'isMobile' && prop !== 'top' && prop !== 'left' && prop !== 'isVisible'
 })(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true }) => ({
@@ -124,6 +135,7 @@ const ImageItem = styled(Box, {
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
   willChange: 'transform, opacity',
+  backfaceVisibility: 'hidden', // GPU optimization
   '& img': {
     width: '100%',
     height: '100%',
@@ -131,6 +143,7 @@ const ImageItem = styled(Box, {
     borderRadius: '2px',
     boxShadow: '0 3px 8px rgba(0,0,0,0.25)',
     backfaceVisibility: 'hidden',
+    transform: 'translateZ(0)', // Force GPU acceleration
   },
   '& video': {
     width: '100%',
@@ -138,6 +151,7 @@ const ImageItem = styled(Box, {
     objectFit: 'cover',
     borderRadius: '2px',
     boxShadow: '0 3px 8px rgba(0,0,0,0.25)',
+    transform: 'translateZ(0)', // Force GPU acceleration
   }
 }));
 
@@ -154,62 +168,49 @@ const VideoFrame = styled(Box)(({ theme, top, left, width, height, zIndex = 1, i
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
   willChange: 'transform, opacity',
-  border: '1px solid white',
+  border: `1px solid ${galleryTheme.text}`,
   borderRadius: '2px',
   padding: '0',
-  boxShadow: '0 0 15px rgba(255,255,255,0.3)', // Glow effect
-  overflow: 'hidden', // Keep video within bounds
-  background: 'white', // White background
+  boxShadow: `0 0 15px ${galleryTheme.highlight}33`,
+  overflow: 'hidden',
+  background: galleryTheme.text,
+  backfaceVisibility: 'hidden', // GPU optimization
   '& video': {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
+    transform: 'translateZ(0)', // Force GPU acceleration
   }
 }));
-
-// Throttle function to limit frequency of calls
-function throttle(callback, limit) {
-  let waiting = false;
-  return function() {
-    if (!waiting) {
-      callback.apply(this, arguments);
-      waiting = true;
-      setTimeout(() => {
-        waiting = false;
-      }, limit);
-    }
-  };
-}
 
 const MaisonGallery = ({ onBack }) => {
   // Loading screen state
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(0); // Added for progress bar
-
+  
   // References for animation elements
   const titleRef = useRef(null);
   const yearRef = useRef(null);
   const loadingScreenRef = useRef(null);
   const containerRef = useRef(null);
-  const [scrollLeft, setScrollLeft] = useState(0);
+  const progressBarRef = useRef(null);
   
-  // Image visibility state and references
+  // Image visibility state and references with optimized memory usage
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
 
   // Images for MAISON - using the correct folder path
   const images = useMemo(() => ({
-    M1: '/images/MDLST/MDLST-1.png', // Man seated in industrial space
-    M2: '/images/MDLST/MDLST-2.png', // Close-up of hand with rings
-    M3: '/images/MDLST/MDLST-3.png', // Man walking on metro platform
-    M4: '/images/MDLST/MDLST-4.png', // Abstract typographic logo
-    M5: '/images/MDLST/MDLST-5.png', // Double panel of man walking in metro
-    M6: '/images/MDLST/MDLST-6.jpg', // Empty frame (will be video)
-    M7: '/images/MDLST/MDLST-7.jpg', // Double panel of man seated in metro
-    M8: '/images/MDLST/MDLST-8.jpg', // Man standing on metro platform
-    M9: '/images/MDLST/MDLST-9.mp4', // Video file
-    M10: '/images/MDLST/MDLST-10.jpg', // Man leaning on column in metro
+    M1: '/images/MDLST/MDLST-1.png',
+    M2: '/images/MDLST/MDLST-2.png',
+    M3: '/images/MDLST/MDLST-3.png',
+    M4: '/images/MDLST/MDLST-4.png',
+    M5: '/images/MDLST/MDLST-5.png',
+    M6: '/images/MDLST/MDLST-6.jpg',
+    M7: '/images/MDLST/MDLST-7.jpg',
+    M8: '/images/MDLST/MDLST-8.jpg',
+    M9: '/images/MDLST/MDLST-9.mp4',
+    M10: '/images/MDLST/MDLST-10.jpg',
     M11: '/images/MDLST/MDLST-11.jpg',
     M12: '/images/MDLST/MDLST-12.jpg',
     M13: '/images/MDLST/MDLST-13.jpg'
@@ -218,6 +219,63 @@ const MaisonGallery = ({ onBack }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
+  // Optimized visibility checking - throttled for performance
+  const checkVisibility = useCallback(() => {
+    if (!containerRef.current) return;
+    
+    const container = containerRef.current;
+    const containerRect = container.getBoundingClientRect();
+    const containerWidth = containerRect.width;
+    
+    // Increased preload margin for smoother experience
+    const preloadMargin = containerWidth * 1.2;
+    
+    const newVisibility = {};
+    
+    imageRefs.current.forEach((ref, index) => {
+      if (ref && ref.current) {
+        const imageRect = ref.current.getBoundingClientRect();
+        
+        let isVisible;
+        if (isMobile) {
+          isVisible = (
+            imageRect.top < containerRect.bottom + preloadMargin &&
+            imageRect.bottom > containerRect.top - preloadMargin
+          );
+        } else {
+          isVisible = (
+            imageRect.left < containerRect.right + preloadMargin &&
+            imageRect.right > containerRect.left - preloadMargin
+          );
+        }
+        
+        newVisibility[index] = isVisible;
+      }
+    });
+    
+    // Only update state if visibility has changed
+    setVisibleImages(prev => {
+      if (JSON.stringify(prev) !== JSON.stringify(newVisibility)) {
+        return newVisibility;
+      }
+      return prev;
+    });
+  }, [isMobile]);
+
+  // Use the optimized smooth scroll hook with theme colors
+  const { scrollLeft, scrollProgress, lenis } = useSmoothScroll({
+    containerRef,
+    isMobile,
+    isLoading: loading,
+    checkVisibility,
+    horizontal: true,
+    duration: 2.5,           // Extended duration for smoother motion
+    wheelMultiplier: 1.2,     // Higher multiplier for more responsive scrolling
+    touchMultiplier: 2,       // Higher touch multiplier
+    lerp: 0.04,               // Lower lerp for ultra smooth motion
+    colors: galleryTheme
+  });
+
   // Loading screen title and year animation effect
   useEffect(() => {
     if (!loading) return;
@@ -287,96 +345,49 @@ const MaisonGallery = ({ onBack }) => {
     return () => clearInterval(interval);
   }, [loading]);
 
-  // Check which images are visible
-  const checkVisibility = useCallback(() => {
-    if (!containerRef.current) return;
-    
-    const container = containerRef.current;
-    const containerRect = container.getBoundingClientRect();
-    const containerLeft = isMobile ? 0 : container.scrollLeft;
-    const containerWidth = containerRect.width;
-    
-    const preloadMargin = containerWidth * 0.8;
-    
-    const newVisibility = {};
-    
-    imageRefs.current.forEach((ref, index) => {
-      if (ref && ref.current) {
-        const imageRect = ref.current.getBoundingClientRect();
-        
-        let isVisible;
-        if (isMobile) {
-          isVisible = (
-            imageRect.top < containerRect.bottom + preloadMargin &&
-            imageRect.bottom > containerRect.top - preloadMargin
-          );
-        } else {
-          isVisible = (
-            imageRect.left < containerRect.right + preloadMargin &&
-            imageRect.right > containerRect.left - preloadMargin
-          );
-        }
-        
-        newVisibility[index] = isVisible;
-      }
-    });
-    
-    setVisibleImages(prev => {
-      if (JSON.stringify(prev) !== JSON.stringify(newVisibility)) {
-        return newVisibility;
-      }
-      return prev;
-    });
-  }, [isMobile]);
-
-  // Set up optimized scroll behavior
+  // Force loading to complete after a timeout
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    const container = containerRef.current;
+    const timer = setTimeout(() => {
+      if (loading) {
+        setLoading(false);
+      }
+    }, 5000);
     
-    container.style.scrollBehavior = 'auto';
+    return () => clearTimeout(timer);
+  }, [loading]);
 
-    const handleWheel = throttle((e) => {
-      if (isMobile) return;
+  // Optimize browser performance
+  useEffect(() => {
+    // Optimize browser performance during scrolling
+    if (!loading) {
+      // Add will-change hint to body for smoother overall page performance
+      document.body.style.willChange = 'scroll-position';
       
-      e.preventDefault();
+      // Disable overscroll for smoother experience
+      document.body.style.overscrollBehavior = 'none';
       
-      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-      const scrollSpeed = 1.5;
-      const targetScrollLeft = container.scrollLeft + delta * scrollSpeed;
-      
-      gsap.to(container, {
-        scrollLeft: targetScrollLeft,
-        duration: 0.4,
-        ease: "power2.out",
-        overwrite: true
-      });
-      
-      setScrollLeft(targetScrollLeft);
-    }, 16);
+      // Enable smooth scrolling at the browser level for maximum smoothness
+      document.documentElement.style.scrollBehavior = 'smooth';
+    }
+    
+    return () => {
+      // Cleanup optimizations when component unmounts
+      document.body.style.willChange = '';
+      document.body.style.overscrollBehavior = '';
+      document.documentElement.style.scrollBehavior = '';
+    };
+  }, [loading]);
 
-    container.addEventListener('wheel', handleWheel, { passive: false });
-    
-    // Modified to calculate scroll progress percentage
-    const handleScroll = throttle(() => {
-      const currentScroll = container.scrollLeft;
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      const progress = (currentScroll / maxScroll) * 100;
-      
-      setScrollProgress(progress);
-      setScrollLeft(currentScroll);
-      checkVisibility();
-    }, 100);
-    
-    container.addEventListener('scroll', handleScroll, { passive: true });
+  // Set up optimized IntersectionObserver for visibility detection
+  useEffect(() => {
+    if (loading || !containerRef.current) return;
 
     checkVisibility();
     
     if ('IntersectionObserver' in window) {
       const options = {
-        root: isMobile ? null : container,
-        rootMargin: '200px',
+        root: isMobile ? null : containerRef.current,
+        rootMargin: '300px', // Increased margin for earlier loading
         threshold: 0.1
       };
       
@@ -404,16 +415,9 @@ const MaisonGallery = ({ onBack }) => {
           if (ref?.current) observer.unobserve(ref.current);
         });
         observer.disconnect();
-        container.removeEventListener('wheel', handleWheel);
-        container.removeEventListener('scroll', handleScroll);
       };
     }
-    
-    return () => {
-      container.removeEventListener('wheel', handleWheel);
-      container.removeEventListener('scroll', handleScroll);
-    };
-  }, [isMobile, checkVisibility]);
+  }, [loading, isMobile, checkVisibility]);
 
   // Mobile view rendering
   const renderMobileView = () => (
@@ -551,9 +555,8 @@ const MaisonGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.M3} alt="MAISON 3" loading="eager" />
       </ImageItem>
-
       
-      {/* 4. Abstr go */}
+      {/* 4. Abstract logo */}
       <ImageItem 
         ref={el => imageRefs.current[3] = el}
         top="35%" 
@@ -586,7 +589,7 @@ const MaisonGallery = ({ onBack }) => {
         <Box component="img" src={images.M5} alt="MAISON 5" loading="eager" />
       </ImageItem>
       
-      {/* 5. Doubl*/}
+      {/* 5. Double */}
       <ImageItem 
         ref={el => imageRefs.current[4] = el}
         top="50%" 
@@ -719,20 +722,26 @@ const MaisonGallery = ({ onBack }) => {
             value={loadProgress} 
             size={60} 
             thickness={4}
-            sx={{ color: 'black' }}
+            sx={{ color: galleryTheme.text }}
           />
         </LoadingScreen>
       )}
       
-      {/* Scroll progress bar - only visible after loading */}
-      {!loading && (
-        <ScrollProgressBar progress={scrollProgress} />
-      )}
+      {/* Scroll progress bar - always visible after loading but controlled by Lenis via data-scroll-progress */}
+      <ScrollProgressBar 
+        ref={progressBarRef}
+        data-scroll-progress 
+        sx={{ 
+          opacity: loading ? 0 : 1
+        }} 
+      />
       
       {/* Navigation arrow */}
       <NavigationArrow 
         onBack={onBack} 
-        containerRef={containerRef} 
+        containerRef={containerRef}
+        colors={galleryTheme}
+        isLoading={loading}
       />
       
       <GalleryContainer ref={containerRef}>

@@ -4,11 +4,12 @@ import { useLoader, useFrame } from '@react-three/fiber';
 import { gsap } from 'gsap';
 import QualitySwitch from './QualitySwitch';
 import ImageMesh from './ImageMesh';
+import { getGalleryColors } from '../utils/galleryColors';
 
-const AnimatedCarousel = ({ setShowCollection, setCollection, setIndex }) => {
+const AnimatedCarousel = ({ setShowCollection, setCollection, setIndex, setActiveGalleryColor }) => {
   const [isHighQuality, setIsHighQuality] = useState(false);
   const imageUrls = useMemo(() => [
-    "./images/CALDO/CALDO-1 (PORTADA).jpg", // Añadida imagen de CALDO
+    "./images/CALDO/CALDO-1 (PORTADA).jpg",
     "./images/blua_constelaciones_finales.jpg",
     "./images/LF-11.jpg",
     "./images/LFF-15.jpg",
@@ -84,6 +85,9 @@ const AnimatedCarousel = ({ setShowCollection, setCollection, setIndex }) => {
   const mouse = new THREE.Vector2();
   const [loadedIndices, setLoadedIndices] = useState([]);
 
+  // Create a ref for scene background color transition
+  const backgroundRef = useRef(new THREE.Color('white'));
+
   useEffect(() => {
     textures.forEach((_, index) => {
       setLoadedIndices(prev => [...prev, index]);
@@ -110,6 +114,22 @@ const AnimatedCarousel = ({ setShowCollection, setCollection, setIndex }) => {
         }
         return updatedList;
       });
+      
+      // Get the gallery color based on the selected image URL
+      const galleryImageUrl = imageUrls[index];
+      const galleryColors = getGalleryColors(galleryImageUrl);
+      
+      // Pass the gallery colors to parent component
+      if (setActiveGalleryColor) {
+        setActiveGalleryColor(galleryColors);
+      }
+      
+      // Apply gallery background color to scene
+      if (galleryColors && galleryColors.main) {
+        // Convert hex color to THREE.Color
+        const newColor = new THREE.Color(galleryColors.main);
+        backgroundRef.current = newColor;
+      }
     } else {
       resetImagePositions();
     }
@@ -195,13 +215,21 @@ const AnimatedCarousel = ({ setShowCollection, setCollection, setIndex }) => {
     return closestIndex;
   };
 
-  useFrame(({ camera }) => {
+  useFrame(({ camera, scene }) => {
     cameraRef.current = camera;
     refs.forEach(ref => {
       if (ref.current) {
         ref.current.lookAt(camera.position);
       }
     });
+
+    // Apply background color transition when a photo is selected
+    if (isImageUpFront && scene.background) {
+      scene.background.lerp(backgroundRef.current, 0.05);
+    } else if (scene.background) {
+      // Reset to white when no image is selected
+      scene.background.lerp(new THREE.Color('white'), 0.05);
+    }
 
     if (groupRef.current && !isImageUpFront) {
       groupRef.current.rotation.y += 0.0003; // Add slight Y rotation
@@ -236,6 +264,11 @@ const AnimatedCarousel = ({ setShowCollection, setCollection, setIndex }) => {
     }
     setIsImageUpFront(false);
     setSelectedImage([]);
+    
+    // Reset gallery colors
+    if (setActiveGalleryColor) {
+      setActiveGalleryColor(null);
+    }
   };
 
   useEffect(() => {
@@ -270,7 +303,10 @@ const AnimatedCarousel = ({ setShowCollection, setCollection, setIndex }) => {
           onClick={() => handleClick(index)}
           isHighQuality={isHighQuality}
           isSelected={selectedImage.includes(index)}
-          onGalleryToggle={() => { setShowCollection(true); setCollection(imageUrls[index]); }}
+          onGalleryToggle={() => { 
+            setShowCollection(true); 
+            setCollection(imageUrls[index]); 
+          }}
         />
       ))}
     </group>

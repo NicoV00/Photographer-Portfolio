@@ -4,57 +4,123 @@ import { styled } from '@mui/material/styles';
 import { gsap } from 'gsap';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 
-// Flecha de navegación mejorada con borde y hover efecto
-const NavigationArrowButton = styled(IconButton)(({ theme, isVisible, isMobile }) => ({
-  position: 'fixed',
-  top: isMobile ? '15px' : '20px',
-  left: isMobile ? '15px' : '20px',
-  color: '#fae8e0', // Color rosa claro como el fondo de la imagen
-  backgroundColor: isMobile ? 'rgba(26, 26, 26, 0.75)' : 'transparent', // Fondo oscuro en móvil para mejor visibilidad
-  border: '1px solid #fae8e0',
-  borderRadius: '2px',
-  padding: isMobile ? '6px 10px' : '8px 12px', // Tamaño ajustado para móvil
-  transition: 'all 0.3s ease',
-  zIndex: 1000,
-  opacity: isMobile ? 1 : (isVisible ? 1 : 0), // Siempre visible en móvil
-  visibility: isMobile ? 'visible' : (isVisible ? 'visible' : 'hidden'), // Siempre visible en móvil
-  transform: isVisible ? 'translateY(0)' : 'translateY(-10px)',
-  boxShadow: isMobile ? '0 2px 4px rgba(0,0,0,0.2)' : 'none', // Sombra para destacar en móvil
-  '&:hover': {
-    backgroundColor: '#1a1a1a', // Fondo negro en hover
-    color: '#fae8e0', // Flecha blanca en hover
-    border: '1px solid #fae8e0', // Borde blanco en hover
-  },
-  '&:active': {
-    backgroundColor: '#1a1a1a', // Para dispositivos táctiles
-    color: '#fae8e0',
-  },
-  '& .MuiSvgIcon-root': {
-    fontSize: isMobile ? '18px' : '20px', // Tamaño ajustado para móvil
-    transform: 'translateX(-2px)', // Ajustar posición para compensar el cambio de icono
-  }
-}));
+// Flecha de navegación con colores adaptables a cada galería
+const NavigationArrowButton = styled(IconButton, {
+  shouldForwardProp: (prop) => !['isVisible', 'isMobile', 'colors'].includes(prop)
+})(({ theme, isVisible, isMobile, colors = null }) => {
+  // Colores por defecto en caso de que no se reciban colores del tema
+  const defaultColors = {
+    arrowColor: '#FFFFFF',      // Color blanco para la flecha
+    borderColor: '#FFFFFF',     // Borde blanco
+    hoverBgColor: '#1a1a1a',    // Fondo negro en hover
+    hoverColor: '#FFFFFF'       // Color blanco en hover
+  };
+  
+  // Si recibimos colores del tema, los usamos; si no, usamos los por defecto
+  const {
+    arrowColor = defaultColors.arrowColor,
+    borderColor = defaultColors.borderColor,
+    hoverBgColor = defaultColors.hoverBgColor,
+    hoverColor = defaultColors.hoverColor
+  } = colors || defaultColors;
 
-const NavigationArrow = ({ onBack, containerRef }) => {
+  return {
+    position: 'fixed',
+    top: isMobile ? '15px' : '20px',
+    left: isMobile ? '15px' : '20px',
+    color: arrowColor,
+    backgroundColor: isMobile ? 'rgba(26, 26, 26, 0.75)' : 'transparent',
+    border: `1px solid ${borderColor}`,
+    borderRadius: '2px',
+    padding: isMobile ? '6px 10px' : '8px 12px',
+    transition: 'all 0.3s ease',
+    zIndex: 9999, // Aumentado para asegurar que esté siempre por encima de todo
+    opacity: isMobile ? 1 : (isVisible ? 1 : 0),
+    visibility: isMobile ? 'visible' : (isVisible ? 'visible' : 'hidden'),
+    transform: isVisible ? 'translateY(0)' : 'translateY(-10px)',
+    boxShadow: isMobile ? '0 2px 4px rgba(0,0,0,0.2)' : 'none',
+    '&:hover': {
+      backgroundColor: hoverBgColor,
+      color: hoverColor,
+      border: `1px solid ${hoverColor}`,
+    },
+    '&:active': {
+      backgroundColor: hoverBgColor,
+      color: hoverColor,
+    },
+    '& .MuiSvgIcon-root': {
+      fontSize: isMobile ? '18px' : '20px',
+      transform: 'translateX(-2px)',
+    }
+  };
+});
+
+const NavigationArrow = ({ onBack, containerRef, colors = null, isLoading = false }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false); // Empieza oculto inicialmente
   const [isScrollingForward, setIsScrollingForward] = useState(false);
+  const [isReady, setIsReady] = useState(false); // Nuevo estado para controlar si el componente está listo para mostrarse
   const lastScrollPosition = useRef(0);
   const scrollTimeout = useRef(null);
+  const initialTimeout = useRef(null);
+  
+  // Procesamos los colores del tema si están disponibles
+  const processedColors = React.useMemo(() => {
+    if (!colors) return null;
+    
+    return {
+      arrowColor: colors.text,          // Color del texto para la flecha
+      borderColor: colors.text,         // Color del texto para el borde
+      hoverBgColor: colors.main === '#1e1e1d' ? '#333333' : colors.main, // Fondo en hover
+      hoverColor: colors.highlight      // Color del highlight para hover
+    };
+  }, [colors]);
+  
+  // Efecto para retrasar la aparición inicial después de que la carga se complete
+  useEffect(() => {
+    // Limpiamos cualquier timeout existente para evitar memory leaks
+    if (initialTimeout.current) {
+      clearTimeout(initialTimeout.current);
+    }
+    
+    // Si la galería está cargando, mantenemos la flecha oculta y marcamos como no lista
+    if (isLoading) {
+      setIsReady(false);
+      setIsVisible(false);
+      return;
+    }
+    
+    // Una vez que la carga termina, esperamos un poco antes de marcar como lista
+    initialTimeout.current = setTimeout(() => {
+      setIsReady(true); // Ahora el componente está listo para mostrarse
+      
+      // En móvil mostramos inmediatamente, en desktop esperamos un poco más
+      if (isMobile) {
+        setIsVisible(true);
+      } else {
+        // En desktop, mostramos la flecha durante unos segundos y luego ocultamos
+        setIsVisible(true);
+        
+        // Después de mostrar por unos segundos, ocultamos (solo en desktop)
+        scrollTimeout.current = setTimeout(() => {
+          setIsVisible(false);
+        }, 2000);
+      }
+    }, 800); // Retraso para que la flecha aparezca después de que la animación de carga termine
+    
+    return () => {
+      clearTimeout(initialTimeout.current);
+      clearTimeout(scrollTimeout.current);
+    };
+  }, [isLoading, isMobile]);
   
   // Controlar la visibilidad basada en la dirección del scroll (solo para desktop)
   useEffect(() => {
-    // No aplicar lógica de visibilidad en móvil ya que siempre será visible
-    if (isMobile || !containerRef?.current) return;
+    // Si la galería está cargando o el componente no está listo, no configuramos el scroll
+    if (isLoading || !isReady || !containerRef?.current || isMobile) return;
     
     const container = containerRef.current;
-    
-    // Inicialmente mostrar la flecha durante unos segundos y luego ocultarla
-    setIsVisible(true);
-    const initialTimeout = setTimeout(() => {
-      setIsVisible(false);
-    }, 2000);
     
     // Función throttle para limitar llamadas
     function throttle(callback, limit) {
@@ -104,13 +170,12 @@ const NavigationArrow = ({ onBack, containerRef }) => {
     
     // Limpieza
     return () => {
-      clearTimeout(initialTimeout);
       clearTimeout(scrollTimeout.current);
       if (container) {
         container.removeEventListener('scroll', handleScroll);
       }
     };
-  }, [containerRef, isMobile]);
+  }, [containerRef, isMobile, isLoading, isReady]);
 
   const handleClick = () => {
     // Al hacer clic, si hay una función onBack, la llamamos
@@ -133,10 +198,16 @@ const NavigationArrow = ({ onBack, containerRef }) => {
     }
   };
 
+  // Si la galería está cargando o el componente no está listo, no renderizamos
+  if (isLoading || !isReady) {
+    return null;
+  }
+
   return (
     <NavigationArrowButton 
       isVisible={isVisible}
       isMobile={isMobile}
+      colors={processedColors}
       onClick={handleClick}
       aria-label="Back"
     >

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
 import PortfolioButton from './PortfolioButton';
+import { getGalleryColors } from '../utils/galleryColors'; // Import utility from correct path
 
 const ImageMesh = React.memo(({
   position,
@@ -16,6 +17,9 @@ const ImageMesh = React.memo(({
   const [aspectRatio, setAspectRatio] = useState(1);
   const [isHovered, setIsHovered] = useState(false);
   const meshRef = useRef();
+  
+  // Get gallery colors based on the image URL
+  const galleryColors = getGalleryColors(textureUrl);
   
   useEffect(() => {
     let mounted = true;
@@ -133,6 +137,7 @@ const ImageMesh = React.memo(({
         <PortfolioButton 
           onClick={onGalleryToggle} 
           imageMeshRef={meshRef} 
+          galleryColors={galleryColors} // Pass gallery colors to PortfolioButton
         />
       )}
     </group>

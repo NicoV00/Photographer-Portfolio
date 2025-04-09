@@ -4,6 +4,11 @@ import { styled } from '@mui/material/styles';
 import CloseIcon from '@mui/icons-material/Close';
 import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
+import useSmoothScroll from './useSmoothScroll';
+import { getGalleryColors } from '../utils/galleryColors';
+
+// Get the color theme for this gallery
+const galleryTheme = getGalleryColors('blua');
 
 // Custom font loading
 const GlobalStyle = styled('style')({
@@ -23,7 +28,7 @@ const LoadingScreen = styled(Box)(({ theme }) => ({
   left: 0,
   width: '100vw',
   height: '100vh',
-  backgroundColor: '#f5f5f5', // Color grisáceo
+  backgroundColor: galleryTheme.main, // Using theme main color
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center',
@@ -38,7 +43,7 @@ const LoadingTitle = styled(Box)(({ theme }) => ({
   fontFamily: '"Medium OTF", sans-serif',
   fontSize: '45px',
   fontWeight: 'bold',
-  color: 'black',
+  color: galleryTheme.text, // Using theme text color
   letterSpacing: '2px',
   position: 'relative', // For positioning relative to container
   transform: 'translateY(100px)', // Start below viewport (for animation)
@@ -49,7 +54,7 @@ const LoadingYear = styled(Box)(({ theme }) => ({
   fontFamily: '"Medium OTF", sans-serif',
   fontSize: '40px',
   fontWeight: 'bold',
-  color: 'black',
+  color: galleryTheme.text, // Using theme text color
   letterSpacing: '2px',
   marginTop: '8px', // Space between the title and year
   position: 'relative', // For positioning relative to container
@@ -60,12 +65,15 @@ const LoadingYear = styled(Box)(({ theme }) => ({
 
 // Styled components using MUI styling system
 const GalleryContainer = styled(Box)(({ theme }) => ({
-  backgroundColor: 'white',
+  backgroundColor: galleryTheme.main, // Using theme main color
   width: '100vw',
   height: '100vh',
   position: 'relative',
   overflowX: 'auto',
   overflowY: 'hidden',
+  transform: 'translateZ(0)',  // Force GPU acceleration
+  perspective: '1000px',       // Enhance GPU acceleration
+  backfaceVisibility: 'hidden', // Further GPU optimization
   willChange: 'scroll-position', // Optimización para scroll
   '-webkit-overflow-scrolling': 'touch', // Mejor scroll en iOS
   '&::-webkit-scrollbar': {
@@ -81,6 +89,20 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
   },
 }));
 
+// Optimized scroll progress bar with GPU acceleration
+const ScrollProgressBar = styled(Box)({
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  height: '3px',
+  width: '0%',
+  backgroundColor: galleryTheme.highlight, // Using theme highlight color
+  zIndex: 9999,
+  transform: 'translateZ(0)',  // Force GPU acceleration
+  willChange: 'width',
+  boxShadow: '0 0 3px rgba(0,0,0,0.2)', // Subtle shadow for better visibility
+});
+
 const GalleryContent = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -89,6 +111,7 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   padding: '40px',
   paddingRight: '300px', // Extra padding at the end
   position: 'relative',
+  transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
     width: '100%',
     flexDirection: 'column',
@@ -117,6 +140,7 @@ const ImageItem = styled(Box, {
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)', // Pequeña animación de escala + aceleración hardware
   transition: 'opacity 0.5s ease, transform 0.5s ease',
   willChange: 'transform, opacity', // Optimización para animaciones
+  backfaceVisibility: 'hidden', // GPU optimization
   '& img': {
     width: '100%',
     height: isPhoto ? '100%' : 'auto',
@@ -124,6 +148,7 @@ const ImageItem = styled(Box, {
     borderRadius: isPhoto ? '2px' : '0',
     boxShadow: isPhoto ? '0 3px 8px rgba(0,0,0,0.25)' : 'none',
     backfaceVisibility: 'hidden', // Reduce flickering en WebKit
+    transform: 'translateZ(0)', // Force GPU acceleration
     cursor: isPhoto ? 'pointer' : 'default',
   }
 }));
@@ -145,6 +170,7 @@ const SpotifyContainer = styled(Box)(({ theme, top, left, width = '300px', zInde
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
   marginBottom: isMobile ? '40px' : '0',
+  backfaceVisibility: 'hidden', // GPU optimization
   '& iframe': {
     border: 'none',
     width: '100%',
@@ -159,7 +185,7 @@ const ModalContainer = styled(Box)({
   position: 'absolute',
   top: '50%',
   left: '50%',
-  transform: 'translate(-50%, -50%)',
+  transform: 'translate(-50%, -50%) translateZ(0)', // Added GPU acceleration
   maxHeight: '80vh',
   maxWidth: '90vw',
   outline: 'none',
@@ -169,6 +195,7 @@ const ModalContainer = styled(Box)({
     objectFit: 'contain',
     borderRadius: '1px',
     boxShadow: '0 10px 20px rgba(0, 0, 0, 0.5)',
+    transform: 'translateZ(0)', // Force GPU acceleration
   },
 });
 
@@ -183,20 +210,6 @@ const CloseButton = styled(IconButton)(({ theme }) => ({
   },
 }));
 
-// Función para throttle (limitar frecuencia de llamadas)
-function throttle(callback, limit) {
-  let waiting = false;
-  return function() {
-    if (!waiting) {
-      callback.apply(this, arguments);
-      waiting = true;
-      setTimeout(() => {
-        waiting = false;
-      }, limit);
-    }
-  };
-}
-
 const BluaGallery = ({ onBack }) => {
   // Estado para la pantalla de carga
   const [loading, setLoading] = useState(true);
@@ -206,12 +219,12 @@ const BluaGallery = ({ onBack }) => {
   const titleRef = useRef(null);
   const yearRef = useRef(null);
   const loadingScreenRef = useRef(null);
+  const progressBarRef = useRef(null);
   
   // Ref para imagen con animación
   const animatedImageRef = useRef(null);
   const containerRef = useRef(null);
-  const [scrollLeft, setScrollLeft] = useState(0);
-
+  
   // Estado para controlar la visibilidad de las imágenes
   const [visibleImages, setVisibleImages] = useState({});
   // Referencias para todas las imágenes
@@ -248,6 +261,7 @@ const BluaGallery = ({ onBack }) => {
       width: '100%',
       height: 'auto',
       objectFit: 'contain',
+      transform: 'translateZ(0)', // Force GPU acceleration
     }
   }));
 
@@ -265,6 +279,66 @@ const BluaGallery = ({ onBack }) => {
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
+  // Check which images are visible
+  const checkVisibility = React.useCallback(() => {
+    if (!containerRef.current) return;
+    
+    const container = containerRef.current;
+    const containerRect = container.getBoundingClientRect();
+    const containerWidth = containerRect.width;
+    
+    // Margen para precarga (carga imágenes un poco antes de que sean visibles)
+    const preloadMargin = containerWidth * 0.8;
+    
+    // Actualizar visibilidad de las imágenes
+    const newVisibility = {};
+    
+    imageRefs.current.forEach((ref, index) => {
+      if (ref && ref.current) {
+        const imageRect = ref.current.getBoundingClientRect();
+        
+        // Para móvil: comprobar visibilidad vertical
+        // Para desktop: comprobar visibilidad horizontal
+        let isVisible;
+        if (isMobile) {
+          isVisible = (
+            imageRect.top < containerRect.bottom + preloadMargin &&
+            imageRect.bottom > containerRect.top - preloadMargin
+          );
+        } else {
+          isVisible = (
+            imageRect.left < containerRect.right + preloadMargin &&
+            imageRect.right > containerRect.left - preloadMargin
+          );
+        }
+        
+        newVisibility[index] = isVisible;
+      }
+    });
+    
+    setVisibleImages(prev => {
+      // Solo actualizar si hay cambios
+      if (JSON.stringify(prev) !== JSON.stringify(newVisibility)) {
+        return newVisibility;
+      }
+      return prev;
+    });
+  }, [isMobile]);
+
+  // Use the optimized smooth scroll hook with theme colors
+  const { scrollLeft, scrollProgress } = useSmoothScroll({
+    containerRef,
+    isMobile,
+    isLoading: loading,
+    checkVisibility,
+    horizontal: true,
+    duration: 2.5,           // Increased duration for smoother motion
+    wheelMultiplier: 1.2,     // Increased multiplier for more responsive scrolling
+    touchMultiplier: 2,       // Increased touch multiplier for mobile
+    lerp: 0.04,               // Reduced lerp for ultra smooth transitions
+    colors: galleryTheme
+  });
   
   // Efecto para animar el título y año en la pantalla de carga
   useEffect(() => {
@@ -343,193 +417,35 @@ const BluaGallery = ({ onBack }) => {
     return () => clearInterval(interval);
   }, [loading]);
 
-  // Función para comprobar qué imágenes están visibles
-  const checkVisibility = React.useCallback(() => {
-    if (!containerRef.current) return;
-    
-    const container = containerRef.current;
-    const containerRect = container.getBoundingClientRect();
-    const containerWidth = containerRect.width;
-    
-    // Margen para precarga (carga imágenes un poco antes de que sean visibles)
-    const preloadMargin = containerWidth * 0.8;
-    
-    // Actualizar visibilidad de las imágenes
-    const newVisibility = {};
-    
-    imageRefs.current.forEach((ref, index) => {
-      if (ref && ref.current) {
-        const imageRect = ref.current.getBoundingClientRect();
-        
-        // Para móvil: comprobar visibilidad vertical
-        // Para desktop: comprobar visibilidad horizontal
-        let isVisible;
-        if (isMobile) {
-          isVisible = (
-            imageRect.top < containerRect.bottom + preloadMargin &&
-            imageRect.bottom > containerRect.top - preloadMargin
-          );
-        } else {
-          isVisible = (
-            imageRect.left < containerRect.right + preloadMargin &&
-            imageRect.right > containerRect.left - preloadMargin
-          );
-        }
-        
-        newVisibility[index] = isVisible;
-      }
-    });
-    
-    setVisibleImages(prev => {
-      // Solo actualizar si hay cambios
-      if (JSON.stringify(prev) !== JSON.stringify(newVisibility)) {
-        return newVisibility;
-      }
-      return prev;
-    });
-  }, [isMobile]);
-
-  // Configurar el scroll optimizado
+  // Force loading to complete after a timeout
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    const container = containerRef.current;
+    const timer = setTimeout(() => {
+      if (loading) {
+        console.log('Forcing loading to complete');
+        setLoading(false);
+      }
+    }, 5000);
     
-    // Desactivar comportamiento smooth nativo para evitar conflictos
-    container.style.scrollBehavior = 'auto';
+    return () => clearTimeout(timer);
+  }, [loading]);
 
-    // Manejador de eventos para la rueda del mouse (optimizado con throttle)
-    const handleWheel = throttle((e) => {
-      if (isMobile) return; // Solo aplicar en desktop
+  // Optimize browser performance
+  useEffect(() => {
+    // Optimize browser performance during scrolling
+    if (!loading) {
+      // Disable overscroll for smoother experience
+      document.body.style.overscrollBehavior = 'none';
       
-      e.preventDefault();
-      
-      // Si es un evento de la rueda vertical (deltaY) o horizontal (deltaX)
-      // Usamos deltaY para la rueda normal del mouse y deltaX para gestos de mousepad
-      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-      
-      // Determinar la velocidad de desplazamiento
-      const scrollSpeed = 1.5;
-      
-      // Calcular posición de destino
-      const targetScrollLeft = container.scrollLeft + delta * scrollSpeed;
-      
-      // Animación suave con GSAP
-      gsap.to(container, {
-        scrollLeft: targetScrollLeft,
-        duration: 0.4,
-        ease: "power2.out",
-        overwrite: true
-      });
-      
-      // Actualizar estado para facilitar la detección de visibilidad
-      setScrollLeft(targetScrollLeft);
-    }, 16); // Limitar a aproximadamente 60fps
-
-    // Drag functionality
-    let isDown = false;
-    let startX;
-    let scrollStartLeft;
-
-    const handleMouseDown = (e) => {
-      if (isMobile) return;
-      isDown = true;
-      container.style.cursor = 'grabbing';
-      startX = e.pageX - container.offsetLeft;
-      scrollStartLeft = container.scrollLeft;
-    };
-
-    const handleMouseUp = () => {
-      if (isMobile) return;
-      isDown = false;
-      container.style.cursor = 'grab';
-    };
-
-    const handleMouseLeave = () => {
-      if (isMobile) return;
-      isDown = false;
-      container.style.cursor = 'grab';
-    };
-
-    const handleMouseMove = (e) => {
-      if (!isDown || isMobile) return;
-      e.preventDefault();
-      const x = e.pageX - container.offsetLeft;
-      const walk = (x - startX) * 2;
-      container.scrollLeft = scrollStartLeft - walk;
-      setScrollLeft(container.scrollLeft);
-    };
-
-    // Agregar eventos
-    container.addEventListener('wheel', handleWheel, { passive: false });
-    container.addEventListener('mousedown', handleMouseDown);
-    container.addEventListener('mouseup', handleMouseUp);
-    container.addEventListener('mouseleave', handleMouseLeave);
-    container.addEventListener('mousemove', handleMouseMove);
-    
-    // Event listener para detectar cambios de scroll (tanto manuales como animados)
-    const handleScroll = throttle(() => {
-      setScrollLeft(container.scrollLeft);
-      checkVisibility();
-    }, 150);
-    
-    container.addEventListener('scroll', handleScroll, { passive: true });
-
-    // Comprobar visibilidad inicial
-    checkVisibility();
-    
-    // Observer de intersección para optimización adicional
-    if ('IntersectionObserver' in window) {
-      const options = {
-        root: isMobile ? null : container,
-        rootMargin: '200px', // Margen para precargar
-        threshold: 0.1
-      };
-      
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          const id = entry.target.dataset.id;
-          if (id) {
-            setVisibleImages(prev => ({
-              ...prev,
-              [id]: entry.isIntersecting
-            }));
-          }
-        });
-      }, options);
-      
-      // Observar cada imagen
-      imageRefs.current.forEach((ref, index) => {
-        if (ref?.current) {
-          ref.current.dataset.id = index;
-          observer.observe(ref.current);
-        }
-      });
-      
-      return () => {
-        imageRefs.current.forEach(ref => {
-          if (ref?.current) observer.unobserve(ref.current);
-        });
-        observer.disconnect();
-        container.removeEventListener('wheel', handleWheel);
-        container.removeEventListener('mousedown', handleMouseDown);
-        container.removeEventListener('mouseup', handleMouseUp);
-        container.removeEventListener('mouseleave', handleMouseLeave);
-        container.removeEventListener('mousemove', handleMouseMove);
-        container.removeEventListener('scroll', handleScroll);
-      };
+      // Enable smooth scrolling at the browser level for maximum smoothness
+      document.documentElement.style.scrollBehavior = 'smooth';
     }
     
-    // Limpieza
     return () => {
-      container.removeEventListener('wheel', handleWheel);
-      container.removeEventListener('mousedown', handleMouseDown);
-      container.removeEventListener('mouseup', handleMouseUp);
-      container.removeEventListener('mouseleave', handleMouseLeave);
-      container.removeEventListener('mousemove', handleMouseMove);
-      container.removeEventListener('scroll', handleScroll);
+      // Cleanup optimizations when component unmounts
+      document.body.style.overscrollBehavior = '';
+      document.documentElement.style.scrollBehavior = '';
     };
-  }, [isMobile, checkVisibility]);
+  }, [loading]);
 
   // Configurar la animación de la imagen con efecto cuando se comienza a hacer scroll
   useEffect(() => {
@@ -549,10 +465,9 @@ const BluaGallery = ({ onBack }) => {
     // Variable para rastrear si ya se ha activado la animación
     let animationTriggered = false;
 
-    // Función que maneja el evento de scroll con throttle
-    const handleScroll = throttle(() => {
-      // Solo activar la animación cuando se hace scroll hasta cierto punto
-      if (!animationTriggered && containerRef.current.scrollLeft > 1500) {
+    // Handle scroll updates for animation
+    const handleScrollUpdate = (scrollPosition) => {
+      if (!animationTriggered && scrollPosition > 1500) {
         animationTriggered = true;
         
         // Animar la imagen a su posición final con efectos adicionales
@@ -563,22 +478,66 @@ const BluaGallery = ({ onBack }) => {
           duration: 1.5,
           ease: "power2.out"
         });
-        
-        // Eliminar el event listener después de que se activa
-        containerRef.current.removeEventListener('scroll', handleScroll);
-      }
-    }, 50);
-
-    // Agregar el event listener para el scroll
-    containerRef.current.addEventListener('scroll', handleScroll, { passive: true });
-
-    // Limpieza
-    return () => {
-      if (containerRef.current) {
-        containerRef.current.removeEventListener('scroll', handleScroll);
       }
     };
-  }, [isMobile, loading]);
+
+    // Initial check
+    handleScrollUpdate(scrollLeft);
+
+    // Watch for scrollLeft changes
+    const watchScrollInterval = setInterval(() => {
+      if (animationTriggered) {
+        clearInterval(watchScrollInterval);
+        return;
+      }
+      handleScrollUpdate(scrollLeft);
+    }, 200);
+
+    return () => {
+      clearInterval(watchScrollInterval);
+    };
+  }, [isMobile, loading, scrollLeft]);
+
+  // Set up IntersectionObserver for visibility detection
+  useEffect(() => {
+    if (loading || !containerRef.current) return;
+
+    checkVisibility();
+    
+    if ('IntersectionObserver' in window) {
+      const options = {
+        root: isMobile ? null : containerRef.current,
+        rootMargin: '200px',
+        threshold: 0.1
+      };
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const id = entry.target.dataset.id;
+          if (id) {
+            setVisibleImages(prev => ({
+              ...prev,
+              [id]: entry.isIntersecting
+            }));
+          }
+        });
+      }, options);
+      
+      imageRefs.current.forEach((ref, index) => {
+        if (ref?.current) {
+          ref.current.dataset.id = index;
+          observer.observe(ref.current);
+        }
+      });
+      
+      return () => {
+        imageRefs.current.forEach(ref => {
+          if (ref?.current) observer.unobserve(ref.current);
+        });
+        observer.disconnect();
+      };
+    }
+  }, [loading, isMobile, checkVisibility]);
 
   // Handle image click to open modal
   const handleImageClick = (src) => {
@@ -834,7 +793,7 @@ const BluaGallery = ({ onBack }) => {
           height: '90vh',
           opacity: 0.6,
           zIndex: 1,
-          transform: 'translateY(-50%)'
+          transform: 'translateY(-50%) translateZ(0)' // Added GPU acceleration
         }}
       >
         <Box
@@ -1086,15 +1045,26 @@ const BluaGallery = ({ onBack }) => {
             value={loadProgress} 
             size={60} 
             thickness={4}
-            sx={{ color: 'black' }}
+            sx={{ color: galleryTheme.text }}
           />
         </LoadingScreen>
       )}
       
+      {/* Scroll progress bar - always visible after loading but controlled by Lenis */}
+      <ScrollProgressBar 
+        ref={progressBarRef}
+        data-scroll-progress 
+        sx={{ 
+          opacity: loading ? 0 : 1
+        }} 
+      />
+      
       {/* Flecha de navegación */}
       <NavigationArrow 
         onBack={onBack} 
-        containerRef={containerRef} 
+        containerRef={containerRef}
+        colors={galleryTheme}
+        isLoading={loading}
       />
       
       <GalleryContainer ref={containerRef}>

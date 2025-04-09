@@ -5,6 +5,11 @@ import { Box, useMediaQuery, useTheme, CircularProgress } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
+import useSmoothScroll from './useSmoothScroll';
+import { getGalleryColors } from '../utils/galleryColors';
+
+// Get the color theme for this gallery
+const galleryTheme = getGalleryColors('vestimeteo');
 
 // Custom font loading
 const GlobalStyle = styled('style')({
@@ -35,17 +40,19 @@ const LoadingScreen = styled(Box)(({ theme }) => ({
   padding: '20px',
 }));
 
-// Scroll progress bar
-const ScrollProgressBar = styled(Box)(({ theme, progress = 0 }) => ({
+// Optimized scroll progress bar with GPU acceleration
+const ScrollProgressBar = styled(Box)({
   position: 'fixed',
   top: 0,
   left: 0,
   height: '3px',
-  width: `${progress}%`,
-  backgroundColor: '#000',
-  zIndex: 100,
-  transition: 'width 0.2s ease-out',
-}));
+  width: '0%',
+  backgroundColor: galleryTheme.highlight,
+  zIndex: 9999,
+  transform: 'translateZ(0)',  // Force GPU acceleration
+  willChange: 'width',
+  boxShadow: '0 0 3px rgba(0,0,0,0.2)', // Subtle shadow for better visibility
+});
 
 // Art Image container for the loading screen
 const LoadingArtImage = styled(Box)(({ theme }) => ({
@@ -69,7 +76,7 @@ const LoadingTitle = styled(Box)(({ theme }) => ({
   fontFamily: '"Medium OTF", sans-serif',
   fontSize: '45px',
   fontWeight: 'bold',
-  color: 'black',
+  color: galleryTheme.text,
   letterSpacing: '2px',
   position: 'relative',
   transform: 'translateY(100px)',
@@ -86,7 +93,7 @@ const LoadingYear = styled(Box)(({ theme }) => ({
   fontFamily: '"Medium OTF", sans-serif',
   fontSize: '40px',
   fontWeight: 'bold',
-  color: 'black',
+  color: galleryTheme.text,
   letterSpacing: '2px',
   marginTop: '8px',
   position: 'relative',
@@ -103,7 +110,7 @@ const LoadingYear = styled(Box)(({ theme }) => ({
   },
 }));
 
-// Gallery container con degradado dinámico
+// Gallery container con degradado dinámico y optimizado
 const GalleryContainer = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'scrollPosition'
 })(({ theme, scrollPosition = 0 }) => {
@@ -116,7 +123,7 @@ const GalleryContainer = styled(Box, {
   
   // Color inicial y final
   const initialColor = '#F1F2F2'; // Gris claro
-  const finalColor = '#B4E5F3';   // Celeste
+  const finalColor = galleryTheme.main;   // Use theme main color
   
   // Función para interpolar color
   const interpolateColor = (progress) => {
@@ -150,6 +157,9 @@ const GalleryContainer = styled(Box, {
     position: 'relative',
     overflowX: 'auto',
     overflowY: 'hidden',
+    transform: 'translateZ(0)',  // Force GPU acceleration
+    perspective: '1000px',       // Enhance GPU acceleration
+    backfaceVisibility: 'hidden', // Further GPU optimization
     willChange: 'scroll-position',
     '-webkit-overflow-scrolling': 'touch',
     '&::-webkit-scrollbar': {
@@ -178,6 +188,7 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   padding: '40px',
   paddingRight: '300px',
   position: 'relative',
+  transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
     width: '100%',
     flexDirection: 'column',
@@ -186,7 +197,7 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   },
 }));
 
-// Image item - mantenemos el mismo que antes
+// Image item with GPU acceleration
 const ImageItem = styled(Box, {
   shouldForwardProp: (prop) => 
     prop !== 'isMobile' && 
@@ -203,9 +214,10 @@ const ImageItem = styled(Box, {
   zIndex: zIndex,
   marginBottom: isMobile ? '40px' : '0',
   opacity: isVisible ? 1 : 0,
-  transform: isVisible ? 'translateY(-50%)' : 'translateY(-50%) scale(0.98)',
+  transform: isVisible ? 'translateY(-50%) translateZ(0)' : 'translateY(-50%) translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
   willChange: 'transform, opacity',
+  backfaceVisibility: 'hidden', // GPU optimization
   '& img': {
     width: '100%',
     height: '100%',
@@ -213,36 +225,22 @@ const ImageItem = styled(Box, {
     borderRadius: isPhoto ? '2px' : '0',
     boxShadow: isPhoto ? '0 3px 8px rgba(0,0,0,0.25)' : 'none',
     backfaceVisibility: 'hidden',
+    transform: 'translateZ(0)', // Force GPU acceleration
   }
 }));
-
-// Throttle function to limit frequency of calls
-function throttle(callback, limit) {
-  let waiting = false;
-  return function() {
-    if (!waiting) {
-      callback.apply(this, arguments);
-      waiting = true;
-      setTimeout(() => {
-        waiting = false;
-      }, limit);
-    }
-  };
-}
 
 const VestimeTeoGallery = ({ onBack }) => {
   // Loading state
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
 
   // Refs for animation elements
   const titleRef = useRef(null);
   const yearRef = useRef(null);
   const loadingScreenRef = useRef(null);
+  const progressBarRef = useRef(null);
   
   const containerRef = useRef(null);
-  const [scrollLeft, setScrollLeft] = useState(0);
 
   // State to control image visibility
   const [visibleImages, setVisibleImages] = useState({});
@@ -268,6 +266,61 @@ const VestimeTeoGallery = ({ onBack }) => {
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // Function to check which images are visible
+  const checkVisibility = React.useCallback(() => {
+    if (!containerRef.current) return;
+    
+    const container = containerRef.current;
+    const containerRect = container.getBoundingClientRect();
+    const containerWidth = containerRect.width;
+    
+    const preloadMargin = containerWidth * 0.8;
+    
+    const newVisibility = {};
+    
+    imageRefs.current.forEach((ref, index) => {
+      if (ref && ref.current) {
+        const imageRect = ref.current.getBoundingClientRect();
+        
+        let isVisible;
+        if (isMobile) {
+          isVisible = (
+            imageRect.top < containerRect.bottom + preloadMargin &&
+            imageRect.bottom > containerRect.top - preloadMargin
+          );
+        } else {
+          isVisible = (
+            imageRect.left < containerRect.right + preloadMargin &&
+            imageRect.right > containerRect.left - preloadMargin
+          );
+        }
+        
+        newVisibility[index] = isVisible;
+      }
+    });
+    
+    setVisibleImages(prev => {
+      if (JSON.stringify(prev) !== JSON.stringify(newVisibility)) {
+        return newVisibility;
+      }
+      return prev;
+    });
+  }, [isMobile]);
+  
+  // Use smooth scroll hook with optimized settings
+  const { scrollLeft, scrollProgress } = useSmoothScroll({
+    containerRef,
+    isMobile,
+    isLoading: loading,
+    checkVisibility,
+    horizontal: true,
+    duration: 2.5,           // Increased duration for smoother motion
+    wheelMultiplier: 1.2,     // Increased multiplier for more responsive scrolling
+    touchMultiplier: 2,       // Increased touch multiplier for mobile
+    lerp: 0.04,               // Reduced lerp for ultra smooth transitions
+    colors: galleryTheme
+  });
   
   // Effect to animate title and year in loading screen
   useEffect(() => {
@@ -338,134 +391,45 @@ const VestimeTeoGallery = ({ onBack }) => {
     return () => clearInterval(interval);
   }, [loading]);
 
-  // Function to check which images are visible
-  const checkVisibility = React.useCallback(() => {
-    if (!containerRef.current) return;
-    
-    const container = containerRef.current;
-    const containerRect = container.getBoundingClientRect();
-    const containerWidth = containerRect.width;
-    
-    const preloadMargin = containerWidth * 0.8;
-    
-    const newVisibility = {};
-    
-    imageRefs.current.forEach((ref, index) => {
-      if (ref && ref.current) {
-        const imageRect = ref.current.getBoundingClientRect();
-        
-        let isVisible;
-        if (isMobile) {
-          isVisible = (
-            imageRect.top < containerRect.bottom + preloadMargin &&
-            imageRect.bottom > containerRect.top - preloadMargin
-          );
-        } else {
-          isVisible = (
-            imageRect.left < containerRect.right + preloadMargin &&
-            imageRect.right > containerRect.left - preloadMargin
-          );
-        }
-        
-        newVisibility[index] = isVisible;
-      }
-    });
-    
-    setVisibleImages(prev => {
-      if (JSON.stringify(prev) !== JSON.stringify(newVisibility)) {
-        return newVisibility;
-      }
-      return prev;
-    });
-  }, [isMobile]);
-
-  // Set up optimized scroll
+  // Force loading to complete after a timeout
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    const container = containerRef.current;
+    const timer = setTimeout(() => {
+      if (loading) {
+        console.log('Forcing loading to complete');
+        setLoading(false);
+      }
+    }, 5000);
     
-    container.style.scrollBehavior = 'auto';
+    return () => clearTimeout(timer);
+  }, [loading]);
 
-    const handleWheel = throttle((e) => {
-      if (isMobile) return;
+  // Optimize browser performance
+  useEffect(() => {
+    // Optimize browser performance during scrolling
+    if (!loading) {
+      // Disable overscroll for smoother experience
+      document.body.style.overscrollBehavior = 'none';
       
-      e.preventDefault();
-      
-      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-      
-      const scrollSpeed = 1.5;
-      
-      const targetScrollLeft = container.scrollLeft + delta * scrollSpeed;
-      
-      gsap.to(container, {
-        scrollLeft: targetScrollLeft,
-        duration: 0.4,
-        ease: "power2.out",
-        overwrite: true
-      });
-      
-      setScrollLeft(targetScrollLeft);
-    }, 16);
-
-    // Drag functionality
-    let isDown = false;
-    let startX;
-    let scrollStartLeft;
-
-    const handleMouseDown = (e) => {
-      if (isMobile) return;
-      isDown = true;
-      container.style.cursor = 'grabbing';
-      startX = e.pageX - container.offsetLeft;
-      scrollStartLeft = container.scrollLeft;
-    };
-
-    const handleMouseUp = () => {
-      if (isMobile) return;
-      isDown = false;
-      container.style.cursor = 'grab';
-    };
-
-    const handleMouseLeave = () => {
-      if (isMobile) return;
-      isDown = false;
-      container.style.cursor = 'grab';
-    };
-
-    const handleMouseMove = (e) => {
-      if (!isDown || isMobile) return;
-      e.preventDefault();
-      const x = e.pageX - container.offsetLeft;
-      const walk = (x - startX) * 2;
-      container.scrollLeft = scrollStartLeft - walk;
-      setScrollLeft(container.scrollLeft);
-    };
-
-    container.addEventListener('wheel', handleWheel, { passive: false });
-    container.addEventListener('mousedown', handleMouseDown);
-    container.addEventListener('mouseup', handleMouseUp);
-    container.addEventListener('mouseleave', handleMouseLeave);
-    container.addEventListener('mousemove', handleMouseMove);
+      // Enable smooth scrolling at the browser level for maximum smoothness
+      document.documentElement.style.scrollBehavior = 'smooth';
+    }
     
-    // Calculate scroll progress
-    const handleScroll = throttle(() => {
-      const currentScroll = container.scrollLeft;
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      const progress = (currentScroll / maxScroll) * 100;
-      
-      setScrollProgress(progress);
-      setScrollLeft(currentScroll);
-      checkVisibility();
-    }, 100);
-    
-    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      // Cleanup optimizations when component unmounts
+      document.body.style.overscrollBehavior = '';
+      document.documentElement.style.scrollBehavior = '';
+    };
+  }, [loading]);
+
+  // Set up IntersectionObserver for visibility detection
+  useEffect(() => {
+    if (loading || !containerRef.current) return;
 
     checkVisibility();
     
     if ('IntersectionObserver' in window) {
       const options = {
-        root: isMobile ? null : container,
+        root: isMobile ? null : containerRef.current,
         rootMargin: '200px',
         threshold: 0.1
       };
@@ -494,24 +458,9 @@ const VestimeTeoGallery = ({ onBack }) => {
           if (ref?.current) observer.unobserve(ref.current);
         });
         observer.disconnect();
-        container.removeEventListener('wheel', handleWheel);
-        container.removeEventListener('mousedown', handleMouseDown);
-        container.removeEventListener('mouseup', handleMouseUp);
-        container.removeEventListener('mouseleave', handleMouseLeave);
-        container.removeEventListener('mousemove', handleMouseMove);
-        container.removeEventListener('scroll', handleScroll);
       };
     }
-    
-    return () => {
-      container.removeEventListener('wheel', handleWheel);
-      container.removeEventListener('mousedown', handleMouseDown);
-      container.removeEventListener('mouseup', handleMouseUp);
-      container.removeEventListener('mouseleave', handleMouseLeave);
-      container.removeEventListener('mousemove', handleMouseMove);
-      container.removeEventListener('scroll', handleScroll);
-    };
-  }, [isMobile, checkVisibility]);
+  }, [loading, isMobile, checkVisibility]);
 
   // Mobile view rendering - orden: V1, V2, [V3, V4], V6, V8, [V9, V5], V7
   const renderMobileView = () => (
@@ -841,22 +790,28 @@ const VestimeTeoGallery = ({ onBack }) => {
             size={70} 
             thickness={3}
             sx={{ 
-              color: 'black',
+              color: galleryTheme.text,
               marginTop: '10px',
             }}
           />
         </LoadingScreen>
       )}
       
-      {/* Scroll progress bar */}
-      {!loading && (
-        <ScrollProgressBar progress={scrollProgress} />
-      )}
+      {/* Scroll progress bar - always visible after loading but controlled by Lenis */}
+      <ScrollProgressBar 
+        ref={progressBarRef}
+        data-scroll-progress 
+        sx={{ 
+          opacity: loading ? 0 : 1
+        }} 
+      />
       
       {/* Navigation arrow */}
       <NavigationArrow 
         onBack={onBack} 
-        containerRef={containerRef} 
+        containerRef={containerRef}
+        colors={galleryTheme}
+        isLoading={loading}
       />
       
       <GalleryContainer 
