@@ -1,22 +1,78 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, useTheme, useMediaQuery, CircularProgress } from '@mui/material';
+import { Box, useTheme, useMediaQuery } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
 import useSmoothScroll from './useSmoothScroll';
 import { getGalleryColors } from '../utils/galleryColors';
+import InfinityLoader from './InfinityLoader';
 
 // Get the color theme for this gallery
 const galleryTheme = getGalleryColors('maison');
 
 // Custom font loading
 const GlobalStyle = styled('style')({
-  '@font-face': {
-    fontFamily: 'Medium OTF',
-    src: 'url("/fonts/Medium.otf") format("opentype")',
-    fontWeight: 'normal',
-    fontStyle: 'normal',
-    fontDisplay: 'swap',
+  '@font-face': [
+    {
+      fontFamily: 'Medium OTF',
+      src: 'url("/fonts/Medium.otf") format("opentype")',
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      fontDisplay: 'swap',
+    },
+    {
+      fontFamily: 'Old London',
+      src: 'url("/fonts/OldLondon.ttf") format("truetype")',
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      fontDisplay: 'swap',
+    }
+  ],
+});
+
+// Scroll ribbon component that runs horizontally
+const ScrollRibbon = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'isBottom'
+})(({ theme, position = 'top', isBottom = false }) => ({
+  position: 'fixed',
+  [position]: 0,
+  left: 0,
+  width: '100%',
+  height: isBottom ? '30px' : '30px',
+  padding: isBottom ? '0 0 0 0' : '0 0 0 0',
+  overflowX: 'hidden',
+  overflowY: 'hidden',
+  backgroundColor: galleryTheme.main, // Using gallery theme color
+  zIndex: isBottom ? 100 : 9998, // Lower z-index for bottom ribbon
+  display: 'flex',
+  alignItems: 'center',
+  pointerEvents: 'none', // Make sure it doesn't block interaction
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    backgroundImage: 'linear-gradient(to right, rgba(30,30,29,1) 0%, rgba(30,30,29,0) 5%, rgba(30,30,29,0) 95%, rgba(30,30,29,1) 100%)',
+    zIndex: 1,
+  },
+}));
+
+// Text container with infinite scroll animation
+const ScrollText = styled(Box)({
+  display: 'flex',
+  whiteSpace: 'nowrap',
+  animation: 'scrollText 25s linear infinite',
+  fontFamily: '"Old London", serif',
+  fontSize: '17px',
+  letterSpacing: '1px',
+  color: '#fff',
+  '@keyframes scrollText': {
+    '0%': {
+      transform: 'translateX(0)',
+    },
+    '100%': {
+      transform: 'translateX(-50%)',
+    },
   },
 });
 
@@ -95,11 +151,11 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
   scrollbarWidth: 'none',
   msOverflowStyle: 'none',
   [theme.breakpoints.down('sm')]: {
-    overflowX: 'hidden',
-    overflowY: 'auto',
-    height: 'auto',
+    overflowX: 'auto', // Changed from 'hidden' to 'auto' to allow horizontal scrolling on mobile
+    overflowY: 'hidden', // Changed from 'auto' to 'hidden' to prevent vertical scrolling on mobile
+    height: '100vh', // Keep same height as desktop
     minHeight: '100vh',
-  },
+  }
 }));
 
 // Content container
@@ -113,10 +169,11 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   position: 'relative',
   transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
-    width: '100%',
-    flexDirection: 'column',
-    height: 'auto',
-    padding: '20px',
+    width: '10100px', // Keep the same width as desktop
+    flexDirection: 'row', // Changed from 'column' to 'row' for horizontal layout
+    height: '100%', // Keep the same height as desktop
+    padding: '40px', // Keep the same padding as desktop
+    paddingRight: '300px', // Keep the same right padding as desktop
   },
 }));
 
@@ -124,13 +181,13 @@ const GalleryContent = styled(Box)(({ theme }) => ({
 const ImageItem = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'isMobile' && prop !== 'top' && prop !== 'left' && prop !== 'isVisible'
 })(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true }) => ({
-  position: isMobile ? 'relative' : 'absolute',
-  top: isMobile ? 'auto' : top,
-  left: isMobile ? 'auto' : left,
+  position: isMobile ? 'absolute' : 'absolute', // Changed from 'relative' to 'absolute' for mobile
+  top: isMobile ? top : top, // Use the same top positioning for mobile
+  left: isMobile ? left : left, // Use the same left positioning for mobile
   width: width,
   height: height,
   zIndex: zIndex,
-  marginBottom: isMobile ? '40px' : '0',
+  marginBottom: isMobile ? '0' : '0', // Removed margin for mobile
   opacity: isVisible ? 1 : 0,
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
@@ -141,7 +198,7 @@ const ImageItem = styled(Box, {
     height: '100%',
     objectFit: 'cover',
     borderRadius: '2px',
-    boxShadow: '0 3px 8px rgba(0,0,0,0.25)',
+    boxShadow: isMobile ? 'none' : '0 3px 8px rgba(0,0,0,0.25)', // Removed shadow for mobile
     backfaceVisibility: 'hidden',
     transform: 'translateZ(0)', // Force GPU acceleration
   },
@@ -150,20 +207,20 @@ const ImageItem = styled(Box, {
     height: '100%',
     objectFit: 'cover',
     borderRadius: '2px',
-    boxShadow: '0 3px 8px rgba(0,0,0,0.25)',
+    boxShadow: isMobile ? 'none' : '0 3px 8px rgba(0,0,0,0.25)', // Removed shadow for mobile
     transform: 'translateZ(0)', // Force GPU acceleration
   }
 }));
 
 // Frame for video with glow effect
 const VideoFrame = styled(Box)(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true }) => ({
-  position: isMobile ? 'relative' : 'absolute',
-  top: isMobile ? 'auto' : top,
-  left: isMobile ? 'auto' : left,
+  position: isMobile ? 'absolute' : 'absolute', // Changed from 'relative' to 'absolute' for mobile
+  top: isMobile ? top : top, // Use the same top positioning for mobile
+  left: isMobile ? left : left, // Use the same left positioning for mobile
   width: width,
   height: height,
   zIndex: zIndex,
-  marginBottom: isMobile ? '40px' : '0',
+  marginBottom: isMobile ? '0' : '0', // Removed margin for mobile
   opacity: isVisible ? 1 : 0,
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
@@ -171,7 +228,7 @@ const VideoFrame = styled(Box)(({ theme, top, left, width, height, zIndex = 1, i
   border: `1px solid ${galleryTheme.text}`,
   borderRadius: '2px',
   padding: '0',
-  boxShadow: `0 0 15px ${galleryTheme.highlight}33`,
+  boxShadow: isMobile ? 'none' : `0 0 15px ${galleryTheme.highlight}33`, // Removed shadow for mobile
   overflow: 'hidden',
   background: galleryTheme.text,
   backfaceVisibility: 'hidden', // GPU optimization
@@ -236,18 +293,11 @@ const MaisonGallery = ({ onBack }) => {
       if (ref && ref.current) {
         const imageRect = ref.current.getBoundingClientRect();
         
-        let isVisible;
-        if (isMobile) {
-          isVisible = (
-            imageRect.top < containerRect.bottom + preloadMargin &&
-            imageRect.bottom > containerRect.top - preloadMargin
-          );
-        } else {
-          isVisible = (
-            imageRect.left < containerRect.right + preloadMargin &&
-            imageRect.right > containerRect.left - preloadMargin
-          );
-        }
+        // Always use horizontal scrolling check logic regardless of device
+        const isVisible = (
+          imageRect.left < containerRect.right + preloadMargin &&
+          imageRect.right > containerRect.left - preloadMargin
+        );
         
         newVisibility[index] = isVisible;
       }
@@ -268,7 +318,7 @@ const MaisonGallery = ({ onBack }) => {
     isMobile,
     isLoading: loading,
     checkVisibility,
-    horizontal: true,
+    horizontal: true, // Always use horizontal scrolling for both desktop and mobile
     duration: 2.5,           // Extended duration for smoother motion
     wheelMultiplier: 1.2,     // Higher multiplier for more responsive scrolling
     touchMultiplier: 2,       // Higher touch multiplier
@@ -386,7 +436,7 @@ const MaisonGallery = ({ onBack }) => {
     
     if ('IntersectionObserver' in window) {
       const options = {
-        root: isMobile ? null : containerRef.current,
+        root: containerRef.current, // Always use container as root for both mobile and desktop
         rootMargin: '300px', // Increased margin for earlier loading
         threshold: 0.1
       };
@@ -419,106 +469,19 @@ const MaisonGallery = ({ onBack }) => {
     }
   }, [loading, isMobile, checkVisibility]);
 
-  // Mobile view rendering
-  const renderMobileView = () => (
-    <>
-      {/* First image (1) - Man seated in industrial space */}
-      <ImageItem 
-        ref={el => imageRefs.current[0] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[0] !== false}
-      >
-        <Box component="img" src={images.M1} alt="MAISON 1" loading="eager" />
-      </ImageItem>
+  // Generate repeating scroll text
+  const generateScrollText = () => {
+    // Create 40 repetitions to ensure it fully covers the screen width with no gaps
+    const repeats = [...Array(40)].map((_, i) => (
+      <span key={i} style={{ margin: '0 3px' }}>
+        SCROLL - - →
+      </span>
+    ));
+    return repeats;
+  };
 
-      {/* Second image (2) - Close-up of hand with rings */}
-      <ImageItem 
-        ref={el => imageRefs.current[1] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[1] !== false}
-      >
-        <Box component="img" src={images.M2} alt="MAISON 2" loading="eager" />
-      </ImageItem>
-
-      {/* Third image (3) - Man walking on metro platform */}
-      <ImageItem 
-        ref={el => imageRefs.current[2] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[2] !== false}
-      >
-        <Box component="img" src={images.M3} alt="MAISON 3" loading="eager" />
-      </ImageItem>
-
-      {/* Fourth image (4) - Abstract typographic logo */}
-      <ImageItem 
-        ref={el => imageRefs.current[3] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[3] !== false}
-      >
-        <Box component="img" src={images.M4} alt="MAISON 4" loading="eager" />
-      </ImageItem>
-
-      {/* Fifth image (5) - Double panel of man walking in metro */}
-      <ImageItem 
-        ref={el => imageRefs.current[4] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[4] !== false}
-      >
-        <Box component="img" src={images.M5} alt="MAISON 5" loading="eager" />
-      </ImageItem>
-
-      {/* Sixth position - Video with white frame and glow */}
-      <VideoFrame 
-        ref={el => imageRefs.current[5] = el}
-        isMobile={true}
-        width="100%"
-        height="auto" 
-        isVisible={visibleImages[5] !== false}
-      >
-        <Box 
-          component="video"
-          src={images.M9}
-          alt="MAISON Video"
-          autoPlay
-          loop
-          muted
-          playsInline
-        />
-      </VideoFrame>
-
-      {/* Rest of images in order */}
-      {[images.M7, images.M8, images.M10, images.M11, images.M12, images.M13].map((img, index) => (
-        <ImageItem 
-          key={`mobile-img-${index}`}
-          ref={el => imageRefs.current[index + 6] = el}
-          isMobile={true}
-          width="100%"
-          height="auto"
-          isVisible={visibleImages[index + 6] !== false}
-        >
-          <Box 
-            component="img" 
-            src={img} 
-            alt={`MAISON ${index + 7}`} 
-            loading="lazy" 
-          />
-        </ImageItem>
-      ))}
-    </>
-  );
-
-  // Desktop view rendering with specific positioning - Updated with vh units
-  const renderDesktopView = () => (
+  // Always use desktop view rendering regardless of device
+  const renderGalleryContent = () => (
     <>
       {/* 1. First image - Man seated in industrial space */}
       <ImageItem 
@@ -528,6 +491,7 @@ const MaisonGallery = ({ onBack }) => {
         height="85vh"
         zIndex={2}
         isVisible={visibleImages[0] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.M1} alt="MAISON 1" loading="eager" />
@@ -541,6 +505,7 @@ const MaisonGallery = ({ onBack }) => {
         height="55vh"
         zIndex={3}
         isVisible={visibleImages[1] !== false}
+        isMobile={isMobile}
       >
         <Box component="img" src={images.M2} alt="MAISON 2" loading="eager" />
       </ImageItem>
@@ -552,6 +517,7 @@ const MaisonGallery = ({ onBack }) => {
         height="100vh" 
         zIndex={2}
         isVisible={visibleImages[2] !== false}
+        isMobile={isMobile}
       >
         <Box component="img" src={images.M3} alt="MAISON 3" loading="eager" />
       </ImageItem>
@@ -564,6 +530,7 @@ const MaisonGallery = ({ onBack }) => {
         height="55vh" 
         zIndex={3}
         isVisible={visibleImages[3] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.M4} alt="MAISON 4" loading="eager" />
@@ -577,6 +544,7 @@ const MaisonGallery = ({ onBack }) => {
         height="120vh" 
         zIndex={1}
         isVisible={visibleImages[4] !== false}
+        isMobile={isMobile}
         sx={{ 
           transform: 'translateY(-50%) translateZ(0) rotate(35deg)', 
           opacity: 0.1,
@@ -597,6 +565,7 @@ const MaisonGallery = ({ onBack }) => {
         height="70vh" 
         zIndex={2}
         isVisible={visibleImages[4] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.M6} alt="MAISON 5" loading="eager" />
@@ -610,6 +579,7 @@ const MaisonGallery = ({ onBack }) => {
         height="85vh" 
         zIndex={2}
         isVisible={visibleImages[5] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box 
@@ -631,6 +601,7 @@ const MaisonGallery = ({ onBack }) => {
         height="70vh" 
         zIndex={2}
         isVisible={visibleImages[6] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.M7} alt="MAISON 7" loading="eager" />
@@ -644,6 +615,7 @@ const MaisonGallery = ({ onBack }) => {
         height="70vh" 
         zIndex={2}
         isVisible={visibleImages[7] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.M8} alt="MAISON 8" loading="lazy" />
@@ -658,6 +630,7 @@ const MaisonGallery = ({ onBack }) => {
         height="55vh" 
         zIndex={2}
         isVisible={visibleImages[8] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.M10} alt="MAISON 10" loading="lazy" />
@@ -672,6 +645,7 @@ const MaisonGallery = ({ onBack }) => {
         height="55vh" 
         zIndex={2}
         isVisible={visibleImages[9] !== false}
+        isMobile={isMobile}
       >
         <Box component="img" src={images.M11} alt="MAISON 11" loading="lazy" />
       </ImageItem>
@@ -683,6 +657,7 @@ const MaisonGallery = ({ onBack }) => {
         height="80vh" 
         zIndex={2}
         isVisible={visibleImages[10] !== false}
+        isMobile={isMobile}
       >
         <Box component="img" src={images.M12} alt="MAISON 12" loading="lazy" />
       </ImageItem>
@@ -695,6 +670,7 @@ const MaisonGallery = ({ onBack }) => {
         height="100vh" 
         zIndex={2}
         isVisible={visibleImages[11] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.M13} alt="MAISON 13" loading="lazy" />
@@ -717,12 +693,9 @@ const MaisonGallery = ({ onBack }) => {
             2024
           </LoadingYear>
           
-          <CircularProgress 
-            variant="determinate" 
-            value={loadProgress} 
-            size={60} 
-            thickness={4}
-            sx={{ color: galleryTheme.text }}
+          <InfinityLoader 
+            color={galleryTheme.text}
+            progress={loadProgress}
           />
         </LoadingScreen>
       )}
@@ -736,6 +709,20 @@ const MaisonGallery = ({ onBack }) => {
         }} 
       />
       
+      {/* Top scroll ribbon */}
+      <ScrollRibbon position="top">
+        <ScrollText>
+          {generateScrollText()}
+        </ScrollText>
+      </ScrollRibbon>
+      
+      {/* Bottom scroll ribbon */}
+      <ScrollRibbon position="bottom" isBottom={true}>
+        <ScrollText>
+          {generateScrollText()}
+        </ScrollText>
+      </ScrollRibbon>
+      
       {/* Navigation arrow */}
       <NavigationArrow 
         onBack={onBack} 
@@ -746,7 +733,7 @@ const MaisonGallery = ({ onBack }) => {
       
       <GalleryContainer ref={containerRef}>
         <GalleryContent>
-          {isMobile ? renderMobileView() : renderDesktopView()}
+          {renderGalleryContent()}
         </GalleryContent>
       </GalleryContainer>
     </>

@@ -1,5 +1,6 @@
 'use client';
 
+// Importaciones necesarias 
 import React, { useState, useRef, useEffect } from 'react';
 import { Box, useMediaQuery, useTheme, CircularProgress } from '@mui/material';
 import { styled } from '@mui/material/styles';
@@ -8,10 +9,12 @@ import NavigationArrow from './NavigationArrow';
 import useSmoothScroll from './useSmoothScroll';
 import { getGalleryColors } from '../utils/galleryColors';
 
-// Get the color theme for this gallery
+// Obtener el tema de colores para esta galería
 const galleryTheme = getGalleryColors('vestimeteo');
 
-// Custom font loading
+// FUENTES PERSONALIZADAS
+// --------------------------------------
+// Carga de la fuente Medium OTF para los textos de la galería
 const GlobalStyle = styled('style')({
   '@font-face': {
     fontFamily: 'Medium OTF',
@@ -22,7 +25,9 @@ const GlobalStyle = styled('style')({
   },
 });
 
-// Loading screen
+// PANTALLA DE CARGA
+// --------------------------------------
+// Pantalla de carga inicial 
 const LoadingScreen = styled(Box)(({ theme }) => ({
   position: 'fixed',
   top: 0,
@@ -40,7 +45,7 @@ const LoadingScreen = styled(Box)(({ theme }) => ({
   padding: '20px',
 }));
 
-// Optimized scroll progress bar with GPU acceleration
+// Barra de progreso de scroll - optimizada con aceleración GPU
 const ScrollProgressBar = styled(Box)({
   position: 'fixed',
   top: 0,
@@ -49,29 +54,12 @@ const ScrollProgressBar = styled(Box)({
   width: '0%',
   backgroundColor: galleryTheme.highlight,
   zIndex: 9999,
-  transform: 'translateZ(0)',  // Force GPU acceleration
+  transform: 'translateZ(0)',  // Forzar aceleración GPU
   willChange: 'width',
-  boxShadow: '0 0 3px rgba(0,0,0,0.2)', // Subtle shadow for better visibility
+  boxShadow: '0 0 3px rgba(0,0,0,0.2)', // Sombra sutil para mejor visibilidad
 });
 
-// Art Image container for the loading screen
-const LoadingArtImage = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  top: '30px',
-  right: '30px',
-  width: '450px', // Even larger
-  height: 'auto',
-  opacity: 0,
-  transform: 'translateY(20px)',
-  transition: 'opacity 0.5s ease, transform 0.5s ease',
-  [theme.breakpoints.down('sm')]: {
-    width: '320px',
-    top: '20px',
-    right: '20px',
-  },
-}));
-
-// Components for VESTIMETEO and 2024
+// Componentes para VESTIMETEO y 2024 en pantalla de carga
 const LoadingTitle = styled(Box)(({ theme }) => ({
   fontFamily: '"Medium OTF", sans-serif',
   fontSize: '45px',
@@ -110,7 +98,10 @@ const LoadingYear = styled(Box)(({ theme }) => ({
   },
 }));
 
-// Gallery container con degradado dinámico y optimizado
+// CONTENEDOR PRINCIPAL DE LA GALERÍA
+// --------------------------------------
+// Contenedor principal con degradado dinámico basado en scroll
+// IMPORTANTE: Mismo comportamiento para móvil y desktop (scroll horizontal)
 const GalleryContainer = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'scrollPosition'
 })(({ theme, scrollPosition = 0 }) => {
@@ -121,11 +112,11 @@ const GalleryContainer = styled(Box, {
   // Progreso de la transición (0 a 1)
   const gradientProgress = Math.min(Math.max((scrollPosition - scrollThreshold) / transitionLength, 0), 1);
   
-  // Color inicial y final
+  // Color inicial y final para el degradado
   const initialColor = '#F1F2F2'; // Gris claro
-  const finalColor = galleryTheme.main;   // Use theme main color
+  const finalColor = galleryTheme.main;   // Color principal del tema
   
-  // Función para interpolar color
+  // Función para interpolar color - no modificar
   const interpolateColor = (progress) => {
     // Parseamos colores hex a RGB
     const parseColor = (hex) => {
@@ -157,9 +148,9 @@ const GalleryContainer = styled(Box, {
     position: 'relative',
     overflowX: 'auto',
     overflowY: 'hidden',
-    transform: 'translateZ(0)',  // Force GPU acceleration
-    perspective: '1000px',       // Enhance GPU acceleration
-    backfaceVisibility: 'hidden', // Further GPU optimization
+    transform: 'translateZ(0)',  // Forzar aceleración GPU
+    perspective: '1000px',       // Mejorar aceleración GPU
+    backfaceVisibility: 'hidden', // Optimización GPU
     willChange: 'scroll-position',
     '-webkit-overflow-scrolling': 'touch',
     '&::-webkit-scrollbar': {
@@ -167,37 +158,38 @@ const GalleryContainer = styled(Box, {
     },
     scrollbarWidth: 'none',
     msOverflowStyle: 'none',
+    // IMPORTANTE: Móvil con el mismo comportamiento que desktop - scroll horizontal
     [theme.breakpoints.down('sm')]: {
-      overflowX: 'hidden',
-      overflowY: 'auto',
-      height: 'auto',
+      overflowX: 'auto',
+      overflowY: 'hidden',
+      height: '100vh',  // Mantener altura completa
       minHeight: '100vh',
-      backgroundImage: scrollPosition < scrollThreshold ? 
-        'none' : 
-        `linear-gradient(to bottom, ${initialColor} 0%, ${interpolateColor(gradientProgress)} 100%)`,
     },
   };
 });
 
-// Aumentamos aún más el ancho para tener más espacio para las imágenes
+// Contenido de la galería - mantener mismo ancho para mobile y desktop
 const GalleryContent = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  width: '7000px', // Aumentado de 6000px a 8000px para dar más espacio
+  width: '7000px', // Ancho grande - IMPORTANTE: mantener suficiente espacio
   height: '100%',
   padding: '40px',
   paddingRight: '300px',
   position: 'relative',
   transform: 'translateZ(0)',  // Force GPU acceleration
+  // Mobile con mismo ancho y comportamiento que desktop
   [theme.breakpoints.down('sm')]: {
-    width: '100%',
-    flexDirection: 'column',
-    height: 'auto',
-    padding: '20px',
+    width: '7000px', // MISMO ancho que desktop para conservar espacios exactos
+    flexDirection: 'row', // Mantener dirección de fila
+    height: '100%', // Mantener altura
+    padding: '40px 300px 40px 40px', // Mismo padding que desktop
   },
 }));
 
-// Image item with GPU acceleration
+// ELEMENTO DE IMAGEN - sin sombreados
+// --------------------------------------
+// Componente para cada imagen de la galería - optimizado para rendimiento
 const ImageItem = styled(Box, {
   shouldForwardProp: (prop) => 
     prop !== 'isMobile' && 
@@ -206,26 +198,26 @@ const ImageItem = styled(Box, {
     prop !== 'isVisible' &&
     prop !== 'isPhoto'
 })(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true, isPhoto = true }) => ({
-  position: isMobile ? 'relative' : 'absolute',
-  top: isMobile ? 'auto' : top,
-  left: isMobile ? 'auto' : left,
+  position: 'absolute', // Posición absoluta para control preciso
+  top: top,
+  left: left,
   width: width,
   height: height,
   zIndex: zIndex,
-  marginBottom: isMobile ? '40px' : '0',
+  marginBottom: 0,
   opacity: isVisible ? 1 : 0,
   transform: isVisible ? 'translateY(-50%) translateZ(0)' : 'translateY(-50%) translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
   willChange: 'transform, opacity',
-  backfaceVisibility: 'hidden', // GPU optimization
+  backfaceVisibility: 'hidden', // Optimización GPU
   '& img': {
     width: '100%',
     height: '100%',
     objectFit: isPhoto ? 'cover' : 'contain',
     borderRadius: isPhoto ? '2px' : '0',
-    boxShadow: isPhoto ? '0 3px 8px rgba(0,0,0,0.25)' : 'none',
+    boxShadow: 'none', // IMPORTANTE: Sin sombras como solicitado
     backfaceVisibility: 'hidden',
-    transform: 'translateZ(0)', // Force GPU acceleration
+    transform: 'translateZ(0)', // Forzar aceleración GPU
   }
 }));
 
@@ -261,13 +253,13 @@ const VestimeTeoGallery = ({ onBack }) => {
     '/images/TEO/V7.jpg',
   ];
   
-  // U1.png for placement between photos
-  const artImage = '/images/TEO/U1.png';
-  
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // Function to check which images are visible
+  // LÓGICA DE VISIBILIDAD DE IMÁGENES
+  // --------------------------------------
+  // Determina qué imágenes están visibles en el viewport
+  // Esto optimiza el rendimiento cargando solo lo necesario
   const checkVisibility = React.useCallback(() => {
     if (!containerRef.current) return;
     
@@ -275,7 +267,9 @@ const VestimeTeoGallery = ({ onBack }) => {
     const containerRect = container.getBoundingClientRect();
     const containerWidth = containerRect.width;
     
-    const preloadMargin = containerWidth * 0.8;
+    // IMPORTANTE: Mayor margen de precarga para mejorar la experiencia visual
+    // Carga las imágenes antes de que estén completamente visibles
+    const preloadMargin = containerWidth * 1.2;
     
     const newVisibility = {};
     
@@ -283,18 +277,11 @@ const VestimeTeoGallery = ({ onBack }) => {
       if (ref && ref.current) {
         const imageRect = ref.current.getBoundingClientRect();
         
-        let isVisible;
-        if (isMobile) {
-          isVisible = (
-            imageRect.top < containerRect.bottom + preloadMargin &&
-            imageRect.bottom > containerRect.top - preloadMargin
-          );
-        } else {
-          isVisible = (
-            imageRect.left < containerRect.right + preloadMargin &&
-            imageRect.right > containerRect.left - preloadMargin
-          );
-        }
+        // Verificación horizontal para ambos dispositivos
+        const isVisible = (
+          imageRect.left < containerRect.right + preloadMargin &&
+          imageRect.right > containerRect.left - preloadMargin
+        );
         
         newVisibility[index] = isVisible;
       }
@@ -308,17 +295,19 @@ const VestimeTeoGallery = ({ onBack }) => {
     });
   }, [isMobile]);
   
-  // Use smooth scroll hook with optimized settings
+  // CONFIGURACIÓN DE SMOOTH SCROLL
+  // --------------------------------------
+  // Configuración del scroll suave - misma experiencia en móvil y desktop
   const { scrollLeft, scrollProgress } = useSmoothScroll({
     containerRef,
     isMobile,
     isLoading: loading,
     checkVisibility,
-    horizontal: true,
-    duration: 2.5,           // Increased duration for smoother motion
-    wheelMultiplier: 1.2,     // Increased multiplier for more responsive scrolling
-    touchMultiplier: 2,       // Increased touch multiplier for mobile
-    lerp: 0.04,               // Reduced lerp for ultra smooth transitions
+    horizontal: true, // IMPORTANTE: Mantener horizontal en todos los dispositivos
+    duration: 2.5,           // Mayor duración para movimiento más suave
+    wheelMultiplier: 1.2,     // Multiplicador aumentado para scroll más responsive
+    touchMultiplier: 2,       // Multiplicador táctil aumentado para móvil
+    lerp: 0.04,               // Lerp reducido para transiciones ultra suaves
     colors: galleryTheme
   });
   
@@ -421,7 +410,7 @@ const VestimeTeoGallery = ({ onBack }) => {
     };
   }, [loading]);
 
-  // Set up IntersectionObserver for visibility detection
+  // Set up IntersectionObserver for visibility detection - siempre usando el container como root
   useEffect(() => {
     if (loading || !containerRef.current) return;
 
@@ -429,7 +418,7 @@ const VestimeTeoGallery = ({ onBack }) => {
     
     if ('IntersectionObserver' in window) {
       const options = {
-        root: isMobile ? null : containerRef.current,
+        root: containerRef.current, // Siempre usar container como root para scroll horizontal
         rootMargin: '200px',
         threshold: 0.1
       };
@@ -462,165 +451,15 @@ const VestimeTeoGallery = ({ onBack }) => {
     }
   }, [loading, isMobile, checkVisibility]);
 
-  // Mobile view rendering - orden: V1, V2, [V3, V4], V6, V8, [V9, V5], V7
-  const renderMobileView = () => (
+  // Vista para móvil y desktop - Secuencia: V1, V2, [V3, V4], V6, V8, [V9, V5], V7
+  const renderGalleryContent = () => (
     <>
-      {/* V1 */}
-      <ImageItem 
-        ref={el => imageRefs.current[0] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[0] !== false}
-      >
-        <Box 
-          component="img" 
-          src={images[0]} 
-          alt="Vestimeteo 1" 
-          loading="eager"
-        />
-      </ImageItem>
-
-      {/* V2 */}
-      <ImageItem 
-        ref={el => imageRefs.current[1] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[1] !== false}
-      >
-        <Box 
-          component="img" 
-          src={images[1]} 
-          alt="Vestimeteo 2" 
-          loading="eager"
-        />
-      </ImageItem>
-
-      {/* V3 */}
-      <ImageItem 
-        ref={el => imageRefs.current[2] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[2] !== false}
-      >
-        <Box 
-          component="img" 
-          src={images[2]} 
-          alt="Vestimeteo 3" 
-          loading="eager"
-        />
-      </ImageItem>
-
-      {/* V4 */}
-      <ImageItem 
-        ref={el => imageRefs.current[3] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[3] !== false}
-      >
-        <Box 
-          component="img" 
-          src={images[3]} 
-          alt="Vestimeteo 4" 
-          loading="lazy"
-        />
-      </ImageItem>
-
-      {/* V6 */}
-      <ImageItem 
-        ref={el => imageRefs.current[5] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[5] !== false}
-      >
-        <Box 
-          component="img" 
-          src={images[4]} 
-          alt="Vestimeteo 6" 
-          loading="lazy"
-        />
-      </ImageItem>
-
-      {/* V8 */}
-      <ImageItem 
-        ref={el => imageRefs.current[6] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[6] !== false}
-      >
-        <Box 
-          component="img" 
-          src={images[5]} 
-          alt="Vestimeteo 8" 
-          loading="lazy"
-        />
-      </ImageItem>
-
-      {/* V9 */}
-      <ImageItem 
-        ref={el => imageRefs.current[7] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[7] !== false}
-      >
-        <Box 
-          component="img" 
-          src={images[6]} 
-          alt="Vestimeteo 9" 
-          loading="lazy"
-        />
-      </ImageItem>
-
-      {/* V5 */}
-      <ImageItem 
-        ref={el => imageRefs.current[8] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[8] !== false}
-      >
-        <Box 
-          component="img" 
-          src={images[7]} 
-          alt="Vestimeteo 5" 
-          loading="lazy"
-        />
-      </ImageItem>
-
-      {/* V7 - última imagen */}
-      <ImageItem 
-        ref={el => imageRefs.current[9] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[9] !== false}
-      >
-        <Box 
-          component="img" 
-          src={images[8]} 
-          alt="Vestimeteo 7" 
-          loading="lazy"
-        />
-      </ImageItem>
-    </>
-  );
-
-  // Desktop view: V1, V2, [V3, V4], V6, V8, [V9, V5], V7
-  // Ajustando las posiciones left para evitar superposiciones
-  const renderDesktopView = () => (
-    <>
-      {/* V1 */}
+      {/* V1 - Primera imagen */}
       <ImageItem 
         ref={el => imageRefs.current[0] = el}
         top="50%"
-        left="450px" // Ajustado para aumentar separación
-        height="70vh"
+        left={isMobile ? "450px" : "450px"} // Mismo espacio inicial que en desktop (450px)
+        height={isMobile ? "60vh" : "70vh"}
         zIndex={2}
         isVisible={visibleImages[0] !== false}
       >
@@ -632,12 +471,12 @@ const VestimeTeoGallery = ({ onBack }) => {
         />
       </ImageItem>
 
-      {/* V2 */}
+      {/* V2 - Segunda imagen */}
       <ImageItem 
         ref={el => imageRefs.current[1] = el}
         top="50%"
-        left="1100px" // Aumentado para separar de V1
-        height="70vh"
+        left={isMobile ? "1100px" : "1100px"} // Mismo espaciado que en desktop
+        height={isMobile ? "60vh" : "70vh"}
         zIndex={2}
         isVisible={visibleImages[1] !== false}
       >
@@ -649,12 +488,13 @@ const VestimeTeoGallery = ({ onBack }) => {
         />
       </ImageItem>
 
-      {/* V3 y V4 juntas con mismo tamaño - más espaciadas */}
+      {/* V3 y V4 juntas - IMPORTANTE: Estas imágenes deben ir MUY juntas */}
+      {/* porque forman una sola composición visual */}
       <ImageItem 
         ref={el => imageRefs.current[2] = el}
         top="50%"
-        left="2000px" // Separado más de V2
-        height="100vh"
+        left={isMobile ? "2180px" : "1900px"} // Mismo espaciado que en desktop
+        height={isMobile ? "85vh" : "100vh"}
         zIndex={2}
         isVisible={visibleImages[2] !== false}
       >
@@ -669,8 +509,8 @@ const VestimeTeoGallery = ({ onBack }) => {
       <ImageItem 
         ref={el => imageRefs.current[3] = el}
         top="50%"
-        left="2733px" // Posicionado justo al lado de V3 con espacio
-        height="100vh"
+        left={isMobile ? "2680px" : "2733px"} // Pegada a V3 (aún más cerca que antes)
+        height={isMobile ? "85vh" : "100vh"}
         zIndex={2}
         isVisible={visibleImages[3] !== false}
       >
@@ -682,12 +522,12 @@ const VestimeTeoGallery = ({ onBack }) => {
         />
       </ImageItem>
 
-      {/* V6 */}
+      {/* V6 - Imagen después del par V3/V4 */}
       <ImageItem 
         ref={el => imageRefs.current[5] = el}
         top="50%"
-        left="3950px" // Ajustado
-        height="70vh"
+        left={isMobile ? "3950px" : "3950px"} // Mismo valor que desktop
+        height={isMobile ? "60vh" : "70vh"}
         zIndex={2}
         isVisible={visibleImages[5] !== false}
       >
@@ -703,8 +543,8 @@ const VestimeTeoGallery = ({ onBack }) => {
       <ImageItem 
         ref={el => imageRefs.current[6] = el}
         top="50%"
-        left="4650px" // Ajustado
-        height="70vh"
+        left={isMobile ? "4650px" : "4650px"} // Mismo valor que desktop
+        height={isMobile ? "60vh" : "70vh"}
         zIndex={2}
         isVisible={visibleImages[6] !== false}
       >
@@ -716,12 +556,12 @@ const VestimeTeoGallery = ({ onBack }) => {
         />
       </ImageItem>
 
-      {/* V9 y V5 tocándose en los vértices - ajustadas para tocar vértices */}
+      {/* V9 y V5 tocándose en los vértices - par importante */}
       <ImageItem 
         ref={el => imageRefs.current[7] = el}
-        top="30%"
-        left="5470px" // Ajustado
-        height="50vh"
+        top={isMobile ? "30%" : "30%"} // Mismo valor que desktop
+        left={isMobile ? "5470px" : "5470px"} // Mismo valor que desktop
+        height={isMobile ? "50vh" : "50vh"} // Mismo valor que desktop
         zIndex={1}
         isVisible={visibleImages[7] !== false}
       >
@@ -735,9 +575,9 @@ const VestimeTeoGallery = ({ onBack }) => {
 
       <ImageItem 
         ref={el => imageRefs.current[8] = el}
-        top="70%"
-        left="5800px" // Ajustado para tocar vértice con V9
-        height="50vh"
+        top={isMobile ? "70%" : "70%"} // Mismo valor que desktop
+        left={isMobile ? "5800px" : "5800px"} // Mismo valor que desktop
+        height={isMobile ? "50vh" : "50vh"} // Mismo valor que desktop
         zIndex={0}
         isVisible={visibleImages[8] !== false}
       >
@@ -753,9 +593,9 @@ const VestimeTeoGallery = ({ onBack }) => {
       <ImageItem 
         ref={el => imageRefs.current[9] = el}
         top="50%"
-        left="6600px" // Ajustado
-        width="700px"
-        height="100vh"
+        left={isMobile ? "6600px" : "6600px"} // Mismo valor que desktop
+        width={isMobile ? "700px" : "700px"} // Mismo valor que desktop
+        height={isMobile ? "100vh" : "100vh"} // Mismo valor que desktop
         zIndex={2}
         isVisible={visibleImages[9] !== false}
       >
@@ -817,10 +657,10 @@ const VestimeTeoGallery = ({ onBack }) => {
       <GalleryContainer 
         ref={containerRef} 
         scrollPosition={scrollLeft}
-        style={{ cursor: isMobile ? 'default' : 'grab' }}
+        style={{ cursor: 'grab' }}
       >
         <GalleryContent>
-          {isMobile ? renderMobileView() : renderDesktopView()}
+          {renderGalleryContent()}
         </GalleryContent>
       </GalleryContainer>
     </>

@@ -95,9 +95,10 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
   scrollbarWidth: 'none',
   msOverflowStyle: 'none',
   [theme.breakpoints.down('sm')]: {
-    overflowX: 'hidden',
-    overflowY: 'auto',
-    height: 'auto',
+    // Keep horizontal scrolling for mobile instead of vertical
+    overflowX: 'auto',
+    overflowY: 'hidden',
+    height: '100vh', // Keep full height on mobile
     minHeight: '100vh',
   },
 }));
@@ -113,10 +114,11 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   position: 'relative',
   transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
-    width: '100%',
-    flexDirection: 'column',
-    height: 'auto',
-    padding: '20px',
+    width: '7500px', // Keep the same width as desktop
+    flexDirection: 'row', // Keep row direction for horizontal layout
+    height: '100%', // Same height as desktop
+    padding: '40px', // Same padding
+    paddingRight: '300px', // Same right padding
   },
 }));
 
@@ -124,13 +126,13 @@ const GalleryContent = styled(Box)(({ theme }) => ({
 const ImageItem = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'isMobile' && prop !== 'top' && prop !== 'left' && prop !== 'isVisible'
 })(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true }) => ({
-  position: isMobile ? 'relative' : 'absolute',
-  top: isMobile ? 'auto' : top,
-  left: isMobile ? 'auto' : left,
+  position: 'absolute', // Always use absolute positioning
+  top: top,
+  left: left,
   width: width,
   height: height,
   zIndex: zIndex,
-  marginBottom: isMobile ? '40px' : '0', // Aumentado el espacio entre imágenes en móvil
+  marginBottom: '0', // No margin needed with absolute positioning
   opacity: isVisible ? 1 : 0,
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)', // Pequeña animación de escala + aceleración hardware
   transition: 'opacity 0.5s ease, transform 0.5s ease',
@@ -141,7 +143,7 @@ const ImageItem = styled(Box, {
     height: '100%',
     objectFit: 'cover',
     borderRadius: '2px',
-    boxShadow: '0 3px 8px rgba(0,0,0,0.25)',
+    boxShadow: 'none', // Remove shadows
     backfaceVisibility: 'hidden', // Reduce flickering en WebKit
     transform: 'translateZ(0)', // Force GPU acceleration
   }
@@ -185,13 +187,12 @@ const AnaLivniGallery = ({ onBack }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
-  // Función para comprobar qué imágenes están visibles
+  // Updated visibility check to always use horizontal scrolling logic
   const checkVisibility = useCallback(() => {
     if (!containerRef.current) return;
     
     const container = containerRef.current;
     const containerRect = container.getBoundingClientRect();
-    const containerLeft = isMobile ? 0 : container.scrollLeft;
     const containerWidth = containerRect.width;
     
     // Margen para precarga (carga imágenes un poco antes de que sean visibles)
@@ -203,23 +204,12 @@ const AnaLivniGallery = ({ onBack }) => {
     imageRefs.current.forEach((ref, index) => {
       if (ref && ref.current) {
         const imageRect = ref.current.getBoundingClientRect();
-        const imageLeft = isMobile ? imageRect.top : imageRect.left;
-        const imageWidth = isMobile ? imageRect.height : imageRect.width;
         
-        // Para móvil: comprobar visibilidad vertical
-        // Para desktop: comprobar visibilidad horizontal
-        let isVisible;
-        if (isMobile) {
-          isVisible = (
-            imageRect.top < containerRect.bottom + preloadMargin &&
-            imageRect.bottom > containerRect.top - preloadMargin
-          );
-        } else {
-          isVisible = (
-            imageRect.left < containerRect.right + preloadMargin &&
-            imageRect.right > containerRect.left - preloadMargin
-          );
-        }
+        // Always check horizontal visibility
+        const isVisible = (
+          imageRect.left < containerRect.right + preloadMargin &&
+          imageRect.right > containerRect.left - preloadMargin
+        );
         
         newVisibility[index] = isVisible;
       }
@@ -240,7 +230,7 @@ const AnaLivniGallery = ({ onBack }) => {
     isMobile,
     isLoading: loading,
     checkVisibility,
-    horizontal: true,
+    horizontal: true, // Always use horizontal scrolling
     duration: 2.5,           // Increased duration for smoother motion
     wheelMultiplier: 1.2,     // Increased multiplier for more responsive scrolling
     touchMultiplier: 2,       // Increased touch multiplier for mobile
@@ -355,7 +345,7 @@ const AnaLivniGallery = ({ onBack }) => {
     };
   }, [loading]);
 
-  // Set up IntersectionObserver for visibility detection
+  // Set up IntersectionObserver for visibility detection - using container as root for both
   useEffect(() => {
     if (loading || !containerRef.current) return;
 
@@ -363,7 +353,7 @@ const AnaLivniGallery = ({ onBack }) => {
     
     if ('IntersectionObserver' in window) {
       const options = {
-        root: isMobile ? null : containerRef.current,
+        root: containerRef.current, // Always use container as root for horizontal scrolling
         rootMargin: '200px',
         threshold: 0.1
       };
@@ -396,62 +386,8 @@ const AnaLivniGallery = ({ onBack }) => {
     }
   }, [loading, isMobile, checkVisibility]);
 
-  // Mobile view rendering con lazy loading
-  const renderMobileView = () => (
-    <>
-      {/* Main large image (L1) */}
-      <ImageItem 
-        ref={el => imageRefs.current[0] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[0] !== false} // Asume visible hasta que se marque como no visible
-      >
-        <Box component="img" src={images.L1} alt="ANA LIVNI 1" loading="eager" />
-      </ImageItem>
-
-      {/* ANA and LIVNI text */}
-      <Box 
-        ref={el => imageRefs.current[1] = el}
-        sx={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          alignItems: 'center', 
-          justifyContent: 'center',
-          margin: '30px 0 40px', // Más espacio
-          width: '100%',
-          opacity: visibleImages[1] !== false ? 1 : 0,
-          transition: 'opacity 0.5s ease'
-        }}
-      >
-        <Box component="img" src={images.L3} alt="LIVNI" sx={{ width: '120px' }} loading="eager" />
-        <Box component="img" src={images.L2} alt="ANA" sx={{ width: '120px', marginBottom: '5px' }} loading="eager" />
-      </Box>
-      
-      {/* Rest of images in order - con lazy loading */}
-      {[images.L4, images.L5, images.L6, images.L7, images.L8, images.L9, 
-        images.L10, images.L11, images.L12, images.L13].map((img, index) => (
-        <ImageItem 
-          key={`mobile-img-${index}`}
-          ref={el => imageRefs.current[index + 2] = el}
-          isMobile={true}
-          width="100%"
-          height="auto"
-          isVisible={visibleImages[index + 2] !== false}
-        >
-          <Box 
-            component="img" 
-            src={img} 
-            alt={`ANA LIVNI ${index + 4}`} 
-            loading="lazy" 
-          />
-        </ImageItem>
-      ))}
-    </>
-  );
-
-  // Desktop view rendering con mayor espaciado entre imágenes y lazy loading
-  const renderDesktopView = () => (
+  // Use a single gallery content rendering function for both mobile and desktop
+  const renderGalleryContent = () => (
     <>
       {/* 1. Large image (L1) */}
       <ImageItem 
@@ -461,6 +397,7 @@ const AnaLivniGallery = ({ onBack }) => {
         height="85vh"
         zIndex={2}
         isVisible={visibleImages[0] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.L1} alt="ANA LIVNI 1" loading="eager" />
@@ -495,6 +432,7 @@ const AnaLivniGallery = ({ onBack }) => {
         height="55vh" 
         zIndex={2}
         isVisible={visibleImages[2] !== false}
+        isMobile={isMobile}
       >
         <Box component="img" src={images.L4} alt="ANA LIVNI 4" loading="eager" />
       </ImageItem>
@@ -507,6 +445,7 @@ const AnaLivniGallery = ({ onBack }) => {
         height="55vh" 
         zIndex={2}
         isVisible={visibleImages[3] !== false}
+        isMobile={isMobile}
       >
         <Box component="img" src={images.L5} alt="ANA LIVNI 5" loading="eager" />
       </ImageItem>
@@ -519,6 +458,7 @@ const AnaLivniGallery = ({ onBack }) => {
         height="50vh" 
         zIndex={1}
         isVisible={visibleImages[4] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.L6} alt="ANA LIVNI 6" loading="eager" />
@@ -532,6 +472,7 @@ const AnaLivniGallery = ({ onBack }) => {
         height="50vh" 
         zIndex={2}
         isVisible={visibleImages[5] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.L7} alt="ANA LIVNI 7" loading="eager" />
@@ -544,6 +485,7 @@ const AnaLivniGallery = ({ onBack }) => {
         height="100vh" 
         zIndex={1}
         isVisible={visibleImages[6] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.L8} alt="ANA LIVNI 8" loading="eager" />
@@ -556,6 +498,7 @@ const AnaLivniGallery = ({ onBack }) => {
         height="55vh"
         zIndex={2}
         isVisible={visibleImages[7] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.L9} alt="ANA LIVNI 9" loading="lazy" />
@@ -568,6 +511,7 @@ const AnaLivniGallery = ({ onBack }) => {
         height="55vh"
         zIndex={3}
         isVisible={visibleImages[8] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.L10} alt="ANA LIVNI 10" loading="lazy" />
@@ -580,6 +524,7 @@ const AnaLivniGallery = ({ onBack }) => {
         height="55vh" 
         zIndex={2}
         isVisible={visibleImages[9] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.L11} alt="ANA LIVNI 11" loading="lazy" />
@@ -592,6 +537,7 @@ const AnaLivniGallery = ({ onBack }) => {
         height="70vh" 
         zIndex={2}
         isVisible={visibleImages[10] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.L12} alt="ANA LIVNI 12" loading="lazy" />
@@ -604,6 +550,7 @@ const AnaLivniGallery = ({ onBack }) => {
         height="70vh" 
         zIndex={1}
         isVisible={visibleImages[11] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={images.L13} alt="ANA LIVNI 13" loading="lazy" />
@@ -657,7 +604,7 @@ const AnaLivniGallery = ({ onBack }) => {
       
       <GalleryContainer ref={containerRef}>
         <GalleryContent>
-          {isMobile ? renderMobileView() : renderDesktopView()}
+          {renderGalleryContent()}
         </GalleryContent>
       </GalleryContainer>
     </>

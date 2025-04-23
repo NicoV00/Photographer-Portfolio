@@ -1,14 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, Modal, IconButton, useMediaQuery, useTheme, CircularProgress } from '@mui/material';
+import { Box, useMediaQuery, useTheme, CircularProgress } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import CloseIcon from '@mui/icons-material/Close';
 import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
 import useSmoothScroll from './useSmoothScroll';
-import { getGalleryColors } from '../utils/galleryColors';
 
-// Get the color theme for this gallery
-const galleryTheme = getGalleryColors('blua');
+// Custom color theme for Constelacion gallery
+const galleryTheme = {
+  main: '#dbdae5', // Light lavender/purple background color
+  text: '#000000', // Black text
+  highlight: '#8481a0', // Darker version of the main color for highlights
+  secondary: '#f0f0f5', // Light color for secondary elements
+};
 
 // Custom font loading
 const GlobalStyle = styled('style')({
@@ -38,7 +41,7 @@ const LoadingScreen = styled(Box)(({ theme }) => ({
   overflow: 'hidden', // Prevent any overflow during animations
 }));
 
-// Separate components for BLUA and 2024
+// Separate components for CONSTELACION and 2024
 const LoadingTitle = styled(Box)(({ theme }) => ({
   fontFamily: '"Medium OTF", sans-serif',
   fontSize: '45px',
@@ -63,6 +66,20 @@ const LoadingYear = styled(Box)(({ theme }) => ({
   marginBottom: '40px', // Space between text and loading circle
 }));
 
+// Optimized scroll progress bar with GPU acceleration
+const ScrollProgressBar = styled(Box)({
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  height: '3px',
+  width: '0%',
+  backgroundColor: galleryTheme.highlight, // Using theme highlight color
+  zIndex: 9999,
+  transform: 'translateZ(0)',  // Force GPU acceleration
+  willChange: 'width',
+  boxShadow: '0 0 3px rgba(0,0,0,0.2)', // Subtle shadow for better visibility
+});
+
 // Styled components using MUI styling system
 const GalleryContainer = styled(Box)(({ theme }) => ({
   backgroundColor: galleryTheme.main, // Using theme main color
@@ -82,45 +99,33 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
   scrollbarWidth: 'none',
   msOverflowStyle: 'none',
   [theme.breakpoints.down('sm')]: {
-    overflowX: 'hidden',
-    overflowY: 'auto',
-    height: 'auto',
+    // Keep horizontal scrolling for mobile instead of vertical
+    overflowX: 'auto',
+    overflowY: 'hidden',
+    height: '100vh', // Keep full height
     minHeight: '100vh',
   },
 }));
 
-// Optimized scroll progress bar with GPU acceleration
-const ScrollProgressBar = styled(Box)({
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  height: '3px',
-  width: '0%',
-  backgroundColor: galleryTheme.highlight, // Using theme highlight color
-  zIndex: 9999,
-  transform: 'translateZ(0)',  // Force GPU acceleration
-  willChange: 'width',
-  boxShadow: '0 0 3px rgba(0,0,0,0.2)', // Subtle shadow for better visibility
-});
-
 const GalleryContent = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  width: '4800px', // Wide enough for horizontal content
+  width: '4600px', // Wide enough for horizontal content
   height: '100%',
   padding: '40px',
   paddingRight: '300px', // Extra padding at the end
   position: 'relative',
   transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
-    width: '100%',
-    flexDirection: 'column',
-    height: 'auto',
-    padding: '20px',
+    width: '4600px', // Keep the same width as desktop
+    height: '100%', 
+    padding: '40px',
+    paddingRight: '300px', // Same padding as desktop
+    transform: 'translateZ(0)', // Keep GPU acceleration
   },
 }));
 
-// Image item - Optimizado con transformZ para aceleración por hardware
+// Image item - Updated to remove shadows for all devices and keep the same positioning
 const ImageItem = styled(Box, {
   shouldForwardProp: (prop) => 
     prop !== 'isMobile' && 
@@ -129,13 +134,13 @@ const ImageItem = styled(Box, {
     prop !== 'isVisible' &&
     prop !== 'isPhoto'
 })(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true, isPhoto = true }) => ({
-  position: isMobile ? 'relative' : 'absolute',
-  top: isMobile ? 'auto' : top,
-  left: isMobile ? 'auto' : left,
+  position: 'absolute', // Always use absolute positioning for both mobile and desktop
+  top: top,
+  left: left,
   width: width,
   height: height,
   zIndex: zIndex,
-  marginBottom: isMobile ? '40px' : '0', // Aumentado el espacio entre imágenes en móvil
+  marginBottom: '0', // Remove margin 
   opacity: isVisible ? 1 : 0,
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)', // Pequeña animación de escala + aceleración hardware
   transition: 'opacity 0.5s ease, transform 0.5s ease',
@@ -146,19 +151,19 @@ const ImageItem = styled(Box, {
     height: isPhoto ? '100%' : 'auto',
     objectFit: isPhoto ? 'cover' : 'contain',
     borderRadius: isPhoto ? '2px' : '0',
-    boxShadow: isPhoto ? '0 3px 8px rgba(0,0,0,0.25)' : 'none',
+    boxShadow: 'none', // Remove all shadows
     backfaceVisibility: 'hidden', // Reduce flickering en WebKit
     transform: 'translateZ(0)', // Force GPU acceleration
     cursor: isPhoto ? 'pointer' : 'default',
   }
 }));
 
-// Spotify Container with custom styling
+// Spotify Container with custom minimal styling - Updated for consistent positioning
 const SpotifyContainer = styled(Box)(({ theme, top, left, width = '300px', zIndex = 1, isMobile = false, isVisible = true }) => ({
-  position: isMobile ? 'relative' : 'absolute',
-  top: isMobile ? 'auto' : top,
-  left: isMobile ? 'auto' : left,
-  width: isMobile ? '100%' : width,
+  position: 'absolute', // Always use absolute positioning
+  top: top,
+  left: left,
+  width: width,
   height: '80px',
   zIndex: zIndex,
   display: 'flex',
@@ -169,48 +174,41 @@ const SpotifyContainer = styled(Box)(({ theme, top, left, width = '300px', zInde
   opacity: isVisible ? 1 : 0,
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
-  marginBottom: isMobile ? '40px' : '0',
+  marginBottom: '0', // Remove margin
   backfaceVisibility: 'hidden', // GPU optimization
+  backgroundColor: 'transparent',
   '& iframe': {
     border: 'none',
     width: '100%',
     height: '80px',
     backgroundColor: 'transparent',
     borderRadius: '12px',
+    filter: 'grayscale(100%)', // Makes the player monochrome
+  },
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    pointerEvents: 'none', // Allows clicks to pass through to the iframe
+    borderRadius: '12px',
+    boxShadow: 'none', // Remove shadow
   }
 }));
 
-// Modal container for enlarged images
-const ModalContainer = styled(Box)({
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%) translateZ(0)', // Added GPU acceleration
-  maxHeight: '80vh',
-  maxWidth: '90vw',
-  outline: 'none',
-  '& img': {
-    maxHeight: '80vh',
-    maxWidth: '90vw',
-    objectFit: 'contain',
-    borderRadius: '1px',
-    boxShadow: '0 10px 20px rgba(0, 0, 0, 0.5)',
-    transform: 'translateZ(0)', // Force GPU acceleration
-  },
+// Custom CSS injection for further Spotify player customization
+const SpotifyCustomStyle = styled('style')({
+  // This injects CSS that targets the Spotify iframe content
+  // Note: This has limitations due to cross-origin restrictions
+  html: {
+    '--spotify-minimal-color': '#000',
+    '--spotify-minimal-bg': 'transparent'
+  }
 });
 
-const CloseButton = styled(IconButton)(({ theme }) => ({
-  position: 'absolute',
-  top: '20px',
-  right: '20px',
-  color: 'white',
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-}));
-
-const BluaGallery = ({ onBack }) => {
+const ConstelacionGallery = ({ onBack }) => {
   // Estado para la pantalla de carga
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
@@ -220,9 +218,6 @@ const BluaGallery = ({ onBack }) => {
   const yearRef = useRef(null);
   const loadingScreenRef = useRef(null);
   const progressBarRef = useRef(null);
-  
-  // Ref para imagen con animación
-  const animatedImageRef = useRef(null);
   const containerRef = useRef(null);
   
   // Estado para controlar la visibilidad de las imágenes
@@ -230,57 +225,17 @@ const BluaGallery = ({ onBack }) => {
   // Referencias para todas las imágenes
   const imageRefs = useRef([]);
 
-  // State for modal
-  const [selectedImage, setSelectedImage] = useState(null);
-
-  // Images for the gallery - Updated order based on description
-  const images = [
-    '/images/blua/b4.jpg', // 1. Persona acostada sobre rocas con objeto metálico
-    '/images/blua/b2.jpg', // 2. Primer plano del objeto metálico sobre arena
-    '/images/blua/b3.jpg', // 3. Silueta en paisaje nevado con sol detrás
-    '/images/blua/b1.jpg', // 4. Retrato de joven con suéter gris
-    '/images/blua/b5.jpg', // 5. Figura en movimiento con luz azul neón
-    '/images/blua/b6.jpg', // 6. Cuerpo cayendo en espacio azul oscuro
-  ];
-  
-  // Phrase images - Updated to match description
-  const phraseImages = [
-    '/images/blua/f1.png', // "el cielo" - arriba de foto 3
-    '/images/blua/f2.png', // "tu barco" - debajo de foto 4
-    '/images/blua/f3.png', // "construcción" - arriba de foto 5
-    '/images/blua/f4.png', // "no dejes que el tiempo te persiga" - parte inferior derecha, cerca de foto 6
-  ];
-  
-  // Logo background image - will be inverted to be visible on white background
-  const logoBackground = '/images/blua/f6.png';
-  
-  // Apply invert filter to logo for better visibility
-  const LogoBackgroundImage = styled(Box)(({ theme }) => ({
-    '& img': {
-      filter: 'invert(1)', // Invierte los colores para que el logo sea negro
-      width: '100%',
-      height: 'auto',
-      objectFit: 'contain',
-      transform: 'translateZ(0)', // Force GPU acceleration
-    }
-  }));
-
-  // Spotify track data
-  const spotifyTracks = [
-    {
-      id: '3VEQBNtshnnRnad8e0UhKV',
-      embedUrl: 'https://open.spotify.com/embed/track/3VEQBNtshnnRnad8e0UhKV?utm_source=generator'
-    },
-    {
-      id: '3BP4REyXj5TppWeyJWP1Nk',
-      embedUrl: 'https://open.spotify.com/embed/track/3BP4REyXj5TppWeyJWP1Nk?utm_source=generator'
-    }
-  ];
+  // Spotify track data for constellation with custom minimal UI
+  const spotifyTrack = {
+    id: '3VEQBNtshnnRnad8e0UhKV',
+    // Using theme parameter to create a minimal UI and hide_cover=1 to hide album art
+    embedUrl: 'https://open.spotify.com/embed/track/3VEQBNtshnnRnad8e0UhKV?utm_source=generator&theme=0&hide_cover=1'
+  };
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
-  // Check which images are visible
+  // Check which images are visible - updated for horizontal scrolling for both mobile and desktop
   const checkVisibility = React.useCallback(() => {
     if (!containerRef.current) return;
     
@@ -298,20 +253,11 @@ const BluaGallery = ({ onBack }) => {
       if (ref && ref.current) {
         const imageRect = ref.current.getBoundingClientRect();
         
-        // Para móvil: comprobar visibilidad vertical
-        // Para desktop: comprobar visibilidad horizontal
-        let isVisible;
-        if (isMobile) {
-          isVisible = (
-            imageRect.top < containerRect.bottom + preloadMargin &&
-            imageRect.bottom > containerRect.top - preloadMargin
-          );
-        } else {
-          isVisible = (
-            imageRect.left < containerRect.right + preloadMargin &&
-            imageRect.right > containerRect.left - preloadMargin
-          );
-        }
+        // Always check horizontal visibility
+        let isVisible = (
+          imageRect.left < containerRect.right + preloadMargin &&
+          imageRect.right > containerRect.left - preloadMargin
+        );
         
         newVisibility[index] = isVisible;
       }
@@ -326,13 +272,13 @@ const BluaGallery = ({ onBack }) => {
     });
   }, [isMobile]);
 
-  // Use the optimized smooth scroll hook with theme colors
+  // Use the optimized smooth scroll hook with theme colors and horizontal for both desktop and mobile
   const { scrollLeft, scrollProgress } = useSmoothScroll({
     containerRef,
     isMobile,
     isLoading: loading,
     checkVisibility,
-    horizontal: true,
+    horizontal: true, // Always use horizontal scrolling
     duration: 2.5,           // Increased duration for smoother motion
     wheelMultiplier: 1.2,     // Increased multiplier for more responsive scrolling
     touchMultiplier: 2,       // Increased touch multiplier for mobile
@@ -447,58 +393,7 @@ const BluaGallery = ({ onBack }) => {
     };
   }, [loading]);
 
-  // Configurar la animación de la imagen con efecto cuando se comienza a hacer scroll
-  useEffect(() => {
-    if (isMobile || !animatedImageRef.current || !containerRef.current || loading) return;
-
-    // Posiciones inicial y final
-    const originalLeft = 2850; // Adjusted position for the fifth photo (blue motion)
-    const startLeft = 2650;
-
-    // Configuración inicial
-    gsap.set(animatedImageRef.current, {
-      left: startLeft,
-      opacity: 0.7,
-      scale: 0.95
-    });
-
-    // Variable para rastrear si ya se ha activado la animación
-    let animationTriggered = false;
-
-    // Handle scroll updates for animation
-    const handleScrollUpdate = (scrollPosition) => {
-      if (!animationTriggered && scrollPosition > 1500) {
-        animationTriggered = true;
-        
-        // Animar la imagen a su posición final con efectos adicionales
-        gsap.to(animatedImageRef.current, {
-          left: originalLeft,
-          opacity: 1,
-          scale: 1,
-          duration: 1.5,
-          ease: "power2.out"
-        });
-      }
-    };
-
-    // Initial check
-    handleScrollUpdate(scrollLeft);
-
-    // Watch for scrollLeft changes
-    const watchScrollInterval = setInterval(() => {
-      if (animationTriggered) {
-        clearInterval(watchScrollInterval);
-        return;
-      }
-      handleScrollUpdate(scrollLeft);
-    }, 200);
-
-    return () => {
-      clearInterval(watchScrollInterval);
-    };
-  }, [isMobile, loading, scrollLeft]);
-
-  // Set up IntersectionObserver for visibility detection
+  // Set up IntersectionObserver for visibility detection - horizontal for both
   useEffect(() => {
     if (loading || !containerRef.current) return;
 
@@ -506,7 +401,7 @@ const BluaGallery = ({ onBack }) => {
     
     if ('IntersectionObserver' in window) {
       const options = {
-        root: isMobile ? null : containerRef.current,
+        root: containerRef.current, // Always use container as root for horizontal scrolling
         rootMargin: '200px',
         threshold: 0.1
       };
@@ -539,323 +434,48 @@ const BluaGallery = ({ onBack }) => {
     }
   }, [loading, isMobile, checkVisibility]);
 
-  // Handle image click to open modal
-  const handleImageClick = (src) => {
-    setSelectedImage(src);
-  };
-
-  // Handle modal close
-  const handleClose = () => {
-    setSelectedImage(null);
-  };
-
-  // Mobile view rendering with lazy loading
-  const renderMobileView = () => (
+  // Single gallery content rendering function for both mobile and desktop
+  const renderGalleryContent = () => (
     <>
-      {/* Background Logo for mobile - with inverted colors */}
-      <LogoBackgroundImage
-        sx={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: '400px',
-          margin: '0 auto',
-          marginTop: '20px',
-          marginBottom: '-60px', // Negative margin to overlap with content
-          opacity: 0.6,
-          zIndex: 1,
-        }}
-      >
-        <Box
-          component="img"
-          src={logoBackground}
-          alt="BLUA Logo Background"
-        />
-      </LogoBackgroundImage>
-      
-      {/* 1. First photo - Person lying on rocks with metallic object */}
+      {/* b1.jpg - Main photo */}
       <ImageItem 
-        ref={el => imageRefs.current[1] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[1] !== false}
+        ref={el => imageRefs.current[0] = el}
+        top="50%"
+        left="450px"
+        width="auto"
+        height="75vh"
+        zIndex={2}
+        isVisible={visibleImages[0] !== false}
+        isMobile={isMobile}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box 
           component="img" 
-          src={images[0]} 
-          alt="Persona acostada sobre rocas" 
-          loading="eager"
-          onClick={() => handleImageClick(images[0])}
-        />
-      </ImageItem>
-
-      {/* 2. Second photo - Close-up of metallic object */}
-      <ImageItem 
-        ref={el => imageRefs.current[2] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[2] !== false}
-      >
-        <Box 
-          component="img" 
-          src={images[1]} 
-          alt="Primer plano objeto metálico" 
-          loading="eager"
-          onClick={() => handleImageClick(images[1])}
-        />
-      </ImageItem>
-
-      {/* "el cielo" phrase */}
-      <ImageItem 
-        ref={el => imageRefs.current[3] = el}
-        isMobile={true}
-        width="90%"
-        height="auto"
-        isVisible={visibleImages[3] !== false}
-        isPhoto={false}
-      >
-        <Box 
-          component="img" 
-          src={phraseImages[0]} 
-          alt="el cielo" 
-          loading="eager"
-        />
-      </ImageItem>
-
-      {/* 3. Third photo - Silhouette in snowy landscape */}
-      <ImageItem 
-        ref={el => imageRefs.current[4] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[4] !== false}
-      >
-        <Box 
-          component="img" 
-          src={images[2]} 
-          alt="Silueta en paisaje nevado" 
-          loading="lazy"
-          onClick={() => handleImageClick(images[2])}
-        />
-      </ImageItem>
-
-      {/* First Spotify embed - positioned in center-left */}
-      <SpotifyContainer 
-        ref={el => imageRefs.current[5] = el}
-        isMobile={true}
-        isVisible={visibleImages[5] !== false}
-      >
-        <Box 
-          component="iframe" 
-          src={spotifyTracks[0].embedUrl}
-          width="100%"
-          height="80px"
-          frameBorder="0"
-          allowFullScreen=""
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          loading="lazy"
-        />
-      </SpotifyContainer>
-
-      {/* 4. Fourth photo - Portrait of young man with gray sweater */}
-      <ImageItem 
-        ref={el => imageRefs.current[6] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[6] !== false}
-      >
-        <Box 
-          component="img" 
-          src={images[3]} 
+          src="/images/blua/b1.jpg" 
           alt="Retrato de joven con suéter gris" 
-          loading="lazy"
-          onClick={() => handleImageClick(images[3])}
+          loading="eager"
         />
       </ImageItem>
 
-      {/* "tu barco" phrase */}
-      <ImageItem 
-        ref={el => imageRefs.current[7] = el}
-        isMobile={true}
-        width="90%"
-        height="auto"
-        isVisible={visibleImages[7] !== false}
-        isPhoto={false}
-      >
-        <Box 
-          component="img" 
-          src={phraseImages[1]} 
-          alt="tu barco" 
-          loading="lazy"
-        />
-      </ImageItem>
-
-      {/* "construcción" phrase */}
-      <ImageItem 
-        ref={el => imageRefs.current[8] = el}
-        isMobile={true}
-        width="90%"
-        height="auto"
-        isVisible={visibleImages[8] !== false}
-        isPhoto={false}
-      >
-        <Box 
-          component="img" 
-          src={phraseImages[2]} 
-          alt="construcción" 
-          loading="lazy"
-        />
-      </ImageItem>
-
-      {/* 5. Fifth photo - Figure with blue neon light */}
-      <ImageItem 
-        ref={el => imageRefs.current[9] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[9] !== false}
-      >
-        <Box 
-          component="img" 
-          src={images[4]} 
-          alt="Figura con luz azul neón" 
-          loading="lazy"
-          onClick={() => handleImageClick(images[4])}
-        />
-      </ImageItem>
-
-      {/* Second Spotify embed (optional in mobile) */}
+      {/* Spotify embed */}
       <SpotifyContainer 
-        ref={el => imageRefs.current[10] = el}
-        isMobile={true}
-        isVisible={visibleImages[10] !== false}
-      >
-        <Box 
-          component="iframe" 
-          src={spotifyTracks[1].embedUrl}
-          width="100%"
-          height="80px"
-          frameBorder="0"
-          allowFullScreen=""
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          loading="lazy"
-        />
-      </SpotifyContainer>
-
-      {/* 6. Sixth photo - Body falling in blue space */}
-      <ImageItem 
-        ref={el => imageRefs.current[11] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[11] !== false}
-      >
-        <Box 
-          component="img" 
-          src={images[5]} 
-          alt="Cuerpo cayendo en espacio azul" 
-          loading="lazy"
-          onClick={() => handleImageClick(images[5])}
-        />
-      </ImageItem>
-
-      {/* "no dejes que el tiempo te persiga" phrase */}
-      <ImageItem 
-        ref={el => imageRefs.current[12] = el}
-        isMobile={true}
-        width="90%"
-        height="auto"
-        isVisible={visibleImages[12] !== false}
-        isPhoto={false}
-      >
-        <Box 
-          component="img" 
-          src={phraseImages[3]} 
-          alt="no dejes que el tiempo te persiga" 
-          loading="lazy"
-        />
-      </ImageItem>
-    </>
-  );
-
-  // Desktop view rendering with absolute positioning and animations
-  const renderDesktopView = () => (
-    <>
-      {/* Background Logo with inverted colors */}
-      <LogoBackgroundImage
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '1800px', // Centered in the composition
-          width: '800px',
-          height: '90vh',
-          opacity: 0.6,
-          zIndex: 1,
-          transform: 'translateY(-50%) translateZ(0)' // Added GPU acceleration
-        }}
-      >
-        <Box
-          component="img"
-          src={logoBackground}
-          alt="BLUA Logo Background"
-        />
-      </LogoBackgroundImage>
-      
-      {/* 1. First photo - Person lying on rocks with metallic object - EXTREME LEFT */}
-      <ImageItem 
         ref={el => imageRefs.current[1] = el}
         top="50%"
-        left="250px"
-        width="400px"
-        height="540px"
+        left="1400px"
+        width="320px" 
         zIndex={2}
         isVisible={visibleImages[1] !== false}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
-        <Box 
-          component="img" 
-          src={images[0]} 
-          alt="Persona acostada sobre rocas" 
-          loading="eager"
-          onClick={() => handleImageClick(images[0])}
-        />
-      </ImageItem>
-
-      {/* 2. Second photo - Close-up of metallic object - NEXT TO FIRST */}
-      <ImageItem 
-        ref={el => imageRefs.current[2] = el}
-        top="50%"
-        left="700px"
-        width="360px"
-        height="480px"
-        zIndex={2}
-        isVisible={visibleImages[2] !== false}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
-        <Box 
-          component="img" 
-          src={images[1]} 
-          alt="Primer plano objeto metálico" 
-          loading="eager"
-          onClick={() => handleImageClick(images[1])}
-        />
-      </ImageItem>
-
-      {/* Music player - CENTER-LEFT */}
-      <SpotifyContainer 
-        ref={el => imageRefs.current[3] = el}
-        top="50%"
-        left="1150px"
-        width="300px"
-        zIndex={2}
-        isVisible={visibleImages[3] !== false}
-        sx={{ transform: 'translateY(-30%) translateZ(0)' }}
+        isMobile={isMobile}
+        sx={{ 
+          transform: 'translateY(-50%) translateZ(0)',
+          '& iframe': {
+            opacity: 0.9
+          }
+        }}
       >
         <Box 
           component="iframe" 
-          src={spotifyTracks[0].embedUrl}
+          src={spotifyTrack.embedUrl}
           width="100%"
           height="80px"
           frameBorder="0"
@@ -865,158 +485,23 @@ const BluaGallery = ({ onBack }) => {
         />
       </SpotifyContainer>
 
-      {/* "el cielo" phrase - ABOVE THIRD PHOTO */}
+      {/* 2.png image */}
       <ImageItem 
-        ref={el => imageRefs.current[4] = el}
-        top="25%"
-        left="1550px"
-        width="180px"
-        height="auto"
-        zIndex={3}
-        isVisible={visibleImages[4] !== false}
-        isPhoto={false}
-      >
-        <Box 
-          component="img" 
-          src={phraseImages[0]} 
-          alt="el cielo" 
-          loading="eager"
-        />
-      </ImageItem>
-
-      {/* 3. Third photo - Silhouette in snowy landscape - CENTER */}
-      <ImageItem 
-        ref={el => imageRefs.current[5] = el}
-        top="50%"
-        left="1500px"
-        width="380px"
-        height="500px"
-        zIndex={2}
-        isVisible={visibleImages[5] !== false}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
-        <Box 
-          component="img" 
-          src={images[2]} 
-          alt="Silueta en paisaje nevado" 
-          loading="lazy"
-          onClick={() => handleImageClick(images[2])}
-        />
-      </ImageItem>
-
-      {/* 4. Fourth photo - Portrait with gray sweater - CENTER-RIGHT */}
-      <ImageItem 
-        ref={el => imageRefs.current[6] = el}
+        ref={el => imageRefs.current[2] = el}
         top="50%"
         left="2000px"
-        width="360px"
-        height="480px"
+        width="2000px"
+        height="auto"
         zIndex={2}
-        isVisible={visibleImages[6] !== false}
+        isVisible={visibleImages[2] !== false}
+        isPhoto={false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box 
           component="img" 
-          src={images[3]} 
-          alt="Retrato de joven con suéter gris" 
-          loading="lazy"
-          onClick={() => handleImageClick(images[3])}
-        />
-      </ImageItem>
-
-      {/* "tu barco" phrase - BELOW FOURTH PHOTO */}
-      <ImageItem 
-        ref={el => imageRefs.current[7] = el}
-        top="75%"
-        left="2050px"
-        width="180px"
-        height="auto"
-        zIndex={3}
-        isVisible={visibleImages[7] !== false}
-        isPhoto={false}
-      >
-        <Box 
-          component="img" 
-          src={phraseImages[1]} 
-          alt="tu barco" 
-          loading="lazy"
-        />
-      </ImageItem>
-
-      {/* "construcción" phrase - ABOVE FIFTH PHOTO */}
-      <ImageItem 
-        ref={el => imageRefs.current[8] = el}
-        top="25%"
-        left="2700px"
-        width="180px"
-        height="auto"
-        zIndex={3}
-        isVisible={visibleImages[8] !== false}
-        isPhoto={false}
-      >
-        <Box 
-          component="img" 
-          src={phraseImages[2]} 
-          alt="construcción" 
-          loading="lazy"
-        />
-      </ImageItem>
-
-      {/* 5. Fifth photo - Figure with blue light - RIGHT, with animation */}
-      <ImageItem 
-        ref={animatedImageRef}
-        top="50%"
-        left="2850px"
-        width="380px"
-        height="500px"
-        zIndex={3}
-        isVisible={visibleImages[9] !== false}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
-        <Box 
-          component="img" 
-          src={images[4]} 
-          alt="Figura con luz azul neón" 
-          loading="lazy"
-          onClick={() => handleImageClick(images[4])}
-        />
-      </ImageItem>
-
-      {/* 6. Sixth photo - Body falling in blue space - EXTREME RIGHT */}
-      <ImageItem 
-        ref={el => imageRefs.current[10] = el}
-        top="50%"
-        left="3350px"
-        width="420px"
-        height="560px"
-        zIndex={2}
-        isVisible={visibleImages[10] !== false}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
-        <Box 
-          component="img" 
-          src={images[5]} 
-          alt="Cuerpo cayendo en espacio azul" 
-          loading="lazy"
-          onClick={() => handleImageClick(images[5])}
-        />
-      </ImageItem>
-
-      {/* "no dejes que el tiempo te persiga" - BOTTOM RIGHT near sixth photo */}
-      <ImageItem 
-        ref={el => imageRefs.current[11] = el}
-        top="75%"
-        left="3500px"
-        width="180px"
-        height="auto"
-        zIndex={3}
-        isVisible={visibleImages[11] !== false}
-        isPhoto={false}
-      >
-        <Box 
-          component="img" 
-          src={phraseImages[3]} 
-          alt="no dejes que el tiempo te persiga" 
+          src="/images/blua/2.png" 
+          alt="Constelación" 
           loading="lazy"
         />
       </ImageItem>
@@ -1026,13 +511,14 @@ const BluaGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
+      <SpotifyCustomStyle />
       
       {/* Pantalla de carga con texto animado y círculo de progreso */}
       {loading && (
         <LoadingScreen ref={loadingScreenRef}>
-          {/* Título "BLUA" con animación de entrada desde abajo */}
+          {/* Título "CONSTELACION" con animación de entrada desde abajo */}
           <LoadingTitle ref={titleRef}>
-            BLUA
+            CONSTELACION
           </LoadingTitle>
           
           {/* Año "2024" debajo con su propia animación */}
@@ -1069,29 +555,11 @@ const BluaGallery = ({ onBack }) => {
       
       <GalleryContainer ref={containerRef}>
         <GalleryContent>
-          {isMobile ? renderMobileView() : renderDesktopView()}
+          {renderGalleryContent()}
         </GalleryContent>
-        
-        {/* Modal for displaying enlarged images */}
-        <Modal
-          open={selectedImage !== null}
-          onClose={handleClose}
-          aria-labelledby="image-modal"
-        >
-          <ModalContainer>
-            <Box
-              component="img"
-              src={selectedImage}
-              alt="Selected"
-            />
-            <CloseButton onClick={handleClose} aria-label="Close">
-              <CloseIcon />
-            </CloseButton>
-          </ModalContainer>
-        </Modal>
       </GalleryContainer>
     </>
   );
 };
 
-export default BluaGallery;
+export default ConstelacionGallery;

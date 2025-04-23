@@ -10,10 +10,10 @@ import { gsap } from 'gsap';
  * @param {boolean} options.isLoading - Whether content is still loading
  * @param {function} options.checkVisibility - Function to check visibility of elements (optional)
  * @param {boolean} options.horizontal - Whether scrolling is horizontal (default: true)
- * @param {number} options.duration - Animation duration for scroll (default: 2.5)
- * @param {number} options.wheelMultiplier - Multiplier for wheel events (default: 1.2)
- * @param {number} options.touchMultiplier - Multiplier for touch events (default: 2)
- * @param {number} options.lerp - Linear interpolation value (default: 0.04)
+ * @param {number} options.duration - Animation duration for scroll (default: 1.8)
+ * @param {number} options.wheelMultiplier - Multiplier for wheel events (default: 1.5)
+ * @param {number} options.touchMultiplier - Multiplier for touch events (default: 2.5)
+ * @param {number} options.lerp - Linear interpolation value (default: 0.055)
  * @param {Object} options.colors - Theme colors (optional)
  * @returns {Object} - scrollLeft and scrollProgress state values
  */
@@ -23,10 +23,10 @@ const useSmoothScroll = ({
   isLoading,
   checkVisibility,
   horizontal = true,
-  duration = 2.5,           // Increased duration for smoother motion
-  wheelMultiplier = 1.2,     // Increased multiplier for more responsive scrolling
-  touchMultiplier = 2,       // Increased touch multiplier for mobile
-  lerp = 0.04,               // Reduced lerp for ultra smooth transitions
+  duration = 1.8,           // Reduced duration for faster response
+  wheelMultiplier = 1.5,     // Increased multiplier for more responsive scrolling
+  touchMultiplier = 2.5,     // Increased touch multiplier for mobile
+  lerp = 0.055,              // Slightly increased lerp for faster response but still smooth
   colors = null
 }) => {
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -34,6 +34,7 @@ const useSmoothScroll = ({
   const lenisRef = useRef(null);
   const frameRef = useRef(null);
   const progressRef = useRef(0);
+  const wheelHandlerRef = useRef(null);
 
   // Initialize Lenis for smooth scrolling with optimized configuration
   useEffect(() => {
@@ -50,10 +51,9 @@ const useSmoothScroll = ({
       frameRef.current = null;
     }
 
-    // Optimized easing function for ultra smooth experience
-    // This easing reaches the target faster initially but smoothly decelerates
+    // Optimized easing function for ultra smooth experience but faster response
     const optimizedEasing = (t) => {
-      return 1 - Math.pow(1 - t, 4); // A more responsive but still smooth curve
+      return 1 - Math.pow(1 - t, 3); // More responsive curve (power of 3 instead of 4)
     };
 
     // Initialize Lenis with optimized configuration
@@ -63,12 +63,12 @@ const useSmoothScroll = ({
       duration: duration,
       easing: optimizedEasing,
       orientation: horizontal ? 'horizontal' : 'vertical',
-      gestureOrientation: horizontal ? 'horizontal' : 'vertical',
+      gestureOrientation: horizontal ? 'both' : 'vertical', // Permitir ambas direcciones
       smoothWheel: true,
       smoothTouch: true,     // Enable smooth touch for better experience on all devices
       touchMultiplier: touchMultiplier,
       wheelMultiplier: wheelMultiplier,
-      lerp: lerp,            // Lower value for even smoother movement
+      lerp: lerp,            // Higher value for faster response
       infinite: false,       // No infinite scroll - important for proper progress tracking
       normalizeWheel: true   // Normalize wheel events across browsers for consistency
     });
@@ -94,7 +94,7 @@ const useSmoothScroll = ({
         // Use a more immediate update for the progress bar
         gsap.to(progressElements, {
           width: `${scrollPercentage}%`, 
-          duration: 0.1,     // Faster updates for more responsive progress bar
+          duration: 0.05,     // Even faster updates for more responsive progress bar
           ease: "power1.out",
           overwrite: true
         });
@@ -145,6 +145,49 @@ const useSmoothScroll = ({
     };
   }, [isLoading, isMobile, horizontal, checkVisibility, duration, wheelMultiplier, touchMultiplier, lerp, colors]);
 
+  // Add mouse wheel event listener to handle vertical wheel scrolling for horizontal movement
+  useEffect(() => {
+    if (isLoading || !containerRef.current || !horizontal) return;
+    
+    // Guardar una referencia local
+    const container = containerRef.current;
+
+    // Custom wheel handler to ensure the vertical mouse wheel works with horizontal scrolling
+    const handleWheel = (event) => {
+      if (!lenisRef.current) return;
+      
+      // Prevent the default scroll behavior
+      event.preventDefault();
+      
+      // Calculate the amount to scroll based on the wheel delta
+      const delta = event.deltaY || -event.wheelDelta || event.detail;
+      const scrollAmount = delta * wheelMultiplier;
+      
+      // Get current scroll position
+      const currentScroll = lenisRef.current.scroll;
+      
+      // Scroll horizontally based on vertical wheel movement
+      // Scrolling down = right, scrolling up = left
+      lenisRef.current.scrollTo(currentScroll + scrollAmount, {
+        immediate: false,
+        duration: 0.3  // Shorter duration for more responsive feel
+      });
+    };
+    
+    // Save reference to the handler for cleanup
+    wheelHandlerRef.current = handleWheel;
+    
+    // Add the wheel event listener with passive: false to allow preventDefault
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    
+    return () => {
+      // Verificar que el contenedor existe antes de remover el event listener
+      if (container) {
+        container.removeEventListener('wheel', handleWheel);
+      }
+    };
+  }, [isLoading, containerRef, horizontal, wheelMultiplier]);
+
   // Fallback to standard scroll for mobile horizontal (where Lenis has issues)
   useEffect(() => {
     // Only apply this for mobile + horizontal scroll where we're not using Lenis
@@ -179,20 +222,51 @@ const useSmoothScroll = ({
       // Add scroll listener
       container.addEventListener('scroll', handleScroll, { passive: true });
       
+      // Add wheel event listener for mobile too - more responsive now
+      const handleMobileWheel = (event) => {
+        // Prevent default scrolling
+        event.preventDefault();
+        
+        // Calculate scroll amount - increased multiplier for more fluid experience
+        const delta = event.deltaY || -event.wheelDelta || event.detail;
+        const scrollAmount = delta * (wheelMultiplier * 1.2); // Slightly increased for mobile
+        
+        // Update scroll position with some momentum
+        const momentumScroll = () => {
+          const step = scrollAmount / 5;
+          let count = 0;
+          const scroll = () => {
+            if (count < 5) {
+              container.scrollLeft += step;
+              count++;
+              requestAnimationFrame(scroll);
+            }
+          };
+          requestAnimationFrame(scroll);
+        };
+        
+        momentumScroll();
+      };
+      
+      container.addEventListener('wheel', handleMobileWheel, { passive: false });
+      
       // Initial calculation
       handleScroll();
       
       return () => {
-        container.removeEventListener('scroll', handleScroll);
+        if (container) {
+          container.removeEventListener('scroll', handleScroll);
+          container.removeEventListener('wheel', handleMobileWheel);
+        }
       };
     }
-  }, [isLoading, containerRef, isMobile, horizontal, colors]);
+  }, [isLoading, containerRef, isMobile, horizontal, colors, wheelMultiplier]);
 
   // Utility function to scroll to a specific position
   const scrollTo = useCallback((target, options = {}) => {
     if (lenisRef.current) {
       lenisRef.current.scrollTo(target, {
-        duration: 1.5,
+        duration: 1.2, // Faster scrollTo animation
         ...options
       });
     } else if (containerRef.current) {

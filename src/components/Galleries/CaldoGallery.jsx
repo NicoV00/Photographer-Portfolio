@@ -95,9 +95,10 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
   scrollbarWidth: 'none',
   msOverflowStyle: 'none',
   [theme.breakpoints.down('sm')]: {
-    overflowX: 'hidden',
-    overflowY: 'auto',
-    height: 'auto',
+    // Keep horizontal scrolling for mobile
+    overflowX: 'auto',
+    overflowY: 'hidden',
+    height: '100vh', // Keep full height on mobile
     minHeight: '100vh',
   },
 }));
@@ -113,24 +114,25 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   position: 'relative',
   transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
-    width: '100%',
-    flexDirection: 'column',
-    height: 'auto',
-    padding: '20px',
+    width: '6700px', // Keep the same width as desktop
+    flexDirection: 'row', // Keep row direction for horizontal layout
+    height: '100%', // Same height as desktop
+    padding: '40px', // Same padding
+    paddingRight: '300px', // Same right padding
   },
 }));
 
-// Image item - Quitando sombras por defecto - optimized with GPU acceleration
+// Image item - Already without shadows - optimized with GPU acceleration
 const ImageItem = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'isMobile' && prop !== 'top' && prop !== 'left' && prop !== 'isVisible'
 })(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true }) => ({
-  position: isMobile ? 'relative' : 'absolute',
-  top: isMobile ? 'auto' : top,
-  left: isMobile ? 'auto' : left,
+  position: 'absolute', // Always use absolute positioning for both mobile and desktop
+  top: top,
+  left: left,
   width: width,
   height: height,
   zIndex: zIndex,
-  marginBottom: isMobile ? '40px' : '0',
+  marginBottom: '0', // No margin needed with absolute positioning
   opacity: isVisible ? 1 : 0,
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
@@ -141,23 +143,38 @@ const ImageItem = styled(Box, {
     height: '100%',
     objectFit: 'cover',
     borderRadius: '2px',
-    boxShadow: 'none', // Quitando sombras para CALDO BASTARDO y GRDN
+    boxShadow: 'none', // Already removed shadows
     backfaceVisibility: 'hidden',
     transform: 'translateZ(0)', // Force GPU acceleration
   }
 }));
 
-// Video item with frame - GPU optimized
+// Video item with frame - GPU optimized - Updated to allow custom video positioning
 const VideoContainer = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'isMobile' && prop !== 'top' && prop !== 'left' && prop !== 'isVisible'
-})(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true }) => ({
-  position: isMobile ? 'relative' : 'absolute',
-  top: isMobile ? 'auto' : top,
-  left: isMobile ? 'auto' : left,
+  shouldForwardProp: (prop) => 
+    !['isMobile', 'top', 'left', 'isVisible', 'videoTop', 'videoLeft', 'videoWidth', 'videoHeight'].includes(prop)
+})(({ 
+  theme, 
+  top, 
+  left, 
+  width, 
+  height, 
+  zIndex = 1, 
+  isMobile = false, 
+  isVisible = true,
+  // Propiedades específicas para el video interno
+  videoTop = '16%',
+  videoLeft = '16%',
+  videoWidth = '68%',
+  videoHeight = '60%'
+}) => ({
+  position: 'absolute', // Always use absolute positioning
+  top: top,
+  left: left,
   width: width,
   height: height,
   zIndex: zIndex,
-  marginBottom: isMobile ? '40px' : '0',
+  marginBottom: '0', // No margin needed with absolute positioning
   opacity: isVisible ? 1 : 0,
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
@@ -171,35 +188,35 @@ const VideoContainer = styled(Box, {
     width: '100%',
     height: '100%',
     objectFit: 'contain',
-    zIndex: 5, // Aumentado para asegurar que esté encima del video
-    boxShadow: 'none', // Sin sombra para los marcos
+    zIndex: 5,
+    boxShadow: 'none',
     pointerEvents: 'none',
     transform: 'translateZ(0)', // Force GPU acceleration
   },
   '& .video': {
     position: 'absolute',
-    top: '16%', // Ajustado para centrarlo mejor
-    left: '16%', // Ajustado para centrarlo mejor
-    width: '68%', // Ajustado para que quepa dentro del marco
-    height: '60%', // Ajustado para que quepa dentro del marco
+    top: videoTop,      // Ahora usa la prop personalizada
+    left: videoLeft,    // Ahora usa la prop personalizada
+    width: videoWidth,  // Ahora usa la prop personalizada
+    height: videoHeight, // Ahora usa la prop personalizada
     objectFit: 'cover',
-    zIndex: 3, // Por debajo del marco
+    zIndex: 3,
     borderRadius: '0',
     transform: 'translateZ(0)', // Force GPU acceleration
   }
 }));
 
-// Logo item - GPU optimized
+// Logo item - GPU optimized - Updated for consistent positioning
 const LogoItem = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'isMobile' && prop !== 'top' && prop !== 'left' && prop !== 'isVisible'
 })(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true }) => ({
-  position: isMobile ? 'relative' : 'absolute',
-  top: isMobile ? 'auto' : top,
-  left: isMobile ? 'auto' : left,
+  position: 'absolute', // Always use absolute positioning
+  top: top,
+  left: left,
   width: width,
   height: height,
   zIndex: zIndex,
-  marginBottom: isMobile ? '40px' : '0',
+  marginBottom: '0', // No margin needed with absolute positioning
   opacity: isVisible ? 1 : 0,
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
@@ -248,13 +265,12 @@ const CaldoGallery = ({ onBack }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
-  // Check which images are visible
+  // Updated visibility check to always use horizontal scrolling logic
   const checkVisibility = useCallback(() => {
     if (!containerRef.current) return;
     
     const container = containerRef.current;
     const containerRect = container.getBoundingClientRect();
-    const containerLeft = isMobile ? 0 : container.scrollLeft;
     const containerWidth = containerRect.width;
     
     const preloadMargin = containerWidth * 0.8;
@@ -265,18 +281,11 @@ const CaldoGallery = ({ onBack }) => {
       if (ref && ref.current) {
         const imageRect = ref.current.getBoundingClientRect();
         
-        let isVisible;
-        if (isMobile) {
-          isVisible = (
-            imageRect.top < containerRect.bottom + preloadMargin &&
-            imageRect.bottom > containerRect.top - preloadMargin
-          );
-        } else {
-          isVisible = (
-            imageRect.left < containerRect.right + preloadMargin &&
-            imageRect.right > containerRect.left - preloadMargin
-          );
-        }
+        // Always check horizontal visibility
+        const isVisible = (
+          imageRect.left < containerRect.right + preloadMargin &&
+          imageRect.right > containerRect.left - preloadMargin
+        );
         
         newVisibility[index] = isVisible;
       }
@@ -296,7 +305,7 @@ const CaldoGallery = ({ onBack }) => {
     isMobile,
     isLoading: loading,
     checkVisibility,
-    horizontal: true,
+    horizontal: true, // Always use horizontal scrolling
     duration: 2.5,           // Increased duration for smoother motion
     wheelMultiplier: 1.2,     // Increased multiplier for more responsive scrolling
     touchMultiplier: 2,       // Increased touch multiplier for mobile
@@ -403,7 +412,7 @@ const CaldoGallery = ({ onBack }) => {
     };
   }, [loading]);
 
-  // Set up IntersectionObserver for visibility detection
+  // Set up IntersectionObserver for visibility detection - use container as root for both
   useEffect(() => {
     if (loading || !containerRef.current) return;
 
@@ -411,7 +420,7 @@ const CaldoGallery = ({ onBack }) => {
     
     if ('IntersectionObserver' in window) {
       const options = {
-        root: isMobile ? null : containerRef.current,
+        root: containerRef.current, // Always use container as root for horizontal scrolling
         rootMargin: '200px',
         threshold: 0.1
       };
@@ -444,184 +453,20 @@ const CaldoGallery = ({ onBack }) => {
     }
   }, [loading, isMobile, checkVisibility]);
 
-  // Mobile view rendering
-  const renderMobileView = () => (
-    <>
-      {/* Imagen de portada - CALDO-1 */}
-      <ImageItem 
-        ref={el => imageRefs.current[0] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[0] !== false}
-      >
-        <Box component="img" src={content.C1} alt="CALDO 1" loading="eager" />
-      </ImageItem>
-
-      {/* Video 1 con marco - CALDO-2.mp4 */}
-      <VideoContainer 
-        ref={el => imageRefs.current[1] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[1] !== false}
-      >
-        <Box 
-          component="video"
-          className="video"
-          src={content.C2}
-          alt="CALDO Video 2"
-          autoPlay
-          loop
-          muted
-          playsInline
-        />
-        <Box 
-          component="img" 
-          className="frame" 
-          src={content.LOGO} 
-          alt="CALDO Video Frame" 
-        />
-      </VideoContainer>
-
-      {/* Video 2 con marco - CALDO-3.mp4 */}
-      <VideoContainer 
-        ref={el => imageRefs.current[2] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[2] !== false}
-      >
-        <Box 
-          component="video"
-          className="video"
-          src={content.C3}
-          alt="CALDO Video 3"
-          autoPlay
-          loop
-          muted
-          playsInline
-        />
-        <Box 
-          component="img" 
-          className="frame" 
-          src={content.LOGO} 
-          alt="CALDO Video Frame" 
-        />
-      </VideoContainer>
-
-      {/* Video 3 con marco - CALDO-4.mp4 */}
-      <VideoContainer 
-        ref={el => imageRefs.current[3] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[3] !== false}
-      >
-        <Box 
-          component="video"
-          className="video"
-          src={content.C4}
-          alt="CALDO Video 4"
-          autoPlay
-          loop
-          muted
-          playsInline
-        />
-        <Box 
-          component="img" 
-          className="frame" 
-          src={content.LOGO} 
-          alt="CALDO Video Frame" 
-        />
-      </VideoContainer>
-
-      {/* Video 4 con marco - CALDO-5.mp4 */}
-      <VideoContainer 
-        ref={el => imageRefs.current[4] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[4] !== false}
-      >
-        <Box 
-          component="video"
-          className="video"
-          src={content.C5}
-          alt="CALDO Video 5"
-          autoPlay
-          loop
-          muted
-          playsInline
-        />
-        <Box 
-          component="img" 
-          className="frame" 
-          src={content.LOGO} 
-          alt="CALDO Video Frame" 
-        />
-      </VideoContainer>
-
-      {/* Logo CALDO BASTARDO - CALDO-6.png */}
-      <LogoItem 
-        ref={el => imageRefs.current[5] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[5] !== false}
-      >
-        <Box component="img" src={content.C6} alt="CALDO BASTARDO" loading="eager" />
-      </LogoItem>
-
-      {/* Video 5 con marco - CALDO-7.mp4 */}
-      <VideoContainer 
-        ref={el => imageRefs.current[6] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[6] !== false}
-      >
-        <Box 
-          component="video"
-          className="video"
-          src={content.C7}
-          alt="CALDO Video 7"
-          autoPlay
-          loop
-          muted
-          playsInline
-        />
-        <Box 
-          component="img" 
-          className="frame" 
-          src={content.LOGO} 
-          alt="CALDO Video Frame" 
-        />
-      </VideoContainer>
-
-      {/* Logo GRDN - CALDO-8.png */}
-      <LogoItem 
-        ref={el => imageRefs.current[7] = el}
-        isMobile={true}
-        width="100%"
-        height="auto"
-        isVisible={visibleImages[7] !== false}
-      >
-        <Box component="img" src={content.C8} alt="GRDN" loading="lazy" />
-      </LogoItem>
-    </>
-  );
-
-  // Desktop view rendering exactamente como en la imagen de referencia
-  const renderDesktopView = () => (
+  // Single gallery content rendering function for both mobile and desktop
+  const renderGalleryContent = () => (
     <>
       {/* Imagen de portada - izquierda */}
       <ImageItem 
         ref={el => imageRefs.current[0] = el}
+        top="50%"
         left="450px"
         height="75vh"
+        width="auto"
         zIndex={2}
         isVisible={visibleImages[0] !== false}
+        isMobile={isMobile}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={content.C1} alt="CALDO 1" loading="eager" />
       </ImageItem>
@@ -629,11 +474,19 @@ const CaldoGallery = ({ onBack }) => {
       {/* Video 1 - CALDO-2.mp4 en marco - izquierda */}
       <VideoContainer 
         ref={el => imageRefs.current[1] = el}
+        top="50%"
         left="1300px"
         width="60vh"
         height="80vh"
         zIndex={2}
         isVisible={visibleImages[1] !== false}
+        isMobile={isMobile}
+        // Ajustes personalizados para este video
+        videoTop="3%"
+        videoLeft="18%"
+        videoWidth="64%"
+        videoHeight="92%"
+        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box 
           component="video"
@@ -653,7 +506,7 @@ const CaldoGallery = ({ onBack }) => {
         />
       </VideoContainer>
       
-      {/* Video 2 - CALDO-3.mp4 en marco - centro */}
+      {/* Video 2 - CALDO-3.mp4 - centro */}
       <VideoContainer 
         ref={el => imageRefs.current[2] = el}
         top="5%"
@@ -662,6 +515,7 @@ const CaldoGallery = ({ onBack }) => {
         height="60vh"
         zIndex={2}
         isVisible={visibleImages[2] !== false}
+        isMobile={isMobile}
       >
         <Box 
           component="video"
@@ -681,9 +535,10 @@ const CaldoGallery = ({ onBack }) => {
         top="40%"
         left="2560px"
         width="90vh"
-        height="60vh"
+        height="70vh"
         zIndex={2}
         isVisible={visibleImages[3] !== false}
+        isMobile={isMobile}
       >
         <Box 
           component="video"
@@ -697,14 +552,22 @@ const CaldoGallery = ({ onBack }) => {
         />
       </VideoContainer>
       
-      {/* Video 4 - CALDO-5.mp4  */}
+      {/* Video 4 - CALDO-5.mp4 en marco */}
       <VideoContainer 
         ref={el => imageRefs.current[4] = el}
+        top="50%"
         left="3500px"
-         width="60vh"
+        width="60vh"
         height="80vh"
         zIndex={2}
         isVisible={visibleImages[4] !== false}
+        isMobile={isMobile}
+        // Ajustes personalizados para este video
+        videoTop="3%"
+        videoLeft="18%"
+        videoWidth="64%"
+        videoHeight="92%"
+        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box 
           component="video"
@@ -732,6 +595,7 @@ const CaldoGallery = ({ onBack }) => {
         width="670px"
         height="auto"
         isVisible={visibleImages[5] !== false}
+        isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box component="img" src={content.C6} alt="CALDO BASTARDO" loading="eager" />
@@ -740,11 +604,19 @@ const CaldoGallery = ({ onBack }) => {
       {/* Video 5 - CALDO-7.mp4 en marco */}
       <VideoContainer 
         ref={el => imageRefs.current[6] = el}
+        top="50%"
         left="5150px"
         width="60vh"
         height="80vh"
         zIndex={2}
         isVisible={visibleImages[6] !== false}
+        isMobile={isMobile}
+        // Ajustes personalizados para este video
+        videoTop="3%"
+        videoLeft="18%"
+        videoWidth="64%"
+        videoHeight="92%"
+        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
       >
         <Box 
           component="video"
@@ -772,6 +644,7 @@ const CaldoGallery = ({ onBack }) => {
         width="250px"
         height="auto"
         isVisible={visibleImages[7] !== false}
+        isMobile={isMobile}
       >
         <Box component="img" src={content.C8} alt="GRDN" loading="lazy" />
       </LogoItem>
@@ -822,7 +695,7 @@ const CaldoGallery = ({ onBack }) => {
       
       <GalleryContainer ref={containerRef}>
         <GalleryContent>
-          {isMobile ? renderMobileView() : renderDesktopView()}
+          {renderGalleryContent()}
         </GalleryContent>
       </GalleryContainer>
     </>

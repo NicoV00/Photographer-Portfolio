@@ -171,6 +171,7 @@ const NavigationArrow = ({ onBack, containerRef, colors = null, isLoading = fals
     // Limpieza
     return () => {
       clearTimeout(scrollTimeout.current);
+      // Solo verificar si el container todavía existe para evitar el error
       if (container) {
         container.removeEventListener('scroll', handleScroll);
       }

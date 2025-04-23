@@ -8,7 +8,8 @@ import {
   AnaLivniGallery,
   MaisonGallery,
   VestimeTeoGallery,
-  CaldoGallery
+  CaldoGallery,
+  PlataGallery
 } from './Galleries';
 
 // Mapeo de imágenes a componentes de galería
@@ -31,6 +32,10 @@ const galleryMap = {
   },
   "./images/TEO/V1.jpg": {
     component: VestimeTeoGallery,
+    props: {}
+  },
+  "./images/PLATA/PLATA-2.jpg": {
+    component: PlataGallery,
     props: {}
   }
 };
@@ -84,7 +89,20 @@ const ProjectViewer = () => {
           }}>
             <h2>Proyecto en desarrollo</h2>
             <p>Este proyecto aún no está disponible para visualización.</p>
-            <button onClick={handleBack}>Volver al carrusel</button>
+            <button 
+              onClick={handleBack}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#000',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                marginTop: '20px'
+              }}
+            >
+              Volver al carrusel
+            </button>
           </Box>
         );
       }
