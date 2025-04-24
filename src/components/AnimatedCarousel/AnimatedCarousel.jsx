@@ -34,6 +34,7 @@ const AnimatedCarousel = ({
     "./images/KABOA/KABOA-1.jpg", // Add this line to include KABOA
     "./images/AMOUR/ADELAMOUR-1.jpg",
     "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg",
+    "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg",
   ], []);
 
   // Encontrar el índice de la imagen inicial

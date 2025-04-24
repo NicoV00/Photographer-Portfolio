@@ -18,7 +18,8 @@ const PlataGallery = lazy(() => import('./components/Galleries/PlataGallery'));
 const LenoirGallery = lazy(() => import('./components/Galleries/LenoirGallery'));
 const KaboaGallery = lazy(() => import('./components/Galleries/KaboaGallery'));
 const AmourGallery = lazy(() => import('./components/Galleries/AmourGallery'));
-const MarcosGallery = lazy(() => import('./components/Galleries/MarcosGallery')); // Añadir MarcosGallery
+const MarcosGallery = lazy(() => import('./components/Galleries/MarcosGallery'));
+const PasarelaGallery = lazy(() => import('./components/Galleries/PasarelaGallery')); // Añadir PasarelaGallery
 
 // Iniciar precarga de componentes clave inmediatamente
 import('./components/Galleries/BluaGallery');
@@ -102,7 +103,8 @@ function App() {
     "./images/LENOIR/LENOIR-1.jpg": "lenoir",
     "./images/KABOA/KABOA-1.jpg": "kaboa",
     "./images/AMOUR/ADELAMOUR-1.jpg": "amour",
-    "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg": "marcos" // Añadir MARCOS a la colección
+    "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg": "marcos",
+    "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg": "pasarela" // Añadir PASARELA
   };
 
   const handleOffCanvasState = (show) => {
@@ -336,10 +338,16 @@ function App() {
             <AmourGallery onBack={handleBackToCarousel} />
           </Suspense>
         );
-      } else if (collectionType === "marcos") { // Añadir condición para MarcosGallery
+      } else if (collectionType === "marcos") {
         return (
           <Suspense fallback={loadingComponent}>
             <MarcosGallery onBack={handleBackToCarousel} />
+          </Suspense>
+        );
+      } else if (collectionType === "pasarela") { // Añadir case para PASARELA
+        return (
+          <Suspense fallback={loadingComponent}>
+            <PasarelaGallery onBack={handleBackToCarousel} />
           </Suspense>
         );
       } else {

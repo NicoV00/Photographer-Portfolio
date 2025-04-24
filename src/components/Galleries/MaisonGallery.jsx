@@ -42,7 +42,7 @@ const ScrollRibbon = styled(Box, {
   padding: isBottom ? '0 0 0 0' : '0 0 0 0',
   overflowX: 'hidden',
   overflowY: 'hidden',
-  backgroundColor:'#000',
+  backgroundColor: '#000',
   zIndex: isBottom ? 100 : 9998, // Lower z-index for bottom ribbon
   display: 'flex',
   alignItems: 'center',
@@ -52,7 +52,7 @@ const ScrollRibbon = styled(Box, {
     position: 'absolute',
     width: '100%',
     height: '100%',
-    backgroundImage: 'linear-gradient(to right, rgba(30,30,29,1) 0%, rgba(30,30,29,0) 5%, rgba(30,30,29,0) 95%, rgba(30,30,29,1) 100%)',
+    backgroundImage: 'linear-gradient(to right, #000 0%, rgba(0,0,0,0.5) 5%, rgba(0,0,0,0.5) 95%, #000 100%)',
     zIndex: 1,
   },
 }));
@@ -61,11 +61,11 @@ const ScrollRibbon = styled(Box, {
 const ScrollText = styled(Box)({
   display: 'flex',
   whiteSpace: 'nowrap',
-  animation: 'scrollText 25s linear infinite',
+  animation: 'scrollText 35s linear infinite',
   fontFamily: '"Old London", serif',
   fontSize: '17px',
   letterSpacing: '1px',
-  color: '#fffff',
+  color: '#fff',
   '@keyframes scrollText': {
     '0%': {
       transform: 'translateX(0)',

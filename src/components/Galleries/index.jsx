@@ -8,4 +8,5 @@ export { default as PlataGallery } from './PlataGallery';
 export { default as LenoirGallery } from './LenoirGallery';
 export { default as KaboaGallery } from './KaboaGallery';
 export { default as AmourGallery } from './AmourGallery';
-export { default as MarcosGallery } from './MarcosGallery'; // Añadir la exportación de MarcosGallery
+export { default as MarcosGallery } from './MarcosGallery';
+export { default as PasarelaGallery } from './PasarelaGallery'; // Añadir la exportación de PasarelaGallery

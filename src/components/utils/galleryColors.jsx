@@ -26,10 +26,15 @@ const galleryColors = {
     text: "#000000",     // Black text
     highlight: "#3BAFD9" // Darker blue for highlights
   },
-  "marcos": {            // Añadido esquema de colores para MARCOS
+  "marcos": {
     main: "#c2dd52",     // MARCOS MUF green color (lime green)
     text: "#000000",     // Black text
     highlight: "#8CAA21" // Darker green for highlights
+  },
+  "pasarela": {          // Añadido esquema de colores para PASARELA
+    main: "#1e1815",     // Fondo negro/oscuro para la pasarela
+    text: "#FFFFFF",     // Texto blanco para fondo oscuro
+    highlight: "#FFFFFF" // Highlights en blanco
   },
   "plata": {
     main: "#e6e6e6",     // Actualizado a gris claro (como BLUA)
@@ -73,7 +78,8 @@ export const getGalleryColors = (collectionPath) => {
     if (collectionPath.includes('blua')) return galleryColors.blua;
     if (collectionPath.includes('MDLST')) return galleryColors.maison;
     if (collectionPath.includes('TEO')) return galleryColors.vestimeteo;
-    if (collectionPath.includes('MARCOS')) return galleryColors.marcos; // Añadido mapeo de MARCOS
+    if (collectionPath.includes('MARCOS')) return galleryColors.marcos;
+    if (collectionPath.includes('PASARELA')) return galleryColors.pasarela; // Añadido mapeo para PASARELA
     if (collectionPath.includes('LENOIR')) return galleryColors.lenoir;
     if (collectionPath.includes('KABOA')) return galleryColors.kaboa;
     if (collectionPath.includes('ADELAMOUR') || collectionPath.includes('AMOUR')) return galleryColors.amour;
