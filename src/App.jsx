@@ -6,7 +6,7 @@ import OffCanvas from './components/OffCanvas';
 import { CircularProgress, Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import IntroVideo from './components/IntroVideo';
-import CursorManager from './components/CursorManager'; // Importamos el nuevo componente
+import CursorManager from './components/CursorManager';
 
 // Lazy loaded galleries - pero iniciar precarga inmediatamente
 const AnaLivniGallery = lazy(() => import('./components/Galleries/AnaLivniGallery'));
@@ -15,6 +15,10 @@ const MaisonGallery = lazy(() => import('./components/Galleries/MaisonGallery'))
 const VestimeTeoGallery = lazy(() => import('./components/Galleries/VestimeTeoGallery'));
 const CaldoGallery = lazy(() => import('./components/Galleries/CaldoGallery')); 
 const PlataGallery = lazy(() => import('./components/Galleries/PlataGallery'));
+const LenoirGallery = lazy(() => import('./components/Galleries/LenoirGallery'));
+const KaboaGallery = lazy(() => import('./components/Galleries/KaboaGallery'));
+const AmourGallery = lazy(() => import('./components/Galleries/AmourGallery'));
+const MarcosGallery = lazy(() => import('./components/Galleries/MarcosGallery')); // Añadir MarcosGallery
 
 // Iniciar precarga de componentes clave inmediatamente
 import('./components/Galleries/BluaGallery');
@@ -94,7 +98,11 @@ function App() {
     "./images/blua_constelaciones_finales.jpg": "blua",
     "./images/MDLST/MDLST-1.png": "maison",
     "./images/TEO/V1.jpg": "vestimeteo",
-    "./images/PLATA/PLATA-2.jpg": "plata"
+    "./images/PLATA/PLATA-2.jpg": "plata",
+    "./images/LENOIR/LENOIR-1.jpg": "lenoir",
+    "./images/KABOA/KABOA-1.jpg": "kaboa",
+    "./images/AMOUR/ADELAMOUR-1.jpg": "amour",
+    "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg": "marcos" // Añadir MARCOS a la colección
   };
 
   const handleOffCanvasState = (show) => {
@@ -308,6 +316,30 @@ function App() {
         return (
           <Suspense fallback={loadingComponent}>
             <PlataGallery onBack={handleBackToCarousel} />
+          </Suspense>
+        );
+      } else if (collectionType === "lenoir") {
+        return (
+          <Suspense fallback={loadingComponent}>
+            <LenoirGallery onBack={handleBackToCarousel} />
+          </Suspense>
+        );
+      } else if (collectionType === "kaboa") {
+        return (
+          <Suspense fallback={loadingComponent}>
+            <KaboaGallery onBack={handleBackToCarousel} />
+          </Suspense>
+        );
+      } else if (collectionType === "amour") {
+        return (
+          <Suspense fallback={loadingComponent}>
+            <AmourGallery onBack={handleBackToCarousel} />
+          </Suspense>
+        );
+      } else if (collectionType === "marcos") { // Añadir condición para MarcosGallery
+        return (
+          <Suspense fallback={loadingComponent}>
+            <MarcosGallery onBack={handleBackToCarousel} />
           </Suspense>
         );
       } else {

@@ -9,7 +9,11 @@ import {
   MaisonGallery,
   VestimeTeoGallery,
   CaldoGallery,
-  PlataGallery
+  PlataGallery,
+  LenoirGallery,
+  KaboaGallery,
+  AmourGallery,
+  MarcosGallery // Añadir MarcosGallery aquí
 } from './Galleries';
 
 // Mapeo de imágenes a componentes de galería
@@ -36,6 +40,23 @@ const galleryMap = {
   },
   "./images/PLATA/PLATA-2.jpg": {
     component: PlataGallery,
+    props: {}
+  },
+  "./images/LENOIR/LENOIR-1.jpg": {
+    component: LenoirGallery,
+    props: {}
+  },
+  "./images/KABOA/KABOA-1.jpg": {
+    component: KaboaGallery,
+    props: {}
+  },
+  "./images/AMOUR/ADELAMOUR-1.jpg": {
+    component: AmourGallery,
+    props: {}
+  },
+  // Añadir el mapeo para MARCOS MUF
+  "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg": {
+    component: MarcosGallery,
     props: {}
   }
 };

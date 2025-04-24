@@ -1,4 +1,4 @@
-// Map collection paths to their color schemes
+// Map collection paths to their color schemes 
 const galleryColors = {
   // Map collection path to its color scheme
   "caldo": {
@@ -26,8 +26,8 @@ const galleryColors = {
     text: "#000000",     // Black text
     highlight: "#3BAFD9" // Darker blue for highlights
   },
-  "marcos-muf": {
-    main: "#c2dd52",     // MARCOS MUF green color
+  "marcos": {            // Añadido esquema de colores para MARCOS
+    main: "#c2dd52",     // MARCOS MUF green color (lime green)
     text: "#000000",     // Black text
     highlight: "#8CAA21" // Darker green for highlights
   },
@@ -35,6 +35,21 @@ const galleryColors = {
     main: "#e6e6e6",     // Actualizado a gris claro (como BLUA)
     text: "#000000",     // Texto negro
     highlight: "#a0a0a0" // Highlight plata/gris
+  },
+  "lenoir": {
+    main: "#aa88ef",     // Lilac color
+    text: "#333333",     // Dark gray text
+    highlight: "#333333"  // Same purple for highlights
+  },
+  "kaboa": {
+    main: "#ededed",     // Light gray background
+    text: "#FFFFFF",     // White text
+    highlight: "#FFFFFF"  // White highlights
+  },
+  "amour": {
+    main: "#e82d2d",     // Red background
+    text: "#FFFFFF",     // White text
+    highlight: "#FFFFFF"  // White highlights
   },
   // Default colors for collections without specific mapping
   "default": {
@@ -58,7 +73,10 @@ export const getGalleryColors = (collectionPath) => {
     if (collectionPath.includes('blua')) return galleryColors.blua;
     if (collectionPath.includes('MDLST')) return galleryColors.maison;
     if (collectionPath.includes('TEO')) return galleryColors.vestimeteo;
-    if (collectionPath.includes('MARCOS')) return galleryColors["marcos-muf"];
+    if (collectionPath.includes('MARCOS')) return galleryColors.marcos; // Añadido mapeo de MARCOS
+    if (collectionPath.includes('LENOIR')) return galleryColors.lenoir;
+    if (collectionPath.includes('KABOA')) return galleryColors.kaboa;
+    if (collectionPath.includes('ADELAMOUR') || collectionPath.includes('AMOUR')) return galleryColors.amour;
     
     // Para la colección PLATA - actualizada a usar el tema con fondo gris claro
     if (collectionPath.includes('PLATA')) return galleryColors.plata;

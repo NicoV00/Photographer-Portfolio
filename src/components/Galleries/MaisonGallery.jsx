@@ -42,7 +42,7 @@ const ScrollRibbon = styled(Box, {
   padding: isBottom ? '0 0 0 0' : '0 0 0 0',
   overflowX: 'hidden',
   overflowY: 'hidden',
-  backgroundColor: galleryTheme.main, // Using gallery theme color
+  backgroundColor:'#000',
   zIndex: isBottom ? 100 : 9998, // Lower z-index for bottom ribbon
   display: 'flex',
   alignItems: 'center',
@@ -65,7 +65,7 @@ const ScrollText = styled(Box)({
   fontFamily: '"Old London", serif',
   fontSize: '17px',
   letterSpacing: '1px',
-  color: '#fff',
+  color: '#fffff',
   '@keyframes scrollText': {
     '0%': {
       transform: 'translateX(0)',
@@ -474,7 +474,7 @@ const MaisonGallery = ({ onBack }) => {
     // Create 40 repetitions to ensure it fully covers the screen width with no gaps
     const repeats = [...Array(40)].map((_, i) => (
       <span key={i} style={{ margin: '0 3px' }}>
-        SCROLL - - →
+        DLST - - →
       </span>
     ));
     return repeats;
@@ -626,7 +626,6 @@ const MaisonGallery = ({ onBack }) => {
         ref={el => imageRefs.current[8] = el}
         top="41%" 
         left="6340px"
-        width="35vw" 
         height="55vh" 
         zIndex={2}
         isVisible={visibleImages[8] !== false}
@@ -641,7 +640,6 @@ const MaisonGallery = ({ onBack }) => {
         ref={el => imageRefs.current[9] = el}
         top="124px" 
         left="7020px"
-        width="35vw" 
         height="55vh" 
         zIndex={2}
         isVisible={visibleImages[9] !== false}

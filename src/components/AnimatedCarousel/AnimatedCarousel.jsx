@@ -22,23 +22,18 @@ const AnimatedCarousel = ({
   const imageUrls = useMemo(() => [
     "./images/CALDO/CALDO-1 (PORTADA).jpg",
     "./images/blua_constelaciones_finales.jpg",
-    "./images/LF-11.jpg",
-    "./images/LFF-15.jpg",
-    "./images/D2F-10.jpg",
     "./images/PLATA/PLATA-2.jpg",
-    "./images/L-5.jpg",
-    "./images/L-8.jpg",
     "./images/CAT-17.jpg",
     "./images/D-09.jpg",
-    "./images/KA_PUENTE1.1-04.jpg",
-    "./images/L-1.jpg",
     "./images/L-12.jpg",
-    "./images/MARCOS-34.jpg",
     "./images/NWB&W-09.jpg",
-    "./images/O4-1.jpg",
     "./images/S-1.jpg",
     "./images/MDLST/MDLST-1.png",
-    "./images/TEO/V1.jpg"
+    "./images/TEO/V1.jpg",
+    "./images/LENOIR/LENOIR-1.jpg",
+    "./images/KABOA/KABOA-1.jpg", // Add this line to include KABOA
+    "./images/AMOUR/ADELAMOUR-1.jpg",
+    "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg",
   ], []);
 
   // Encontrar el índice de la imagen inicial

@@ -5,3 +5,7 @@ export { default as VestimeTeoGallery } from './VestimeTeoGallery';
 export { default as MaisonGallery } from './MaisonGallery';
 export { default as CaldoGallery } from './CaldoGallery';
 export { default as PlataGallery } from './PlataGallery';
+export { default as LenoirGallery } from './LenoirGallery';
+export { default as KaboaGallery } from './KaboaGallery';
+export { default as AmourGallery } from './AmourGallery';
+export { default as MarcosGallery } from './MarcosGallery'; // Añadir la exportación de MarcosGallery
