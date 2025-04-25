@@ -61,6 +61,9 @@ const LoadingTitle = styled(Box)(({ theme }) => ({
   position: 'relative', // For positioning relative to container
   transform: 'translateY(100px)', // Start below viewport (for animation)
   opacity: 0,
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '32px', // Smaller font on mobile
+  },
 }));
 
 const LoadingYear = styled(Box)(({ theme }) => ({
@@ -74,6 +77,9 @@ const LoadingYear = styled(Box)(({ theme }) => ({
   transform: 'translateY(100px)', // Start below viewport (for animation)
   opacity: 0,
   marginBottom: '40px', // Space between text and loading circle
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '28px', // Smaller font on mobile
+  },
 }));
 
 // Main container with horizontal scroll - optimized
@@ -114,25 +120,36 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   position: 'relative',
   transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
-    width: '6700px', // Keep the same width as desktop
-    flexDirection: 'row', // Keep row direction for horizontal layout
-    height: '100%', // Same height as desktop
-    padding: '40px', // Same padding
-    paddingRight: '300px', // Same right padding
+    width: '4000px', // Aumentado de 3350px para acomodar elementos más grandes
+    padding: '20px', // Less padding on mobile
+    paddingRight: '150px', // Less padding on mobile
   },
 }));
 
-// Image item - Already without shadows - optimized with GPU acceleration
+// Image item - Responsive version with adaptive sizing for mobile
 const ImageItem = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'isMobile' && prop !== 'top' && prop !== 'left' && prop !== 'isVisible'
-})(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true }) => ({
-  position: 'absolute', // Always use absolute positioning for both mobile and desktop
+  shouldForwardProp: (prop) => !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileHeight', 'mobileWidth'].includes(prop)
+})(({ 
+  theme, 
+  top, 
+  left, 
+  width, 
+  height, 
+  zIndex = 1, 
+  isMobile = false, 
+  isVisible = true,
+  // Props especiales para móvil
+  mobileTop,
+  mobileLeft,
+  mobileHeight,
+  mobileWidth
+}) => ({
+  position: 'absolute',
   top: top,
   left: left,
   width: width,
   height: height,
   zIndex: zIndex,
-  marginBottom: '0', // No margin needed with absolute positioning
   opacity: isVisible ? 1 : 0,
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
@@ -143,16 +160,24 @@ const ImageItem = styled(Box, {
     height: '100%',
     objectFit: 'cover',
     borderRadius: '2px',
-    boxShadow: 'none', // Already removed shadows
+    boxShadow: 'none',
     backfaceVisibility: 'hidden',
     transform: 'translateZ(0)', // Force GPU acceleration
-  }
+  },
+  [theme.breakpoints.down('sm')]: {
+    top: mobileTop || top,
+    left: mobileLeft || (left ? `${parseInt(left) * 0.6}px` : left), // Aumentado de 0.5 a 0.6
+    width: mobileWidth || (width === 'auto' ? 'auto' : width ? `${parseInt(width) * 0.7}px` : width), // Aumentado de 0.5 a 0.7
+    height: mobileHeight || (height === 'auto' ? 'auto' : height ? (height.includes('vh') ? `${parseInt(height) * 0.9}vh` : `${parseInt(height) * 0.7}px`) : height), // Aumentado de 0.8/0.5 a 0.9/0.7
+  },
 }));
 
-// Video item with frame - GPU optimized - Updated to allow custom video positioning
+// Video container - Responsive version with adaptive sizing for mobile
 const VideoContainer = styled(Box, {
   shouldForwardProp: (prop) => 
-    !['isMobile', 'top', 'left', 'isVisible', 'videoTop', 'videoLeft', 'videoWidth', 'videoHeight'].includes(prop)
+    !['isMobile', 'top', 'left', 'isVisible', 'videoTop', 'videoLeft', 'videoWidth', 'videoHeight', 
+      'mobileTop', 'mobileLeft', 'mobileWidth', 'mobileHeight',
+      'mobileVideoTop', 'mobileVideoLeft', 'mobileVideoWidth', 'mobileVideoHeight'].includes(prop)
 })(({ 
   theme, 
   top, 
@@ -162,19 +187,28 @@ const VideoContainer = styled(Box, {
   zIndex = 1, 
   isMobile = false, 
   isVisible = true,
-  // Propiedades específicas para el video interno
+  // Props para posición del video en desktop
   videoTop = '16%',
   videoLeft = '16%',
   videoWidth = '68%',
-  videoHeight = '60%'
+  videoHeight = '60%',
+  // Props especiales para móvil
+  mobileTop,
+  mobileLeft,
+  mobileWidth,
+  mobileHeight,
+  // Props para posición del video en móvil
+  mobileVideoTop,
+  mobileVideoLeft,
+  mobileVideoWidth,
+  mobileVideoHeight
 }) => ({
-  position: 'absolute', // Always use absolute positioning
+  position: 'absolute',
   top: top,
   left: left,
   width: width,
   height: height,
   zIndex: zIndex,
-  marginBottom: '0', // No margin needed with absolute positioning
   opacity: isVisible ? 1 : 0,
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
@@ -195,28 +229,53 @@ const VideoContainer = styled(Box, {
   },
   '& .video': {
     position: 'absolute',
-    top: videoTop,      // Ahora usa la prop personalizada
-    left: videoLeft,    // Ahora usa la prop personalizada
-    width: videoWidth,  // Ahora usa la prop personalizada
-    height: videoHeight, // Ahora usa la prop personalizada
+    top: videoTop,
+    left: videoLeft,
+    width: videoWidth,
+    height: videoHeight,
     objectFit: 'cover',
     zIndex: 3,
     borderRadius: '0',
     transform: 'translateZ(0)', // Force GPU acceleration
-  }
+  },
+  [theme.breakpoints.down('sm')]: {
+    top: mobileTop || top,
+    left: mobileLeft || (left ? `${parseInt(left) * 0.6}px` : left), // Aumentado de 0.5 a 0.6
+    width: mobileWidth || (width.includes('vh') ? `${parseInt(width) * 0.75}vh` : `${parseInt(width) * 0.7}px`), // Aumentado de 0.6/0.5 a 0.75/0.7
+    height: mobileHeight || (height.includes('vh') ? `${parseInt(height) * 0.75}vh` : `${parseInt(height) * 0.7}px`), // Aumentado de 0.6/0.5 a 0.75/0.7
+    '& .video': {
+      top: mobileVideoTop || videoTop,
+      left: mobileVideoLeft || videoLeft,
+      width: mobileVideoWidth || videoWidth,
+      height: mobileVideoHeight || videoHeight,
+    }
+  },
 }));
 
-// Logo item - GPU optimized - Updated for consistent positioning
+// Logo item - Responsive version with adaptive sizing for mobile
 const LogoItem = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'isMobile' && prop !== 'top' && prop !== 'left' && prop !== 'isVisible'
-})(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true }) => ({
-  position: 'absolute', // Always use absolute positioning
+  shouldForwardProp: (prop) => !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileWidth', 'mobileHeight'].includes(prop)
+})(({ 
+  theme, 
+  top, 
+  left, 
+  width, 
+  height, 
+  zIndex = 1, 
+  isMobile = false, 
+  isVisible = true,
+  // Props especiales para móvil
+  mobileTop,
+  mobileLeft,
+  mobileWidth,
+  mobileHeight 
+}) => ({
+  position: 'absolute',
   top: top,
   left: left,
   width: width,
   height: height,
   zIndex: zIndex,
-  marginBottom: '0', // No margin needed with absolute positioning
   opacity: isVisible ? 1 : 0,
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
@@ -230,7 +289,13 @@ const LogoItem = styled(Box, {
     boxShadow: 'none',
     backfaceVisibility: 'hidden',
     transform: 'translateZ(0)', // Force GPU acceleration
-  }
+  },
+  [theme.breakpoints.down('sm')]: {
+    top: mobileTop || top,
+    left: mobileLeft || (left ? `${parseInt(left) * 0.6}px` : left), // Aumentado de 0.5 a 0.6
+    width: mobileWidth || (width === 'auto' ? 'auto' : `${parseInt(width) * 0.7}px`), // Aumentado de 0.5 a 0.7
+    height: mobileHeight || height, // Mantener altura si es 'auto', sino reducir
+  },
 }));
 
 const CaldoGallery = ({ onBack }) => {
@@ -467,6 +532,10 @@ const CaldoGallery = ({ onBack }) => {
         isVisible={visibleImages[0] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        // Ajustes específicos para móvil
+        mobileTop="50%"
+        mobileLeft="270px"
+        mobileHeight="67vh"
       >
         <Box component="img" src={content.C1} alt="CALDO 1" loading="eager" />
       </ImageItem>
@@ -487,6 +556,11 @@ const CaldoGallery = ({ onBack }) => {
         videoWidth="64%"
         videoHeight="92%"
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        // Ajustes específicos para móvil
+        mobileTop="50%"
+        mobileLeft="780px"
+        mobileWidth="48vh"
+        mobileHeight="67vh"
       >
         <Box 
           component="video"
@@ -509,13 +583,18 @@ const CaldoGallery = ({ onBack }) => {
       {/* Video 2 - CALDO-3.mp4 - centro */}
       <VideoContainer 
         ref={el => imageRefs.current[2] = el}
-        top="5%"
+        top="0%"
         left="2000px"
-        width="90vh"
-        height="60vh"
+        width="100vh"
+        height="70vh"
         zIndex={2}
         isVisible={visibleImages[2] !== false}
         isMobile={isMobile}
+        // Ajustes específicos para móvil
+        mobileTop="10%"
+        mobileLeft="1200px"
+        mobileWidth="73vh"
+        mobileHeight="55vh"
       >
         <Box 
           component="video"
@@ -532,13 +611,18 @@ const CaldoGallery = ({ onBack }) => {
       {/* Video 3 - CALDO-4.mp4 - derecha */}
       <VideoContainer 
         ref={el => imageRefs.current[3] = el}
-        top="40%"
-        left="2560px"
-        width="90vh"
+        top="35%"
+        left="2630px"
+        width="100vh"
         height="70vh"
         zIndex={2}
         isVisible={visibleImages[3] !== false}
         isMobile={isMobile}
+        // Ajustes específicos para móvil
+        mobileTop="40%"
+        mobileLeft="1540px"
+        mobileWidth="73vh"
+        mobileHeight="58vh"
       >
         <Box 
           component="video"
@@ -568,6 +652,11 @@ const CaldoGallery = ({ onBack }) => {
         videoWidth="64%"
         videoHeight="92%"
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        // Ajustes específicos para móvil
+        mobileTop="50%"
+        mobileLeft="2100px"
+        mobileWidth="48vh"
+        mobileHeight="67vh"
       >
         <Box 
           component="video"
@@ -594,9 +683,14 @@ const CaldoGallery = ({ onBack }) => {
         left="4270px"
         width="670px"
         height="auto"
+        zIndex={3}
         isVisible={visibleImages[5] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        // Ajustes específicos para móvil
+        mobileTop="45%"
+        mobileLeft="2550px"
+        mobileWidth="450px"
       >
         <Box component="img" src={content.C6} alt="CALDO BASTARDO" loading="eager" />
       </LogoItem>
@@ -617,6 +711,11 @@ const CaldoGallery = ({ onBack }) => {
         videoWidth="64%"
         videoHeight="92%"
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        // Ajustes específicos para móvil
+        mobileTop="50%"
+        mobileLeft="3100px"
+        mobileWidth="48vh"
+        mobileHeight="67vh"
       >
         <Box 
           component="video"
@@ -643,13 +742,49 @@ const CaldoGallery = ({ onBack }) => {
         left="6100px"
         width="250px"
         height="auto"
+        zIndex={3}
         isVisible={visibleImages[7] !== false}
         isMobile={isMobile}
+        // Ajustes específicos para móvil
+        mobileTop="10%"
+        mobileLeft="3670px"
+        mobileWidth="175px"
       >
         <Box component="img" src={content.C8} alt="GRDN" loading="lazy" />
       </LogoItem>
     </>
   );
+
+  // Añadido useEffect para detección específica de dispositivos móviles reales
+  useEffect(() => {
+    // Detectar dispositivos móviles reales con mayor precisión
+    const detectRealMobile = () => {
+      const ua = navigator.userAgent;
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+    };
+    
+    // Si estamos en un dispositivo móvil real, forzar ciertos ajustes
+    if (detectRealMobile()) {
+      // Asegurar que los elementos se muestren correctamente
+      document.documentElement.style.fontSize = '14px';
+      // Deshabilitar el comportamiento elástico en iOS
+      document.body.style.overscrollBehavior = 'none';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    return () => {
+      // Limpiar ajustes
+      document.documentElement.style.fontSize = '';
+      document.body.style.overscrollBehavior = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   return (
     <>
@@ -669,7 +804,7 @@ const CaldoGallery = ({ onBack }) => {
           <CircularProgress 
             variant="determinate" 
             value={loadProgress} 
-            size={60} 
+            size={isMobile ? 40 : 60} 
             thickness={4}
             sx={{ color: galleryTheme.text }}
           />
