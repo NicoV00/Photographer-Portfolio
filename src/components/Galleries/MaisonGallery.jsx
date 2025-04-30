@@ -589,7 +589,7 @@ const MaisonGallery = ({ onBack }) => {
         mobileTop="50%"
         mobileLeft="270px"
         mobileHeight="76vh"
-        mobileWidth="auto" // Ancho relativo al viewport - aproximadamente 35% del ancho de pantalla
+        mobileWidth="100vw" // Ancho relativo al viewport - aproximadamente 35% del ancho de pantalla
       >
         <Box component="img" src={images.M1} alt="MAISON 1" loading="eager" />
       </ImageItem>
@@ -608,7 +608,7 @@ const MaisonGallery = ({ onBack }) => {
         mobileTop="25%"
         mobileLeft="780px"
         mobileHeight="49vh"
-        mobileWidth="auto" // Ancho relativo al viewport - aproximadamente 30% del ancho de pantalla
+        mobileWidth="65vw" // Ancho relativo al viewport - aproximadamente 30% del ancho de pantalla
       >
         <Box component="img" src={images.M2} alt="MAISON 2" loading="eager" />
       </ImageItem>
@@ -625,7 +625,7 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileLeft="930px"
         mobileHeight="90vh"
-        mobileWidth="auto" // Ancho relativo al viewport - aproximadamente 33% del ancho de pantalla
+        mobileWidth="75vh" // Ancho relativo al viewport - aproximadamente 33% del ancho de pantalla
       >
         <Box component="img" src={images.M3} alt="MAISON 3" loading="eager" />
       </ImageItem>
@@ -645,7 +645,7 @@ const MaisonGallery = ({ onBack }) => {
         mobileTop="35%"
         mobileLeft="1344px"
         mobileHeight="49vh"
-        mobileWidth="auto" // Ancho relativo al viewport - aproximadamente 30% del ancho de pantalla
+        mobileWidth="70vw" // Ancho relativo al viewport - aproximadamente 30% del ancho de pantalla
       >
         <Box component="img" src={images.M4} alt="MAISON 4" loading="eager" />
       </ImageItem>
@@ -672,7 +672,7 @@ const MaisonGallery = ({ onBack }) => {
         mobileTop="70%"
         mobileLeft="1266px"
         mobileHeight="108vh"
-        mobileWidth="auto" // Ancho relativo al viewport - aproximadamente 40% del ancho de pantalla (más grande por ser un fondo)
+        mobileWidth="200vw" // Ancho relativo al viewport - aproximadamente 40% del ancho de pantalla (más grande por ser un fondo)
       >
         <Box component="img" src={images.M5} alt="MAISON 5" loading="eager" />
       </ImageItem>
@@ -692,7 +692,7 @@ const MaisonGallery = ({ onBack }) => {
         mobileTop="50%"
         mobileLeft="2100px"
         mobileHeight="63vh"
-        mobileWidth="auto" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
+        mobileWidth="90vw" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
       >
         <Box component="img" src={images.M6} alt="MAISON 6" loading="eager" />
       </ImageItem>
@@ -712,7 +712,7 @@ const MaisonGallery = ({ onBack }) => {
         mobileTop="50%"
         mobileLeft="2472px"
         mobileHeight="63vh"
-        mobileWidth="auto" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
+        mobileWidth="90vw" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
       >
         <Box component="img" src={images.M7} alt="MAISON 7" loading="eager" />
       </ImageItem>
@@ -732,7 +732,7 @@ const MaisonGallery = ({ onBack }) => {
         mobileTop="50%"
         mobileLeft="2841px"
         mobileHeight="63vh"
-        mobileWidth="auto" // Ancho relativo al viewport - aproximadamente 30% del ancho de pantalla
+        mobileWidth="90vw" // Ancho relativo al viewport - aproximadamente 30% del ancho de pantalla
       >
         <Box component="img" src={images.M8} alt="MAISON 8" loading="lazy" />
       </ImageItem>
@@ -751,8 +751,8 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="3336px"
-        mobileHeight="76vh"
-        mobileWidth="auto" // Ancho relativo al viewport - aproximadamente 37% del ancho de pantalla (ligeramente más grande por ser video)
+        mobileHeight="80vh"
+        mobileWidth="80vw" // Ancho relativo al viewport - aproximadamente 37% del ancho de pantalla (ligeramente más grande por ser video)
       >
         <Box 
           component="video"
@@ -780,7 +780,7 @@ const MaisonGallery = ({ onBack }) => {
         mobileTop="41%"
         mobileLeft="3804px"
         mobileHeight="49vh"
-        mobileWidth="auto" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
+        mobileWidth="85vw" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
       >
         <Box component="img" src={images.M10} alt="MAISON 10" loading="lazy" />
       </ImageItem>
@@ -799,7 +799,7 @@ const MaisonGallery = ({ onBack }) => {
         mobileTop="111px"
         mobileLeft="4212px"
         mobileHeight="49vh"
-        mobileWidth="auto" // Ancho relativo al viewport - aproximadamente 33% del ancho de pantalla
+        mobileWidth="85vw" // Ancho relativo al viewport - aproximadamente 33% del ancho de pantalla
       >
         <Box component="img" src={images.M11} alt="MAISON 11" loading="lazy" />
       </ImageItem>
@@ -816,7 +816,7 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileLeft="4800px"
         mobileHeight="72vh"
-        mobileWidth="auto" // Ancho relativo al viewport - aproximadamente 34% del ancho de pantalla
+        mobileWidth="100vw" // Ancho relativo al viewport - aproximadamente 34% del ancho de pantalla
       >
         <Box component="img" src={images.M12} alt="MAISON 12" loading="lazy" />
       </ImageItem>
@@ -836,7 +836,7 @@ const MaisonGallery = ({ onBack }) => {
         mobileTop="50%"
         mobileLeft="5400px"
         mobileHeight="90vh"
-        mobileWidth="auto" // Ancho relativo al viewport - aproximadamente 38% del ancho de pantalla (imagen más importante)
+        mobileWidth="200vw" // Ancho relativo al viewport - aproximadamente 38% del ancho de pantalla (imagen más importante)
       >
         <Box component="img" src={images.M13} alt="MAISON 13" loading="lazy" />
       </ImageItem>
