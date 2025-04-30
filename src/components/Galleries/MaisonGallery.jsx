@@ -55,6 +55,9 @@ const ScrollRibbon = styled(Box, {
     backgroundImage: 'linear-gradient(to right, #000 0%, rgba(0,0,0,0.5) 5%, rgba(0,0,0,0.5) 95%, #000 100%)',
     zIndex: 1,
   },
+  [theme.breakpoints.down('sm')]: {
+    height: isBottom ? '24px' : '24px', // Ligeramente más pequeño en móvil
+  },
 }));
 
 // Text container with infinite scroll animation
@@ -73,6 +76,9 @@ const ScrollText = styled(Box)({
     '100%': {
       transform: 'translateX(-50%)',
     },
+  },
+  '@media (max-width: 600px)': {
+    fontSize: '14px', // Texto más pequeño en móvil
   },
 });
 
@@ -117,6 +123,9 @@ const LoadingTitle = styled(Box)(({ theme }) => ({
   position: 'relative',
   transform: 'translateY(100px)',
   opacity: 0,
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '32px', // Más pequeño en móvil
+  },
 }));
 
 const LoadingYear = styled(Box)(({ theme }) => ({
@@ -130,6 +139,9 @@ const LoadingYear = styled(Box)(({ theme }) => ({
   transform: 'translateY(100px)',
   opacity: 0,
   marginBottom: '40px',
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '28px', // Más pequeño en móvil
+  },
 }));
 
 // Optimized container with GPU acceleration for smoother scrolling
@@ -169,25 +181,38 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   position: 'relative',
   transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
-    width: '10100px', // Keep the same width as desktop
+    width: '6060px', // 60% del ancho original (10100 * 0.6)
     flexDirection: 'row', // Changed from 'column' to 'row' for horizontal layout
     height: '100%', // Keep the same height as desktop
-    padding: '40px', // Keep the same padding as desktop
-    paddingRight: '300px', // Keep the same right padding as desktop
+    padding: '20px', // Menos padding en móvil
+    paddingRight: '150px', // Menos padding en móvil
   },
 }));
 
 // Image item with GPU acceleration
 const ImageItem = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'isMobile' && prop !== 'top' && prop !== 'left' && prop !== 'isVisible'
-})(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true }) => ({
-  position: isMobile ? 'absolute' : 'absolute', // Changed from 'relative' to 'absolute' for mobile
-  top: isMobile ? top : top, // Use the same top positioning for mobile
-  left: isMobile ? left : left, // Use the same left positioning for mobile
+  shouldForwardProp: (prop) => !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileHeight', 'mobileWidth'].includes(prop)
+})(({ 
+  theme, 
+  top, 
+  left, 
+  width, 
+  height, 
+  zIndex = 1, 
+  isMobile = false, 
+  isVisible = true,
+  // Props específicos para móvil
+  mobileTop,
+  mobileLeft,
+  mobileHeight,
+  mobileWidth
+}) => ({
+  position: 'absolute',
+  top: top,
+  left: left,
   width: width,
   height: height,
   zIndex: zIndex,
-  marginBottom: isMobile ? '0' : '0', // Removed margin for mobile
   opacity: isVisible ? 1 : 0,
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
@@ -198,7 +223,7 @@ const ImageItem = styled(Box, {
     height: '100%',
     objectFit: 'cover',
     borderRadius: '2px',
-    boxShadow: isMobile ? 'none' : '0 3px 8px rgba(0,0,0,0.25)', // Removed shadow for mobile
+    boxShadow: '0 3px 8px rgba(0,0,0,0.25)',
     backfaceVisibility: 'hidden',
     transform: 'translateZ(0)', // Force GPU acceleration
   },
@@ -207,20 +232,47 @@ const ImageItem = styled(Box, {
     height: '100%',
     objectFit: 'cover',
     borderRadius: '2px',
-    boxShadow: isMobile ? 'none' : '0 3px 8px rgba(0,0,0,0.25)', // Removed shadow for mobile
+    boxShadow: '0 3px 8px rgba(0,0,0,0.25)',
     transform: 'translateZ(0)', // Force GPU acceleration
-  }
+  },
+  [theme.breakpoints.down('sm')]: {
+    top: mobileTop || top,
+    left: mobileLeft || (left ? `${parseInt(left) * 0.6}px` : left),
+    width: mobileWidth || (width === 'auto' ? 'auto' : width ? `${parseInt(width) * 0.7}px` : width),
+    height: mobileHeight || (height === 'auto' ? 'auto' : height ? (height.includes('vh') ? `${parseInt(height) * 0.9}vh` : `${parseInt(height) * 0.7}px`) : height),
+    '& img': {
+      boxShadow: 'none', // Sin sombras en móvil
+    },
+    '& video': {
+      boxShadow: 'none', // Sin sombras en móvil
+    }
+  },
 }));
 
 // Frame for video with glow effect
-const VideoFrame = styled(Box)(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true }) => ({
-  position: isMobile ? 'absolute' : 'absolute', // Changed from 'relative' to 'absolute' for mobile
-  top: isMobile ? top : top, // Use the same top positioning for mobile
-  left: isMobile ? left : left, // Use the same left positioning for mobile
+const VideoFrame = styled(Box, {
+  shouldForwardProp: (prop) => !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileHeight', 'mobileWidth'].includes(prop)
+})(({ 
+  theme, 
+  top, 
+  left, 
+  width, 
+  height, 
+  zIndex = 1, 
+  isMobile = false, 
+  isVisible = true,
+  // Props específicos para móvil
+  mobileTop,
+  mobileLeft,
+  mobileHeight,
+  mobileWidth
+}) => ({
+  position: 'absolute',
+  top: top,
+  left: left,
   width: width,
   height: height,
   zIndex: zIndex,
-  marginBottom: isMobile ? '0' : '0', // Removed margin for mobile
   opacity: isVisible ? 1 : 0,
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
@@ -228,7 +280,7 @@ const VideoFrame = styled(Box)(({ theme, top, left, width, height, zIndex = 1, i
   border: `1px solid ${galleryTheme.text}`,
   borderRadius: '2px',
   padding: '0',
-  boxShadow: isMobile ? 'none' : `0 0 15px ${galleryTheme.highlight}33`, // Removed shadow for mobile
+  boxShadow: `0 0 15px ${galleryTheme.highlight}33`,
   overflow: 'hidden',
   background: galleryTheme.text,
   backfaceVisibility: 'hidden', // GPU optimization
@@ -237,7 +289,15 @@ const VideoFrame = styled(Box)(({ theme, top, left, width, height, zIndex = 1, i
     height: '100%',
     objectFit: 'cover',
     transform: 'translateZ(0)', // Force GPU acceleration
-  }
+  },
+  [theme.breakpoints.down('sm')]: {
+    top: mobileTop || top,
+    left: mobileLeft || (left ? `${parseInt(left) * 0.6}px` : left),
+    width: mobileWidth || (width === 'auto' ? 'auto' : width ? `${parseInt(width) * 0.7}px` : width),
+    height: mobileHeight || (height === 'auto' ? 'auto' : height ? (height.includes('vh') ? `${parseInt(height) * 0.9}vh` : `${parseInt(height) * 0.7}px`) : height),
+    boxShadow: 'none', // Sin sombras en móvil
+    border: `1px solid ${galleryTheme.text}`, // Mantener el borde
+  },
 }));
 
 const MaisonGallery = ({ onBack }) => {
@@ -469,6 +529,37 @@ const MaisonGallery = ({ onBack }) => {
     }
   }, [loading, isMobile, checkVisibility]);
 
+  // Añadido useEffect para detección específica de dispositivos móviles reales
+  useEffect(() => {
+    // Detectar dispositivos móviles reales con mayor precisión
+    const detectRealMobile = () => {
+      const ua = navigator.userAgent;
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+    };
+    
+    // Si estamos en un dispositivo móvil real, forzar ciertos ajustes
+    if (detectRealMobile()) {
+      // Asegurar que los elementos se muestren correctamente
+      document.documentElement.style.fontSize = '14px';
+      // Deshabilitar el comportamiento elástico en iOS
+      document.body.style.overscrollBehavior = 'none';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    return () => {
+      // Limpiar ajustes
+      document.documentElement.style.fontSize = '';
+      document.body.style.overscrollBehavior = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   // Generate repeating scroll text
   const generateScrollText = () => {
     // Create 40 repetitions to ensure it fully covers the screen width with no gaps
@@ -480,7 +571,7 @@ const MaisonGallery = ({ onBack }) => {
     return repeats;
   };
 
-  // Always use desktop view rendering regardless of device
+  // Renderizado del contenido de la galería adaptado para móvil
   const renderGalleryContent = () => (
     <>
       {/* 1. First image - Man seated in industrial space */}
@@ -493,6 +584,10 @@ const MaisonGallery = ({ onBack }) => {
         isVisible={visibleImages[0] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        // Ajustes específicos para móvil
+        mobileTop="50%"
+        mobileLeft="270px"
+        mobileHeight="76vh"
       >
         <Box component="img" src={images.M1} alt="MAISON 1" loading="eager" />
       </ImageItem>
@@ -506,6 +601,10 @@ const MaisonGallery = ({ onBack }) => {
         zIndex={3}
         isVisible={visibleImages[1] !== false}
         isMobile={isMobile}
+        // Ajustes específicos para móvil
+        mobileTop="25%"
+        mobileLeft="780px"
+        mobileHeight="49vh"
       >
         <Box component="img" src={images.M2} alt="MAISON 2" loading="eager" />
       </ImageItem>
@@ -518,6 +617,9 @@ const MaisonGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[2] !== false}
         isMobile={isMobile}
+        // Ajustes específicos para móvil
+        mobileLeft="930px"
+        mobileHeight="90vh"
       >
         <Box component="img" src={images.M3} alt="MAISON 3" loading="eager" />
       </ImageItem>
@@ -532,11 +634,15 @@ const MaisonGallery = ({ onBack }) => {
         isVisible={visibleImages[3] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        // Ajustes específicos para móvil
+        mobileTop="35%"
+        mobileLeft="1344px"
+        mobileHeight="49vh"
       >
         <Box component="img" src={images.M4} alt="MAISON 4" loading="eager" />
       </ImageItem>
 
-      {/* 5. Logo */}
+      {/* 5. Logo (background) */}
       <ImageItem 
         ref={el => imageRefs.current[4] = el}
         top="70%" 
@@ -553,45 +659,31 @@ const MaisonGallery = ({ onBack }) => {
             borderRadius: 0
           }
         }}
+        // Ajustes específicos para móvil
+        mobileTop="70%"
+        mobileLeft="1266px"
+        mobileHeight="108vh"
       >
         <Box component="img" src={images.M5} alt="MAISON 5" loading="eager" />
       </ImageItem>
       
       {/* 5. Double */}
       <ImageItem 
-        ref={el => imageRefs.current[4] = el}
+        ref={el => imageRefs.current[5] = el}
         top="50%" 
         left="3500px"
         height="70vh" 
         zIndex={2}
-        isVisible={visibleImages[4] !== false}
-        isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
-        <Box component="img" src={images.M6} alt="MAISON 5" loading="eager" />
-      </ImageItem>
-      
-      {/* 6. White frame with video and glow effect */}
-      <VideoFrame 
-        ref={el => imageRefs.current[5] = el}
-        top="50%" 
-        left="5560px"
-        height="85vh" 
-        zIndex={2}
         isVisible={visibleImages[5] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        // Ajustes específicos para móvil
+        mobileTop="50%"
+        mobileLeft="2100px"
+        mobileHeight="63vh"
       >
-        <Box 
-          component="video"
-          src={images.M9}
-          alt="MAISON Video"
-          autoPlay
-          loop
-          muted
-          playsInline
-        />
-      </VideoFrame>
+        <Box component="img" src={images.M6} alt="MAISON 6" loading="eager" />
+      </ImageItem>
       
       {/* 7. Double panel of man seated in metro */}
       <ImageItem 
@@ -603,6 +695,10 @@ const MaisonGallery = ({ onBack }) => {
         isVisible={visibleImages[6] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        // Ajustes específicos para móvil
+        mobileTop="50%"
+        mobileLeft="2472px"
+        mobileHeight="63vh"
       >
         <Box component="img" src={images.M7} alt="MAISON 7" loading="eager" />
       </ImageItem>
@@ -617,59 +713,104 @@ const MaisonGallery = ({ onBack }) => {
         isVisible={visibleImages[7] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        // Ajustes específicos para móvil
+        mobileTop="50%"
+        mobileLeft="2841px"
+        mobileHeight="63vh"
       >
         <Box component="img" src={images.M8} alt="MAISON 8" loading="lazy" />
       </ImageItem>
       
-      {/* 9. Man leaning on column in metro */}
-      <ImageItem 
+      {/* 6. White frame with video and glow effect */}
+      <VideoFrame 
         ref={el => imageRefs.current[8] = el}
-        top="41%" 
-        left="6340px"
-        height="55vh" 
+        top="50%" 
+        left="5560px"
+        height="85vh" 
         zIndex={2}
         isVisible={visibleImages[8] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        // Ajustes específicos para móvil
+        mobileTop="50%"
+        mobileLeft="3336px"
+        mobileHeight="76vh"
+      >
+        <Box 
+          component="video"
+          src={images.M9}
+          alt="MAISON Video"
+          autoPlay
+          loop
+          muted
+          playsInline
+        />
+      </VideoFrame>
+      
+      {/* 9. Man leaning on column in metro */}
+      <ImageItem 
+        ref={el => imageRefs.current[9] = el}
+        top="41%" 
+        left="6340px"
+        height="55vh" 
+        zIndex={2}
+        isVisible={visibleImages[9] !== false}
+        isMobile={isMobile}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        // Ajustes específicos para móvil
+        mobileTop="41%"
+        mobileLeft="3804px"
+        mobileHeight="49vh"
       >
         <Box component="img" src={images.M10} alt="MAISON 10" loading="lazy" />
       </ImageItem>
       
       {/* 10. Image #11 */}
       <ImageItem 
-        ref={el => imageRefs.current[9] = el}
+        ref={el => imageRefs.current[10] = el}
         top="124px" 
         left="7020px"
         height="55vh" 
         zIndex={2}
-        isVisible={visibleImages[9] !== false}
+        isVisible={visibleImages[10] !== false}
         isMobile={isMobile}
+        // Ajustes específicos para móvil
+        mobileTop="17vh"
+        mobileLeft="4212px"
+        mobileHeight="49vh"
       >
         <Box component="img" src={images.M11} alt="MAISON 11" loading="lazy" />
       </ImageItem>
       
       {/* 11. Image #12 */}
       <ImageItem 
-        ref={el => imageRefs.current[10] = el}
+        ref={el => imageRefs.current[11] = el}
         left="8000px"
         height="80vh" 
         zIndex={2}
-        isVisible={visibleImages[10] !== false}
+        isVisible={visibleImages[11] !== false}
         isMobile={isMobile}
+        // Ajustes específicos para móvil
+        mobileLeft="4800px"
+        mobileHeight="72vh"
       >
         <Box component="img" src={images.M12} alt="MAISON 12" loading="lazy" />
       </ImageItem>
       
       {/* 12. Image #13 */}
       <ImageItem 
-        ref={el => imageRefs.current[11] = el}
+        ref={el => imageRefs.current[12] = el}
         top="50%" 
         left="9000px"
         height="100vh" 
         zIndex={2}
-        isVisible={visibleImages[11] !== false}
+        isVisible={visibleImages[12] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        // Ajustes específicos para móvil
+        mobileTop="50%"
+        mobileLeft="5400px"
+        mobileHeight="90vh"
       >
         <Box component="img" src={images.M13} alt="MAISON 13" loading="lazy" />
       </ImageItem>
