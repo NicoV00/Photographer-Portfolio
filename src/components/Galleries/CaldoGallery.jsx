@@ -543,7 +543,7 @@ const CaldoGallery = ({ onBack }) => {
       
       {/* Video 1 - CALDO-2.mp4 en marco - izquierda */}
       <VideoContainer 
-        ref={el => imageRefs.current[1] = el}
+        ref={el => imageRefs.curnrent[1] = el}
         top="50%"
         left="1300px"
         width="60vh"
