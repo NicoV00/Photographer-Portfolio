@@ -536,6 +536,7 @@ const CaldoGallery = ({ onBack }) => {
         mobileTop="50%"
         mobileLeft="270px"
         mobileHeight="67vh"
+        mobileWidth="55vh"
       >
         <Box component="img" src={content.C1} alt="CALDO 1" loading="eager" />
       </ImageItem>
