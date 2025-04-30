@@ -751,7 +751,7 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="3336px"
-        mobileHeight="80vh"
+        mobileHeight="65vh"
         mobileWidth="80vw" // Ancho relativo al viewport - aproximadamente 37% del ancho de pantalla (ligeramente más grande por ser video)
       >
         <Box 
@@ -777,7 +777,7 @@ const MaisonGallery = ({ onBack }) => {
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
         // Ajustes específicos para móvil
-        mobileTop="41%"
+        mobileTop="40%"
         mobileLeft="3804px"
         mobileHeight="49vh"
         mobileWidth="85vw" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
@@ -796,7 +796,7 @@ const MaisonGallery = ({ onBack }) => {
         isVisible={visibleImages[10] !== false}
         isMobile={isMobile}
         // Ajustes específicos para móvil
-        mobileTop="111px"
+        mobileTop="16%"
         mobileLeft="4212px"
         mobileHeight="49vh"
         mobileWidth="85vw" // Ancho relativo al viewport - aproximadamente 33% del ancho de pantalla
@@ -835,8 +835,8 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="5400px"
-        mobileHeight="90vh"
-        mobileWidth="200vw" // Ancho relativo al viewport - aproximadamente 38% del ancho de pantalla (imagen más importante)
+        mobileHeight="90%"
+        mobileWidth="15%" // Ancho relativo al viewport - aproximadamente 38% del ancho de pantalla (imagen más importante)
       >
         <Box component="img" src={images.M13} alt="MAISON 13" loading="lazy" />
       </ImageItem>
