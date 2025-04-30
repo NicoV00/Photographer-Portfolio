@@ -775,7 +775,7 @@ const MaisonGallery = ({ onBack }) => {
         isVisible={visibleImages[10] !== false}
         isMobile={isMobile}
         // Ajustes específicos para móvil
-        mobileTop="17vh"
+        mobileTop="124px"
         mobileLeft="4212px"
         mobileHeight="49vh"
       >
