@@ -1,4 +1,7 @@
-import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
+'use client';
+
+// Importaciones necesarias
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Box, CircularProgress, useMediaQuery } from '@mui/material';
 import { styled, useTheme } from '@mui/material/styles';
 import { gsap } from 'gsap';
@@ -19,21 +22,23 @@ if (typeof gsap.registerPlugin === 'function') {
   }
 }
 
-// Get the color theme for this gallery
+// Obtener el tema de colores para esta galería
 const galleryTheme = getGalleryColors('marcos');
 
-// Custom font loading
+// FUENTES PERSONALIZADAS - ACTUALIZADO A BOLD
+// --------------------------------------
 const GlobalStyle = styled('style')({
   '@font-face': {
-    fontFamily: 'Medium OTF',
-    src: 'url("/fonts/Medium.otf") format("opentype")',
-    fontWeight: 'normal',
+    fontFamily: 'Suisse Intl Bold',
+    src: 'url("/fonts/Suisse_Intl_Bold.ttf") format("truetype")',
+    fontWeight: 'bold',
     fontStyle: 'normal',
     fontDisplay: 'swap',
   },
 });
 
-// Loading screen
+// PANTALLA DE CARGA
+// --------------------------------------
 const LoadingScreen = styled(Box)(({ theme }) => ({
   position: 'fixed',
   top: 0,
@@ -47,66 +52,79 @@ const LoadingScreen = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   zIndex: 9999,
   transition: 'opacity 0.5s ease-out',
-  overflow: 'hidden', // Prevent any overflow during animations
+  overflow: 'hidden',
+  padding: '20px',
 }));
 
-// Optimized scroll progress bar with GPU acceleration
+// Barra de progreso de scroll
 const ScrollProgressBar = styled(Box)({
   position: 'fixed',
   top: 0,
   left: 0,
   height: '3px',
   width: '0%',
-  backgroundColor: galleryTheme.highlight, // Using theme highlight color
+  backgroundColor: galleryTheme.highlight,
   zIndex: 9999,
-  transform: 'translateZ(0)',  // Force GPU acceleration
+  transform: 'translateZ(0)',
   willChange: 'width',
-  boxShadow: '0 0 3px rgba(0,0,0,0.2)', // Subtle shadow for better visibility
+  boxShadow: '0 0 3px rgba(0,0,0,0.2)',
 });
 
-// Title component for loading screen
+// Componentes para pantalla de carga - FUENTE ACTUALIZADA A BOLD
 const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
+  fontFamily: '"Suisse Intl Bold", sans-serif',
   fontSize: '45px',
   fontWeight: 'bold',
-  color: galleryTheme.text, // Using theme text color
+  color: galleryTheme.text,
   letterSpacing: '2px',
-  position: 'relative', // For positioning relative to container
-  transform: 'translateY(100px)', // Start below viewport (for animation)
+  position: 'relative',
+  transform: 'translateY(100px)',
   opacity: 0,
+  textAlign: 'center',
+  width: '100%',
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '32px',
+    letterSpacing: '1.5px',
+  },
 }));
 
 const LoadingYear = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
+  fontFamily: '"Suisse Intl Bold", sans-serif',
   fontSize: '40px',
   fontWeight: 'bold',
-  color: galleryTheme.text, // Using theme text color
+  color: galleryTheme.text,
   letterSpacing: '2px',
-  marginTop: '8px', // Space between the title and year
-  position: 'relative', // For positioning relative to container
-  transform: 'translateY(100px)', // Start below viewport (for animation)
+  marginTop: '8px',
+  position: 'relative',
+  transform: 'translateY(100px)',
   opacity: 0,
-  marginBottom: '40px', // Space between text and loading circle
+  marginBottom: '40px',
+  textAlign: 'center',
+  width: '100%',
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '28px',
+    letterSpacing: '1.5px',
+    marginTop: '5px',
+    marginBottom: '30px',
+  },
 }));
 
-// Main container with horizontal scroll - optimized
+// CONTENEDOR PRINCIPAL DE LA GALERÍA
+// --------------------------------------
 const GalleryContainer = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'scrollPosition'
 })(({ theme, scrollPosition = 0 }) => {
-  // Start transition after 5th image (around 3900px scroll)
-  const scrollThreshold = 3900;
-  // Complete transition over 800px of scrolling
+  // Adelantamos la transición (aunque en este caso el color siempre es el mismo)
+  const scrollThreshold = 2000;
   const transitionLength = 800;
-  // Calculate transition progress (0 to 1)
   const gradientProgress = Math.min(Math.max((scrollPosition - scrollThreshold) / transitionLength, 0), 1);
   
   // Color stays the same (lime green) throughout
   const initialColor = '#c2dd52'; // Lime green
   const finalColor = '#c2dd52';   // Lime green
   
-  // Color interpolation function
+  // Función para interpolar color
   const interpolateColor = (progress) => {
-    // Parse hex colors to RGB
     const parseColor = (hex) => {
       const r = parseInt(hex.slice(1, 3), 16);
       const g = parseInt(hex.slice(3, 5), 16);
@@ -117,16 +135,14 @@ const GalleryContainer = styled(Box, {
     const [r1, g1, b1] = parseColor(initialColor);
     const [r2, g2, b2] = parseColor(finalColor);
     
-    // Interpolate between colors
     const r = Math.round(r1 + (r2 - r1) * progress);
     const g = Math.round(g1 + (g2 - g1) * progress);
     const b = Math.round(b1 + (b2 - b1) * progress);
     
-    // Convert back to hex
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   };
   
-  // Get current background color based on scroll
+  // Color resultante basado en el scroll
   const bgColor = interpolateColor(gradientProgress);
   
   return {
@@ -136,9 +152,9 @@ const GalleryContainer = styled(Box, {
     position: 'relative',
     overflowX: 'auto',
     overflowY: 'hidden',
-    transform: 'translateZ(0)',  // Force GPU acceleration
-    perspective: '1000px',       // Enhance GPU acceleration
-    backfaceVisibility: 'hidden', // Further GPU optimization
+    transform: 'translateZ(0)',
+    perspective: '1000px',
+    backfaceVisibility: 'hidden',
     willChange: 'scroll-position, background-color',
     '-webkit-overflow-scrolling': 'touch',
     '&::-webkit-scrollbar': {
@@ -146,83 +162,82 @@ const GalleryContainer = styled(Box, {
     },
     scrollbarWidth: 'none',
     msOverflowStyle: 'none',
-    transition: 'background-color 0.1s ease-out', // Add small transition for smoother color change
-    [theme.breakpoints.down('sm')]: {
-      overflowX: 'auto',
-      overflowY: 'hidden',
-      height: '100vh',
-      minHeight: '100vh',
-    },
+    transition: 'background-color 0.1s ease-out',
   };
 });
 
-// Content container with GPU acceleration
+// Contenido de la galería con ancho responsivo
 const GalleryContent = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  width: '7500px', // Width for all images
   height: '100%',
   padding: '40px',
-  paddingRight: '300px', // Extra padding at the end
+  paddingRight: '300px',
   position: 'relative',
-  transform: 'translateZ(0)',  // Force GPU acceleration
-  [theme.breakpoints.down('sm')]: {
-    width: '7500px', // Same width for mobile - IMPORTANT to fix cutting off issue
-    flexDirection: 'row',
-    height: '100%',
-    padding: '40px',
-    paddingRight: '300px',
+  transform: 'translateZ(0)',
+  // Ancho ajustado por breakpoints
+  width: '7500px', // Base para XL
+  [theme.breakpoints.down('lg')]: { // Para LG (desktops pequeños)
+    width: '7000px',
+  },
+  [theme.breakpoints.down('md')]: { // Para MD (tablets)
+    width: '6000px',
+  },
+  [theme.breakpoints.down('sm')]: { // Para SM (móviles)
+    width: '5000px',
+  },
+  [theme.breakpoints.down('xs')]: { // Para XS (móviles muy pequeños)
+     width: '4500px',
   },
 }));
 
-// Image item - optimized with GPU acceleration
+// ELEMENTO DE IMAGEN
+// --------------------------------------
 const ImageItem = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'isVisible'
-})(({ theme, top, left, width, height, zIndex = 1, isVisible = true }) => ({
-  position: 'absolute', // Always use absolute positioning for both mobile and desktop
+  shouldForwardProp: (prop) =>
+    prop !== 'top' && 
+    prop !== 'left' &&
+    prop !== 'isVisible' &&
+    prop !== 'isPhoto'
+})(({ theme, top, left, width, height, zIndex = 1, isVisible = true, isPhoto = true }) => ({
+  position: 'absolute',
   top: top,
   left: left,
   width: width,
   height: height,
   zIndex: zIndex,
-  marginBottom: '0', // No margin needed with absolute positioning
+  marginBottom: 0,
   opacity: isVisible ? 1 : 0,
-  transform: isVisible ? 'translateY(-50%)' : 'translateY(-50%) scale(0.98)',
+  transform: isVisible ? 'translateY(-50%) translateZ(0)' : 'translateY(-50%) translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
   willChange: 'transform, opacity',
-  backfaceVisibility: 'hidden', // GPU optimization
+  backfaceVisibility: 'hidden',
   '& img': {
     width: '100%',
     height: '100%',
-    objectFit: 'cover',
-    borderRadius: '2px',
-    boxShadow: 'none', // No shadows
+    objectFit: 'contain',
+    borderRadius: isPhoto ? '2px' : '0',
+    boxShadow: 'none',
     backfaceVisibility: 'hidden',
-    transform: 'translateZ(0)', // Force GPU acceleration
+    transform: 'translateZ(0)',
   }
 }));
 
 const MarcosGallery = ({ onBack }) => {
-  // Loading screen state
+  // Estados
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
+  const [visibleImages, setVisibleImages] = useState({});
 
-  // References for animation elements
+  // Referencias
   const titleRef = useRef(null);
   const yearRef = useRef(null);
   const loadingScreenRef = useRef(null);
   const progressBarRef = useRef(null);
   const containerRef = useRef(null);
-  
-  // Image visibility state and references
-  const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
 
-  // Get theme for media queries
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-  // Images for MARCOS gallery
+  // Imágenes para la galería
   const images = useMemo(() => [
     '/images/MARCOS/MARCOSMUF-1.png',
     '/images/MARCOS/MARCOSMUF-2.jpg',
@@ -235,24 +250,174 @@ const MarcosGallery = ({ onBack }) => {
     '/images/MARCOS/MARCOSMUF-9.jpg',
     '/images/MARCOS/MARCOSMUF-10.jpg',
   ], []);
-  
-  // Updated visibility check to always use horizontal scrolling logic
+
+  // Theme y breakpoints
+  const theme = useTheme();
+  // Definición de breakpoints
+  const isXs = useMediaQuery(theme.breakpoints.down('xs'));
+  const isSm = useMediaQuery(theme.breakpoints.between('xs', 'sm'));
+  const isMd = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  const isLg = useMediaQuery(theme.breakpoints.between('md', 'lg'));
+  const isXl = useMediaQuery(theme.breakpoints.up('lg'));
+
+  // Estado de breakpoints activos
+  const activeBreakpoints = { isXs, isSm, isMd, isLg, isXl };
+  // Para useSmoothScroll
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // CONFIGURACIÓN DE ESTILOS RESPONSIVOS PARA IMÁGENES
+  // --------------------------------------------------
+  // NOTA: Solo se han ajustado las posiciones en móvil (sm y xs)
+  // Los valores de desktop (xl, lg, md) permanecen iguales a los originales
+  const imageConfigurations = {
+    // =========== IMAGEN 1 (PNG) ===========
+    MARCOS1: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "80%", left: "200px", height: "80vh", innerMaxWidth: "600px", zIndex: 3 },
+      lg: { top: "80%", left: "100px", height: "75vh", innerMaxWidth: "550px", zIndex: 3 },
+      md: { top: "75%", left: "100px", height: "70vh", innerMaxWidth: "500px", zIndex: 3 },
+      // Móvil - AJUSTADO: Posición más abajo para superposición
+      sm: { top: "65%", left: "120px", height: "70vh", innerMaxWidth: "350px", zIndex: 3 },
+      xs: { top: "65%", left: "80px", height: "65vh", innerMaxWidth: "80vw", zIndex: 3 },
+      // Para ajustar la posición vertical en móvil, modifica el valor de "top" en sm y xs
+    },
+    
+    // =========== IMAGEN 2 ===========
+    MARCOS2: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "50%", left: "450px", height: "80vh", innerMaxWidth: "600px", zIndex: 2 },
+      lg: { top: "50%", left: "320px", height: "75vh", innerMaxWidth: "550px", zIndex: 2 },
+      md: { top: "50%", left: "280px", height: "70vh", innerMaxWidth: "500px", zIndex: 2 },
+      // Móvil - AJUSTADO: Más a la izquierda para superposición
+      sm: { top: "45%", left: "250px", height: "70vh", innerMaxWidth: "350px", zIndex: 2 },
+      xs: { top: "45%", left: "200px", height: "65vh", innerMaxWidth: "80vw", zIndex: 2 },
+      // Para ajustar la superposición en móvil, modifica el valor de "left" en sm y xs
+    },
+    
+    // =========== IMAGEN 3 ===========
+    MARCOS3: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "50%", left: "1100px", height: "80vh", innerMaxWidth: "600px", zIndex: 2 },
+      lg: { top: "50%", left: "1050px", height: "75vh", innerMaxWidth: "550px", zIndex: 2 },
+      md: { top: "50%", left: "950px", height: "70vh", innerMaxWidth: "500px", zIndex: 2 },
+      // Móvil - AJUSTADO: Más a la izquierda
+      sm: { top: "45%", left: "700px", height: "70vh", innerMaxWidth: "350px", zIndex: 2 },
+      xs: { top: "45%", left: "600px", height: "65vh", innerMaxWidth: "80vw", zIndex: 2 },
+      // Para ajustar en móvil, modifica el valor de "left" en sm y xs
+    },
+    
+    // =========== IMAGEN 4 ===========
+    MARCOS4: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "50%", left: "1750px", height: "80vh", innerMaxWidth: "600px", zIndex: 2 },
+      lg: { top: "50%", left: "1600px", height: "75vh", innerMaxWidth: "550px", zIndex: 2 },
+      md: { top: "50%", left: "1450px", height: "70vh", innerMaxWidth: "500px", zIndex: 2 },
+      // Móvil - AJUSTADO: Más a la izquierda
+      sm: { top: "45%", left: "1150px", height: "70vh", innerMaxWidth: "350px", zIndex: 2 },
+      xs: { top: "45%", left: "1050px", height: "65vh", innerMaxWidth: "80vw", zIndex: 2 },
+      // Para ajustar en móvil, modifica el valor de "left" en sm y xs
+    },
+    
+    // =========== IMAGEN 5 (PORTADA) ===========
+    MARCOS5: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "50%", left: "2800px", height: "100vh", innerMaxWidth: "800px", zIndex: 2 },
+      lg: { top: "50%", left: "2500px", height: "95vh", innerMaxWidth: "750px", zIndex: 2 },
+      md: { top: "50%", left: "2200px", height: "90vh", innerMaxWidth: "700px", zIndex: 2 },
+      // Móvil - AJUSTADO: Más a la izquierda
+      sm: { top: "45%", left: "1750px", height: "90vh", innerMaxWidth: "600px", zIndex: 2 },
+      xs: { top: "45%", left: "1600px", height: "85vh", innerMaxWidth: "90vw", zIndex: 2 },
+      // Para ajustar en móvil, modifica el valor de "left" en sm y xs
+    },
+    
+    // =========== IMAGEN 6 ===========
+    MARCOS6: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "45%", left: "3300px", height: "60vh", innerMaxWidth: "450px", zIndex: 2 },
+      lg: { top: "45%", left: "3000px", height: "55vh", innerMaxWidth: "420px", zIndex: 2 },
+      md: { top: "45%", left: "2800px", height: "50vh", innerMaxWidth: "400px", zIndex: 2 },
+      // Móvil - AJUSTADO: Más a la izquierda
+      sm: { top: "40%", left: "2200px", height: "50vh", innerMaxWidth: "300px", zIndex: 2 },
+      xs: { top: "40%", left: "2100px", height: "45vh", innerMaxWidth: "70vw", zIndex: 2 },
+      // Para ajustar en móvil, modifica el valor de "left" en sm y xs
+    },
+    
+    // =========== IMAGEN 7 ===========
+    MARCOS7: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "25%", left: "4350px", height: "55vh", innerMaxWidth: "550px", zIndex: 2 },
+      lg: { top: "28%", left: "4000px", height: "55vh", innerMaxWidth: "520px", zIndex: 2 },
+      md: { top: "28%", left: "3600px", height: "50vh", innerMaxWidth: "500px", zIndex: 2 },
+      // Móvil - AJUSTADO: Más a la izquierda
+      sm: { top: "25%", left: "2800px", height: "40vh", innerMaxWidth: "400px", zIndex: 2 },
+      xs: { top: "25%", left: "2500px", height: "35vh", innerMaxWidth: "75vw", zIndex: 2 },
+      // Para ajustar en móvil, modifica el valor de "left" en sm y xs
+    },
+    
+    // =========== IMAGEN 8 ===========
+    MARCOS8: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "55%", left: "5000px", height: "70vh", innerMaxWidth: "550px", zIndex: 2 },
+      lg: { top: "55%", left: "4800px", height: "70vh", innerMaxWidth: "520px", zIndex: 2 },
+      md: { top: "55%", left: "4300px", height: "65vh", innerMaxWidth: "500px", zIndex: 2 },
+      // Móvil - AJUSTADO: Más a la izquierda
+      sm: { top: "50%", left: "3300px", height: "60vh", innerMaxWidth: "350px", zIndex: 2 },
+      xs: { top: "50%", left: "3200px", height: "55vh", innerMaxWidth: "80vw", zIndex: 2 },
+      // Para ajustar en móvil, modifica el valor de "left" en sm y xs
+    },
+    
+    // =========== IMAGEN 9 ===========
+    MARCOS9: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "55%", left: "5550px", height: "70vh", innerMaxWidth: "550px", zIndex: 2 },
+      lg: { top: "55%", left: "5300px", height: "70vh", innerMaxWidth: "520px", zIndex: 2 },
+      md: { top: "55%", left: "4800px", height: "65vh", innerMaxWidth: "500px", zIndex: 2 },
+      // Móvil - AJUSTADO: Más a la izquierda
+      sm: { top: "50%", left: "3700px", height: "60vh", innerMaxWidth: "350px", zIndex: 2 },
+      xs: { top: "50%", left: "3500px", height: "55vh", innerMaxWidth: "80vw", zIndex: 2 },
+      // Para ajustar en móvil, modifica el valor de "left" en sm y xs
+    },
+    
+    // =========== IMAGEN 10 (ÚLTIMA) ===========
+    MARCOS10: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "50%", left: "6600px", height: "100vh", innerMaxWidth: "750px", zIndex: 2 },
+      lg: { top: "50%", left: "6000px", height: "95vh", innerMaxWidth: "700px", zIndex: 2 },
+      md: { top: "50%", left: "5400px", height: "90vh", innerMaxWidth: "650px", zIndex: 2 },
+      // Móvil - AJUSTADO: Más a la izquierda
+      sm: { top: "45%", left: "4300px", height: "90vh", innerMaxWidth: "600px", zIndex: 2 },
+      xs: { top: "45%", left: "4000px", height: "85vh", innerMaxWidth: "90vw", zIndex: 2 },
+      // Para ajustar en móvil, modifica el valor de "left" en sm y xs
+    },
+  };
+
+  // Función para obtener estilos según breakpoint
+  const getCurrentStyles = (imageKey, breakpoints) => {
+    const config = imageConfigurations[imageKey];
+    if (!config) return {}; // Fallback
+    if (breakpoints.isXs) return config.xs || config.sm; // Fallback a sm si xs no está definido
+    if (breakpoints.isSm) return config.sm;
+    if (breakpoints.isMd) return config.md;
+    if (breakpoints.isLg) return config.lg;
+    if (breakpoints.isXl) return config.xl;
+    return config.xl; // Default a xl
+  };
+
+  // Checkear visibilidad de imágenes
   const checkVisibility = useCallback(() => {
     if (!containerRef.current) return;
     
     const container = containerRef.current;
     const containerRect = container.getBoundingClientRect();
     const containerWidth = containerRect.width;
-    
-    const preloadMargin = containerWidth * 0.8;
-    
+    const preloadMargin = containerWidth * 1.2;
     const newVisibility = {};
     
-    imageRefs.current.forEach((ref, index) => {
-      if (ref && ref.current) {
-        const imageRect = ref.current.getBoundingClientRect();
+    imageRefs.current.forEach((itemRef, index) => {
+      if (itemRef && itemRef.current) {
+        const imageRect = itemRef.current.getBoundingClientRect();
         
-        // Check horizontal visibility
+        // Verificación horizontal para ambos dispositivos
         const isVisible = (
           imageRect.left < containerRect.right + preloadMargin &&
           imageRect.right > containerRect.left - preloadMargin
@@ -270,39 +435,38 @@ const MarcosGallery = ({ onBack }) => {
     });
   }, []);
 
-  // Use the smooth scroll hook
+  // Smooth scroll
   const { scrollLeft, scrollProgress } = useSmoothScroll({
     containerRef,
     isMobile,
     isLoading: loading,
     checkVisibility,
-    horizontal: true, // Always use horizontal scrolling
-    duration: 2.5,           // Increased duration for smoother motion
-    wheelMultiplier: 1.2,     // Increased multiplier for more responsive scrolling
-    touchMultiplier: 2,       // Increased touch multiplier for mobile
-    lerp: 0.04,               // Reduced lerp for ultra smooth transitions
+    horizontal: true,
+    duration: 2.5,
+    wheelMultiplier: 1.2,
+    touchMultiplier: 2,
+    lerp: 0.04,
     colors: galleryTheme
   });
-  
-  // Loading screen title and year animation effect
+
+  // Efecto para animar título en pantalla de carga
   useEffect(() => {
     if (!loading) return;
     
     if (titleRef.current && yearRef.current) {
-      const options = { 
+      gsap.to(titleRef.current, {
         y: 0,
         opacity: 1,
         duration: 1,
-        ease: "power2.out"
-      };
-      
-      gsap.to(titleRef.current, {
-        ...options,
+        ease: "power2.out",
         delay: 0.3,
       });
       
       gsap.to(yearRef.current, {
-        ...options,
+        y: 0,
+        opacity: 1,
+        duration: 1,
+        ease: "power2.out",
         delay: 0.5,
       });
     }
@@ -312,8 +476,8 @@ const MarcosGallery = ({ onBack }) => {
       gsap.killTweensOf(yearRef.current);
     };
   }, [loading]);
-  
-  // Loading progress animation effect
+
+  // Efecto para controlar animación de carga
   useEffect(() => {
     let interval;
     
@@ -325,17 +489,12 @@ const MarcosGallery = ({ onBack }) => {
             clearInterval(interval);
             
             if (titleRef.current && yearRef.current && loadingScreenRef.current) {
-              const options = {
+              gsap.to([titleRef.current, yearRef.current], {
                 y: -100,
                 opacity: 0,
                 duration: 0.8,
-                ease: "power2.in"
-              };
-              
-              gsap.to(titleRef.current, options);
-              gsap.to(yearRef.current, {
-                ...options,
-                delay: 0.1,
+                ease: "power2.in",
+                stagger: 0.1,
                 onComplete: () => {
                   gsap.to(loadingScreenRef.current, {
                     opacity: 0,
@@ -359,7 +518,7 @@ const MarcosGallery = ({ onBack }) => {
     return () => clearInterval(interval);
   }, [loading]);
 
-  // Force loading to complete after a timeout
+  // Forzar fin de carga después de un timeout
   useEffect(() => {
     const timer = setTimeout(() => {
       if (loading) {
@@ -371,7 +530,7 @@ const MarcosGallery = ({ onBack }) => {
     return () => clearTimeout(timer);
   }, [loading]);
 
-  // Optimize browser performance
+  // Optimizar rendimiento del navegador
   useEffect(() => {
     if (!loading) {
       document.body.style.overscrollBehavior = 'none';
@@ -384,7 +543,7 @@ const MarcosGallery = ({ onBack }) => {
     };
   }, [loading]);
 
-  // Set up IntersectionObserver for visibility detection
+  // Configurar IntersectionObserver para detección de visibilidad
   useEffect(() => {
     if (loading || !containerRef.current) return;
 
@@ -409,158 +568,92 @@ const MarcosGallery = ({ onBack }) => {
         });
       }, options);
       
-      imageRefs.current.forEach((ref, index) => {
-        if (ref?.current) {
-          ref.current.dataset.id = index;
-          observer.observe(ref.current);
+      imageRefs.current.forEach((itemRef, index) => {
+        if (itemRef?.current) {
+          itemRef.current.dataset.id = index;
+          observer.observe(itemRef.current);
         }
       });
       
       return () => {
-        imageRefs.current.forEach(ref => {
-          if (ref?.current) observer.unobserve(ref.current);
+        imageRefs.current.forEach(itemRef => {
+          if (itemRef?.current) observer.unobserve(itemRef.current);
         });
         observer.disconnect();
       };
     }
-  }, [loading, isMobile, checkVisibility]);
+  }, [loading, checkVisibility]);
 
-  // Gallery content rendering function - Using fixed positioning for all devices
-  const renderGalleryContent = () => (
-    <>
-      {/* Group 1 of images (left) */}
-      <ImageItem 
-        ref={el => imageRefs.current[0] = el}
-        top="80%"
-        left="100px"
-        height="80vh"
-        width="auto"
-        zIndex={3}
-        isVisible={visibleImages[0] !== false}
-      >
-        <Box component="img" src={images[0]} alt="MARCOS 1" loading="eager" />
-      </ImageItem>
+  // Ajustes específicos para iOS
+  useEffect(() => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    if (isIOS) {
+      document.documentElement.style.height = '100%';
+      document.body.style.height = '100%';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.overflowY = 'hidden';
+    }
+    
+    return () => {
+      if (isIOS) {
+        document.documentElement.style.height = '';
+        document.body.style.height = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.overflowY = '';
+      }
+    };
+  }, []);
+
+  // Renderizar imágenes con estilos responsivos
+  const renderImageItems = () => {
+    const imageKeys = ['MARCOS1', 'MARCOS2', 'MARCOS3', 'MARCOS4', 'MARCOS5', 
+                       'MARCOS6', 'MARCOS7', 'MARCOS8', 'MARCOS9', 'MARCOS10'];
+    
+    return images.map((src, index) => {
+      const imageKey = imageKeys[index];
+      const styles = getCurrentStyles(imageKey, activeBreakpoints);
       
-      <ImageItem 
-        ref={el => imageRefs.current[1] = el}
-        top="50%"
-        left="350px"
-        height="80vh"
-        width="auto"
-        zIndex={2}
-        isVisible={visibleImages[1] !== false}
-      >
-        <Box component="img" src={images[1]} alt="MARCOS 2" loading="lazy" />
-      </ImageItem>
-      
-      {/* Group 2 of images (center-left) */}
-      <ImageItem 
-        ref={el => imageRefs.current[2] = el}
-        top="50%"
-        left="1130px"
-        height="80vh"
-        width="auto"
-        zIndex={2}
-        isVisible={visibleImages[2] !== false}
-      >
-        <Box component="img" src={images[2]} alt="MARCOS 3" loading="lazy" />
-      </ImageItem>
-      
-      <ImageItem 
-        ref={el => imageRefs.current[3] = el}
-        top="50%"
-        left="1715px"
-        height="80vh"
-        width="auto"
-        zIndex={2}
-        isVisible={visibleImages[3] !== false}
-      >
-        <Box component="img" src={images[3]} alt="MARCOS 4" loading="lazy" />
-      </ImageItem>
-      
-      {/* Featured image (center) */}
-      <ImageItem 
-        ref={el => imageRefs.current[4] = el}
-        top="50%"
-        left="2700px"
-        height="100vh"
-        width="auto"
-        zIndex={2}
-        isVisible={visibleImages[4] !== false}
-      >
-        <Box component="img" src={images[4]} alt="MARCOS 5 (PORTADA)" loading="lazy" />
-      </ImageItem>
-      
-      {/* Group 3 of images (center-right) */}
-      <ImageItem 
-        ref={el => imageRefs.current[5] = el}
-        top="45%"
-        left="3200px"
-        height="55vh"
-        width="auto"
-        zIndex={2}
-        isVisible={visibleImages[5] !== false}
-      >
-        <Box component="img" src={images[5]} alt="MARCOS 6" loading="lazy" />
-      </ImageItem>
-      
-      <ImageItem 
-        ref={el => imageRefs.current[6] = el}
-        top="28%"
-        left="4300px"
-        height="45vh"
-        width="auto"
-        zIndex={2}
-        isVisible={visibleImages[6] !== false}
-      >
-        <Box component="img" src={images[6]} alt="MARCOS 7" loading="lazy" />
-      </ImageItem>
-      
-      {/* Group 4 of images (right) */}
-      <ImageItem 
-        ref={el => imageRefs.current[7] = el}
-        top="55%"
-        left="5100px"
-        height="70vh"
-        width="auto"
-        zIndex={2}
-        isVisible={visibleImages[7] !== false}
-      >
-        <Box component="img" src={images[7]} alt="MARCOS 8" loading="lazy" />
-      </ImageItem>
-      
-      <ImageItem 
-        ref={el => imageRefs.current[8] = el}
-        top="55%"
-        left="5650px"
-        height="70vh"
-        width="auto"
-        zIndex={2}
-        isVisible={visibleImages[8] !== false}
-      >
-        <Box component="img" src={images[8]} alt="MARCOS 9" loading="lazy" />
-      </ImageItem>
-      
-      {/* Last image (far right) */}
-      <ImageItem 
-        ref={el => imageRefs.current[9] = el}
-        top="50%"
-        left="6500px"
-        height="100vh"
-        width="auto"
-        zIndex={2}
-        isVisible={visibleImages[9] !== false}
-      >
-        <Box component="img" src={images[9]} alt="MARCOS 10" loading="lazy" />
-      </ImageItem>
-    </>
-  );
+      // Asegurarse de que imageRefs.current[index] sea una ref válida
+      if (!imageRefs.current[index]) {
+        imageRefs.current[index] = React.createRef();
+      }
+
+      return (
+        <ImageItem
+          key={index}
+          ref={imageRefs.current[index]}
+          top={styles.top}
+          left={styles.left}
+          height={styles.height}
+          width="auto"
+          zIndex={styles.zIndex}
+          isVisible={visibleImages[index] !== false}
+        >
+          <Box
+            component="img"
+            src={src}
+            alt={`MARCOS ${index + 1}`}
+            loading={index < 3 ? "eager" : "lazy"}
+            sx={{
+              objectFit: "contain",
+              width: "100%",
+              height: "100%",
+              maxWidth: styles.innerMaxWidth,
+            }}
+          />
+        </ImageItem>
+      );
+    });
+  };
 
   return (
     <>
       <GlobalStyle />
       
-      {/* Loading screen with title animation */}
+      {/* Pantalla de carga con animación de texto y círculo de progreso */}
       {loading && (
         <LoadingScreen ref={loadingScreenRef}>
           <LoadingTitle ref={titleRef}>
@@ -574,24 +667,26 @@ const MarcosGallery = ({ onBack }) => {
           <CircularProgress 
             variant="determinate" 
             value={loadProgress} 
-            size={60} 
-            thickness={4}
-            sx={{ color: galleryTheme.text }}
+            size={70} 
+            thickness={3}
+            sx={{ 
+              color: galleryTheme.text,
+              marginTop: '10px',
+            }}
           />
         </LoadingScreen>
       )}
       
-      {/* Scroll progress bar */}
+      {/* Barra de progreso de scroll */}
       <ScrollProgressBar 
         ref={progressBarRef}
         data-scroll-progress 
         sx={{ 
-          opacity: loading ? 0 : 1,
-          width: `${scrollProgress}%`
+          opacity: loading ? 0 : 1
         }} 
       />
       
-      {/* Navigation arrow */}
+      {/* Flecha de navegación */}
       <NavigationArrow 
         onBack={onBack} 
         containerRef={containerRef}
@@ -599,13 +694,14 @@ const MarcosGallery = ({ onBack }) => {
         isLoading={loading}
       />
       
+      {/* Contenedor principal con scroll horizontal */}
       <GalleryContainer 
         ref={containerRef} 
         scrollPosition={scrollLeft}
         style={{ cursor: 'grab' }}
       >
         <GalleryContent>
-          {renderGalleryContent()}
+          {renderImageItems()}
         </GalleryContent>
       </GalleryContainer>
     </>

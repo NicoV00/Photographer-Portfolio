@@ -156,11 +156,6 @@ function App() {
     setTransitionImageUrl(finalImageUrl);
     setInitialTransition(true);
     
-    // Asegurar que el contenedor principal esté completamente visible
-    if (containerRef.current) {
-      containerRef.current.style.opacity = '1';
-    }
-    
     // Ocultar el intro completamente después de un breve momento
     setTimeout(() => {
       setShowIntro(false);

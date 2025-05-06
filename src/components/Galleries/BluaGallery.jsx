@@ -51,6 +51,9 @@ const LoadingTitle = styled(Box)(({ theme }) => ({
   position: 'relative', // For positioning relative to container
   transform: 'translateY(100px)', // Start below viewport (for animation)
   opacity: 0,
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '32px', // Más pequeño en móvil
+  },
 }));
 
 const LoadingYear = styled(Box)(({ theme }) => ({
@@ -64,6 +67,9 @@ const LoadingYear = styled(Box)(({ theme }) => ({
   transform: 'translateY(100px)', // Start below viewport (for animation)
   opacity: 0,
   marginBottom: '40px', // Space between text and loading circle
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '28px', // Más pequeño en móvil
+  },
 }));
 
 // Optimized scroll progress bar with GPU acceleration
@@ -117,28 +123,39 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   position: 'relative',
   transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
-    width: '4600px', // Keep the same width as desktop
+    width: '3000px', // Reduced width for mobile (65% of desktop)
     height: '100%', 
-    padding: '40px',
-    paddingRight: '300px', // Same padding as desktop
+    padding: '20px', // Menos padding en móvil
+    paddingRight: '150px', // Menos padding en móvil
     transform: 'translateZ(0)', // Keep GPU acceleration
   },
 }));
 
-// Image item - Updated to remove shadows for all devices and keep the same positioning
+// Image item - Updated to include mobile-specific properties like in MaisonGallery
 const ImageItem = styled(Box, {
   shouldForwardProp: (prop) => 
-    prop !== 'isMobile' && 
-    prop !== 'top' && 
-    prop !== 'left' && 
-    prop !== 'isVisible' &&
-    prop !== 'isPhoto'
-})(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true, isPhoto = true }) => ({
-  position: 'absolute', // Always use absolute positioning for both mobile and desktop
-  top: top,
-  left: left,
-  width: width,
-  height: height,
+    !['isMobile', 'top', 'left', 'isVisible', 'isPhoto', 'mobileTop', 'mobileLeft', 'mobileHeight', 'mobileWidth'].includes(prop)
+})(({ 
+  theme, 
+  top, 
+  left, 
+  width, 
+  height, 
+  zIndex = 1, 
+  isMobile = false, 
+  isVisible = true, 
+  isPhoto = true,
+  // Props específicos para móvil
+  mobileTop,
+  mobileLeft,
+  mobileHeight,
+  mobileWidth
+}) => ({
+  position: 'absolute',
+  top: isMobile ? mobileTop || top : top,
+  left: isMobile ? mobileLeft || (left ? `${parseInt(left) * 0.6}px` : left) : left,
+  width: isMobile ? mobileWidth || (width === 'auto' ? 'auto' : width ? `${parseInt(width) * 0.7}px` : width) : width,
+  height: isMobile ? mobileHeight || (height === 'auto' ? 'auto' : height ? (height.includes('vh') ? `${parseInt(height) * 0.9}vh` : `${parseInt(height) * 0.7}px`) : height) : height,
   zIndex: zIndex,
   marginBottom: '0', // Remove margin 
   opacity: isVisible ? 1 : 0,
@@ -159,11 +176,26 @@ const ImageItem = styled(Box, {
 }));
 
 // Spotify Container with custom minimal styling - Updated for consistent positioning
-const SpotifyContainer = styled(Box)(({ theme, top, left, width = '300px', zIndex = 1, isMobile = false, isVisible = true }) => ({
-  position: 'absolute', // Always use absolute positioning
-  top: top,
-  left: left,
-  width: width,
+const SpotifyContainer = styled(Box, {
+  shouldForwardProp: (prop) => 
+    !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileWidth'].includes(prop)
+})(({ 
+  theme, 
+  top, 
+  left, 
+  width = '300px', 
+  zIndex = 1, 
+  isMobile = false, 
+  isVisible = true,
+  // Props específicos para móvil
+  mobileTop,
+  mobileLeft,
+  mobileWidth
+}) => ({
+  position: 'absolute',
+  top: isMobile ? mobileTop || top : top,
+  left: isMobile ? mobileLeft || (left ? `${parseInt(left) * 0.6}px` : left) : left,
+  width: isMobile ? mobileWidth || (width ? `${parseInt(width) * 0.7}px` : width) : width,
   height: '80px',
   zIndex: zIndex,
   display: 'flex',
@@ -434,7 +466,38 @@ const ConstelacionGallery = ({ onBack }) => {
     }
   }, [loading, isMobile, checkVisibility]);
 
-  // Single gallery content rendering function for both mobile and desktop
+  // Añadido useEffect para detección específica de dispositivos móviles reales
+  useEffect(() => {
+    // Detectar dispositivos móviles reales con mayor precisión
+    const detectRealMobile = () => {
+      const ua = navigator.userAgent;
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+    };
+    
+    // Si estamos en un dispositivo móvil real, forzar ciertos ajustes
+    if (detectRealMobile()) {
+      // Asegurar que los elementos se muestren correctamente
+      document.documentElement.style.fontSize = '14px';
+      // Deshabilitar el comportamiento elástico en iOS
+      document.body.style.overscrollBehavior = 'none';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    return () => {
+      // Limpiar ajustes
+      document.documentElement.style.fontSize = '';
+      document.body.style.overscrollBehavior = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  // Single gallery content rendering function for both mobile and desktop with mobile-specific positioning
   const renderGalleryContent = () => (
     <>
       {/* b1.jpg - Main photo */}
@@ -448,6 +511,11 @@ const ConstelacionGallery = ({ onBack }) => {
         isVisible={visibleImages[0] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        // Ajustes específicos para móvil
+        mobileTop="45%" 
+        mobileLeft="270px"
+        mobileHeight="70vh"
+        mobileWidth="70vw"
       >
         <Box 
           component="img" 
@@ -472,6 +540,10 @@ const ConstelacionGallery = ({ onBack }) => {
             opacity: 0.9
           }
         }}
+        // Ajustes específicos para móvil
+        mobileTop="50%" 
+        mobileLeft="940px"
+        mobileWidth="220px"
       >
         <Box 
           component="iframe" 
@@ -497,6 +569,11 @@ const ConstelacionGallery = ({ onBack }) => {
         isPhoto={false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        // Ajustes específicos para móvil
+        mobileTop="45%" 
+        mobileLeft="1300px"
+        mobileHeight="auto"
+        mobileWidth="1500px"
       >
         <Box 
           component="img" 

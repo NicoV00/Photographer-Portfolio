@@ -10,59 +10,6 @@ import InfinityLoader from './InfinityLoader';
 // Get the color theme for this gallery
 const galleryTheme = getGalleryColors('maison');
 
-/**
- * Hook para manejar conversiones responsivas manteniendo la estructura original
- * Este hook se usará dentro de los componentes existentes
- */
-const useResponsiveCalculator = () => {
-  // Función para calcular valores responsivos para móvil
-  const calculateMobileValue = useCallback((originalValue, propertyType = 'default') => {
-    // Si no hay valor, retornar undefined
-    if (originalValue === undefined || originalValue === null) return undefined;
-    
-    // Si el valor es "auto", mantenerlo como está
-    if (originalValue === 'auto') return 'auto';
-    
-    // Factores de escala diferentes según el tipo de propiedad
-    const factors = {
-      left: 0.6,    // Posición horizontal (60% del valor original)
-      top: 1,       // Posición vertical se mantiene igual
-      width: 0.7,   // Ancho (70% del valor original)
-      height: 0.9,  // Altura (90% del valor original)
-      default: 0.7  // Factor por defecto para otras propiedades
-    };
-    
-    // Seleccionar el factor correcto
-    const factor = factors[propertyType] || factors.default;
-    
-    // Si es un valor numérico simple
-    if (typeof originalValue === 'number') {
-      return originalValue * factor;
-    }
-    
-    // Si es un string con unidades
-    if (typeof originalValue === 'string') {
-      // Detectar si contiene unidades (px, vh, vw, %, etc.)
-      const match = originalValue.match(/^([\d.]+)(.*)$/);
-      if (!match) return originalValue;
-      
-      const value = parseFloat(match[1]);
-      const unit = match[2]; // px, vh, vw, etc.
-      
-      // Calcular nuevo valor
-      const newValue = value * factor;
-      
-      // Devolver con la misma unidad
-      return `${Math.round(newValue * 100) / 100}${unit}`;
-    }
-    
-    // Si no es un formato reconocible, devolver el original
-    return originalValue;
-  }, []);
-  
-  return { calculateMobileValue };
-};
-
 // Custom font loading
 const GlobalStyle = styled('style')({
   '@font-face': [
@@ -242,8 +189,7 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   },
 }));
 
-// Image item with GPU acceleration - Modificado para usar el hook de cálculo responsivo
-// pero manteniendo la estructura original
+// Image item with GPU acceleration
 const ImageItem = styled(Box, {
   shouldForwardProp: (prop) => !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileHeight', 'mobileWidth'].includes(prop)
 })(({ 
@@ -260,61 +206,50 @@ const ImageItem = styled(Box, {
   mobileLeft,
   mobileHeight,
   mobileWidth
-}) => {
-  // Obtener función para calcular valores responsivos
-  const { calculateMobileValue } = useResponsiveCalculator();
-  
-  // Calcular valores responsivos solo si estamos en móvil
-  const responsiveTop = isMobile ? (mobileTop || top) : top;
-  
-  // Para left, usar mobileLeft específico o calcular basado en left original
-  const responsiveLeft = isMobile 
-    ? (mobileLeft || (left ? calculateMobileValue(left, 'left') : left))
-    : left;
-  
-  // Para width, usar mobileWidth específico o calcular basado en width original
-  const responsiveWidth = isMobile
-    ? (mobileWidth || (width === 'auto' ? 'auto' : calculateMobileValue(width, 'width')))
-    : width;
-  
-  // Para height, usar mobileHeight específico o calcular basado en height original
-  const responsiveHeight = isMobile
-    ? (mobileHeight || calculateMobileValue(height, 'height'))
-    : height;
-  
-  return {
-    position: 'absolute',
-    top: responsiveTop,
-    left: responsiveLeft,
-    width: responsiveWidth,
-    height: responsiveHeight,
-    zIndex: zIndex,
-    opacity: isVisible ? 1 : 0,
-    transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
-    transition: 'opacity 0.5s ease, transform 0.5s ease',
-    willChange: 'transform, opacity',
-    backfaceVisibility: 'hidden', // GPU optimization
+}) => ({
+  position: 'absolute',
+  top: top,
+  left: left,
+  width: width,
+  height: height,
+  zIndex: zIndex,
+  opacity: isVisible ? 1 : 0,
+  transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
+  transition: 'opacity 0.5s ease, transform 0.5s ease',
+  willChange: 'transform, opacity',
+  backfaceVisibility: 'hidden', // GPU optimization
+  '& img': {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    borderRadius: '2px',
+    boxShadow: '0 3px 8px rgba(0,0,0,0.25)',
+    backfaceVisibility: 'hidden',
+    transform: 'translateZ(0)', // Force GPU acceleration
+  },
+  '& video': {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    borderRadius: '2px',
+    boxShadow: '0 3px 8px rgba(0,0,0,0.25)',
+    transform: 'translateZ(0)', // Force GPU acceleration
+  },
+  [theme.breakpoints.down('sm')]: {
+    top: mobileTop || top,
+    left: mobileLeft || (left ? `${parseInt(left) * 0.6}px` : left),
+    width: mobileWidth || (width === 'auto' ? 'auto' : width ? `${parseInt(width) * 0.7}px` : width),
+    height: mobileHeight || (height === 'auto' ? 'auto' : height ? (height.includes('vh') ? `${parseInt(height) * 0.9}vh` : `${parseInt(height) * 0.7}px`) : height),
     '& img': {
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover',
-      borderRadius: '2px',
-      boxShadow: isMobile ? 'none' : '0 3px 8px rgba(0,0,0,0.25)',
-      backfaceVisibility: 'hidden',
-      transform: 'translateZ(0)', // Force GPU acceleration
+      boxShadow: 'none', // Sin sombras en móvil
     },
     '& video': {
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover',
-      borderRadius: '2px',
-      boxShadow: isMobile ? 'none' : '0 3px 8px rgba(0,0,0,0.25)',
-      transform: 'translateZ(0)', // Force GPU acceleration
-    },
-  };
-});
+      boxShadow: 'none', // Sin sombras en móvil
+    }
+  },
+}));
 
-// Frame for video with glow effect - También modificado para usar el hook
+// Frame for video with glow effect
 const VideoFrame = styled(Box, {
   shouldForwardProp: (prop) => !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileHeight', 'mobileWidth'].includes(prop)
 })(({ 
@@ -331,54 +266,39 @@ const VideoFrame = styled(Box, {
   mobileLeft,
   mobileHeight,
   mobileWidth
-}) => {
-  // Obtener función para calcular valores responsivos
-  const { calculateMobileValue } = useResponsiveCalculator();
-  
-  // Calcular valores responsivos solo si estamos en móvil
-  const responsiveTop = isMobile ? (mobileTop || top) : top;
-  
-  // Para left, usar mobileLeft específico o calcular basado en left original
-  const responsiveLeft = isMobile 
-    ? (mobileLeft || (left ? calculateMobileValue(left, 'left') : left))
-    : left;
-  
-  // Para width, usar mobileWidth específico o calcular basado en width original
-  const responsiveWidth = isMobile
-    ? (mobileWidth || (width === 'auto' ? 'auto' : calculateMobileValue(width, 'width')))
-    : width;
-  
-  // Para height, usar mobileHeight específico o calcular basado en height original
-  const responsiveHeight = isMobile
-    ? (mobileHeight || calculateMobileValue(height, 'height'))
-    : height;
-  
-  return {
-    position: 'absolute',
-    top: responsiveTop,
-    left: responsiveLeft,
-    width: responsiveWidth,
-    height: responsiveHeight,
-    zIndex: zIndex,
-    opacity: isVisible ? 1 : 0,
-    transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
-    transition: 'opacity 0.5s ease, transform 0.5s ease',
-    willChange: 'transform, opacity',
-    border: `1px solid ${galleryTheme.text}`,
-    borderRadius: '2px',
-    padding: '0',
-    boxShadow: isMobile ? 'none' : `0 0 15px ${galleryTheme.highlight}33`,
-    overflow: 'hidden',
-    background: galleryTheme.text,
-    backfaceVisibility: 'hidden', // GPU optimization
-    '& video': {
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover',
-      transform: 'translateZ(0)', // Force GPU acceleration
-    },
-  };
-});
+}) => ({
+  position: 'absolute',
+  top: top,
+  left: left,
+  width: width,
+  height: height,
+  zIndex: zIndex,
+  opacity: isVisible ? 1 : 0,
+  transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
+  transition: 'opacity 0.5s ease, transform 0.5s ease',
+  willChange: 'transform, opacity',
+  border: `1px solid ${galleryTheme.text}`,
+  borderRadius: '2px',
+  padding: '0',
+  boxShadow: `0 0 15px ${galleryTheme.highlight}33`,
+  overflow: 'hidden',
+  background: galleryTheme.text,
+  backfaceVisibility: 'hidden', // GPU optimization
+  '& video': {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    transform: 'translateZ(0)', // Force GPU acceleration
+  },
+  [theme.breakpoints.down('sm')]: {
+    top: mobileTop || top,
+    left: mobileLeft || (left ? `${parseInt(left) * 0.6}px` : left),
+    width: mobileWidth || (width === 'auto' ? 'auto' : width ? `${parseInt(width) * 0.7}px` : width),
+    height: mobileHeight || (height === 'auto' ? 'auto' : height ? (height.includes('vh') ? `${parseInt(height) * 0.9}vh` : `${parseInt(height) * 0.7}px`) : height),
+    boxShadow: 'none', // Sin sombras en móvil
+    border: `1px solid ${galleryTheme.text}`, // Mantener el borde
+  },
+}));
 
 const MaisonGallery = ({ onBack }) => {
   // Loading screen state
@@ -652,7 +572,6 @@ const MaisonGallery = ({ onBack }) => {
   };
 
   // Renderizado del contenido de la galería adaptado para móvil
-  // Mantenemos la estructura original, solo cambiamos cómo los valores responsive son calculados
   const renderGalleryContent = () => (
     <>
       {/* 1. First image - Man seated in industrial space */}
@@ -661,16 +580,16 @@ const MaisonGallery = ({ onBack }) => {
         top="50%"
         left="450px"
         height="85vh"
-        width="auto"
+        width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[0] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-        // Valores específicos para móvil (opcional)
-        mobileTop="50%"
+        // Ajustes específicos para móvil
+        mobileTop="45%"
         mobileLeft="270px"
         mobileHeight="76vh"
-        mobileWidth="auto"
+        mobileWidth="100vw" // Ancho relativo al viewport - aproximadamente 35% del ancho de pantalla
       >
         <Box component="img" src={images.M1} alt="MAISON 1" loading="eager" />
       </ImageItem>
@@ -681,15 +600,15 @@ const MaisonGallery = ({ onBack }) => {
         top="25%"
         left="1300px"
         height="55vh"
-        width="auto"
+        width="auto" // Añadido width original para referencia
         zIndex={3}
         isVisible={visibleImages[1] !== false}
         isMobile={isMobile}
-        // Valores específicos para móvil (opcional)
+        // Ajustes específicos para móvil
         mobileTop="25%"
         mobileLeft="780px"
         mobileHeight="49vh"
-        mobileWidth="auto"
+        mobileWidth="65vw" // Ancho relativo al viewport - aproximadamente 30% del ancho de pantalla
       >
         <Box component="img" src={images.M2} alt="MAISON 2" loading="eager" />
       </ImageItem>
@@ -699,14 +618,14 @@ const MaisonGallery = ({ onBack }) => {
         ref={el => imageRefs.current[2] = el}
         left="1550px" 
         height="100vh"
-        width="auto"
+        width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[2] !== false}
         isMobile={isMobile}
-        // Valores específicos para móvil (opcional)
+        // Ajustes específicos para móvil
         mobileLeft="930px"
         mobileHeight="90vh"
-        mobileWidth="auto"
+        mobileWidth="75vh" // Ancho relativo al viewport - aproximadamente 33% del ancho de pantalla
       >
         <Box component="img" src={images.M3} alt="MAISON 3" loading="eager" />
       </ImageItem>
@@ -717,16 +636,16 @@ const MaisonGallery = ({ onBack }) => {
         top="35%" 
         left="2240px" 
         height="55vh"
-        width="auto"
+        width="auto" // Añadido width original para referencia
         zIndex={3}
         isVisible={visibleImages[3] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-        // Valores específicos para móvil (opcional)
+        // Ajustes específicos para móvil
         mobileTop="35%"
         mobileLeft="1344px"
         mobileHeight="49vh"
-        mobileWidth="auto"
+        mobileWidth="70vw" // Ancho relativo al viewport - aproximadamente 30% del ancho de pantalla
       >
         <Box component="img" src={images.M4} alt="MAISON 4" loading="eager" />
       </ImageItem>
@@ -737,7 +656,7 @@ const MaisonGallery = ({ onBack }) => {
         top="70%" 
         left="2110px"
         height="120vh"
-        width="auto"
+        width="auto" // Añadido width original para referencia
         zIndex={1}
         isVisible={visibleImages[4] !== false}
         isMobile={isMobile}
@@ -749,11 +668,11 @@ const MaisonGallery = ({ onBack }) => {
             borderRadius: 0
           }
         }}
-        // Valores específicos para móvil (opcional)
+        // Ajustes específicos para móvil
         mobileTop="70%"
         mobileLeft="1266px"
         mobileHeight="108vh"
-        mobileWidth="auto"
+        mobileWidth="200vw" // Ancho relativo al viewport - aproximadamente 40% del ancho de pantalla (más grande por ser un fondo)
       >
         <Box component="img" src={images.M5} alt="MAISON 5" loading="eager" />
       </ImageItem>
@@ -764,16 +683,16 @@ const MaisonGallery = ({ onBack }) => {
         top="50%" 
         left="3500px"
         height="70vh"
-        width="auto"
+        width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[5] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-        // Valores específicos para móvil (opcional)
+        // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="2100px"
         mobileHeight="63vh"
-        mobileWidth="auto"
+        mobileWidth="90vw" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
       >
         <Box component="img" src={images.M6} alt="MAISON 6" loading="eager" />
       </ImageItem>
@@ -784,16 +703,16 @@ const MaisonGallery = ({ onBack }) => {
         top="50%" 
         left="4120px"
         height="70vh"
-        width="auto"
+        width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[6] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-        // Valores específicos para móvil (opcional)
+        // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="2472px"
         mobileHeight="63vh"
-        mobileWidth="auto"
+        mobileWidth="90vw" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
       >
         <Box component="img" src={images.M7} alt="MAISON 7" loading="eager" />
       </ImageItem>
@@ -804,16 +723,16 @@ const MaisonGallery = ({ onBack }) => {
         top="50%" 
         left="4735px"
         height="70vh"
-        width="auto"
+        width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[7] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-        // Valores específicos para móvil (opcional)
+        // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="2841px"
         mobileHeight="63vh"
-        mobileWidth="auto"
+        mobileWidth="90vw" // Ancho relativo al viewport - aproximadamente 30% del ancho de pantalla
       >
         <Box component="img" src={images.M8} alt="MAISON 8" loading="lazy" />
       </ImageItem>
@@ -824,16 +743,16 @@ const MaisonGallery = ({ onBack }) => {
         top="50%" 
         left="5560px"
         height="85vh"
-        width="auto"
+        width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[8] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-        // Valores específicos para móvil (opcional)
-        mobileTop="50%"
+        // Ajustes específicos para móvil
+        mobileTop="45%"
         mobileLeft="3336px"
-        mobileHeight="65vh"
-        mobileWidth="auto"
+        mobileHeight="75vh"
+        mobileWidth="80vw" // Ancho relativo al viewport - aproximadamente 37% del ancho de pantalla (ligeramente más grande por ser video)
       >
         <Box 
           component="video"
@@ -852,16 +771,16 @@ const MaisonGallery = ({ onBack }) => {
         top="41%" 
         left="6340px"
         height="55vh"
-        width="auto"
+        width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[9] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-        // Valores específicos para móvil (opcional)
+        // Ajustes específicos para móvil
         mobileTop="40%"
         mobileLeft="3804px"
         mobileHeight="49vh"
-        mobileWidth="auto"
+        mobileWidth="85vw" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
       >
         <Box component="img" src={images.M10} alt="MAISON 10" loading="lazy" />
       </ImageItem>
@@ -872,15 +791,15 @@ const MaisonGallery = ({ onBack }) => {
         top="124px" 
         left="7020px"
         height="55vh"
-        width="auto"
+        width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[10] !== false}
         isMobile={isMobile}
-        // Valores específicos para móvil (opcional)
+        // Ajustes específicos para móvil
         mobileTop="16%"
         mobileLeft="4212px"
         mobileHeight="49vh"
-        mobileWidth="auto"
+        mobileWidth="85vw" // Ancho relativo al viewport - aproximadamente 33% del ancho de pantalla
       >
         <Box component="img" src={images.M11} alt="MAISON 11" loading="lazy" />
       </ImageItem>
@@ -890,14 +809,15 @@ const MaisonGallery = ({ onBack }) => {
         ref={el => imageRefs.current[11] = el}
         left="8000px"
         height="80vh"
-        width="auto"
+        width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[11] !== false}
         isMobile={isMobile}
-        // Valores específicos para móvil (opcional)
+        // Ajustes específicos para móvil
+        mobileTop="10%"
         mobileLeft="4800px"
         mobileHeight="72vh"
-        mobileWidth="auto"
+        mobileWidth="100vw" // Ancho relativo al viewport - aproximadamente 34% del ancho de pantalla
       >
         <Box component="img" src={images.M12} alt="MAISON 12" loading="lazy" />
       </ImageItem>
@@ -908,16 +828,16 @@ const MaisonGallery = ({ onBack }) => {
         top="50%" 
         left="9000px"
         height="100vh"
-        width="auto"
+        width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[12] !== false}
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-        // Valores específicos para móvil (opcional)
+        // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="5400px"
-        mobileHeight="90vh"
-        mobileWidth="auto"
+        mobileHeight="100%"
+        mobileWidth="15%" // Ancho relativo al viewport - aproximadamente 38% del ancho de pantalla (imagen más importante)
       >
         <Box component="img" src={images.M13} alt="MAISON 13" loading="lazy" />
       </ImageItem>

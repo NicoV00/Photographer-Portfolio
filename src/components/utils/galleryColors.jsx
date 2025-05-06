@@ -49,7 +49,7 @@ const galleryColors = {
   "kaboa": {
     main: "#ededed",     // Light gray background
     text: "#FFFFFF",     // White text
-    highlight: "#FFFFFF"  // White highlights
+    highlight: "#000000"  // White highlights
   },
   "amour": {
     main: "#e82d2d",     // Red background

@@ -8,13 +8,12 @@ const VideoContainer = styled(Box)({
   left: 0,
   width: '100vw',
   height: '100vh',
-  zIndex: 2000,
+  zIndex: 2000, // Debe estar por encima del contenido principal
   backgroundColor: '#000',
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
   overflow: 'hidden',
-  pointerEvents: 'none',
 });
 
 const Video = styled('video')({
@@ -22,7 +21,24 @@ const Video = styled('video')({
   height: '100%',
   objectFit: 'cover',
   position: 'absolute',
+  top: 0,
+  left: 0,
+  zIndex: 0, // Detrás de FinalImage y SoundButton
 });
+
+const FinalImage = styled('div')(({ opacity }) => ({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  backgroundImage: `url("./images/blua_constelaciones_finales.jpg")`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  opacity: opacity,
+  transition: 'opacity 0.8s ease-in-out',
+  zIndex: 1, // Encima del video, debajo del botón de sonido
+}));
 
 // Enhanced sound control button with better visibility
 const SoundButton = styled(Box)(({ isMuted }) => ({
@@ -37,8 +53,8 @@ const SoundButton = styled(Box)(({ isMuted }) => ({
   justifyContent: 'center',
   alignItems: 'center',
   cursor: 'pointer',
-  zIndex: 2001,
-  pointerEvents: 'auto', // Make sure it's clickable
+  zIndex: 2001, // Siempre encima
+  pointerEvents: 'auto', // Asegurar que sea clickeable
   transition: 'all 0.3s ease',
   border: '2px solid white',
   boxShadow: isMuted ? 'none' : '0 0 15px rgba(255, 255, 255, 0.5)',
@@ -46,7 +62,6 @@ const SoundButton = styled(Box)(({ isMuted }) => ({
     transform: 'scale(1.1)',
     backgroundColor: isMuted ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.7)',
   },
-  // Add a pulsing animation when muted to draw attention
   animation: isMuted ? 'pulse 2s infinite' : 'none',
   '@keyframes pulse': {
     '0%': {
@@ -84,144 +99,154 @@ function IntroVideo({ onIntroComplete }) {
   const containerRef = useRef(null);
   const callbackFiredRef = useRef(false);
   const finalImageUrl = "./images/blua_constelaciones_finales.jpg";
+  const videoLoadedRef = useRef(false);
   
-  // Start with audio muted
+  // Estados
   const [isMuted, setIsMuted] = useState(true);
+  const [imageOpacity, setImageOpacity] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(6); // Duración predeterminada
   
-  // IMPORTANTE: Iniciar la transición inmediatamente al montar el componente
+  // Precargar la imagen final inmediatamente
   useEffect(() => {
-    // Precargar la imagen crítica en segundo plano
     const img = new Image();
     img.src = finalImageUrl;
+    img.importance = "high"; // Marcar como alta prioridad
     
-    // Establecer un timer de seguridad para garantizar que la transición
-    // comenzará incluso si el video no termina correctamente
+    // Timer de seguridad (solo como respaldo)
     const safetyTimer = setTimeout(() => {
-      if (!callbackFiredRef.current) {
-        console.log("Timer de seguridad activado - iniciando transición");
+      if (!callbackFiredRef.current && videoLoadedRef.current) {
+        console.log("Timer de seguridad activado después de carga completa");
         triggerTransition();
       }
-    }, 10000); // 10 segundos máximo para el video
+    }, videoDuration * 1000 + 500); // Duración del video + pequeño margen
     
     return () => clearTimeout(safetyTimer);
-  }, []);
+  }, [videoDuration]);
   
-  // Configure Media Session API for browser tab controls
+  // Inicializar reproducción de video
   useEffect(() => {
     const videoElement = videoRef.current;
-    if (!videoElement || !navigator.mediaSession) return;
-
-    // Set up media session metadata
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: 'Intro Video',
-      artist: 'Your Brand Name',
-      album: 'Website Intro',
-      artwork: [
-        { src: '/images/thumbnail.png', sizes: '96x96', type: 'image/png' }
-      ]
-    });
-
-    // Define media session action handlers
-    navigator.mediaSession.setActionHandler('play', () => {
-      videoElement.play();
-      navigator.mediaSession.playbackState = 'playing';
-    });
-
-    navigator.mediaSession.setActionHandler('pause', () => {
-      videoElement.pause();
-      navigator.mediaSession.playbackState = 'paused';
-    });
-
-    // Handle mute/unmute through the system controls
-    const handleVolumeChange = () => {
-      setIsMuted(videoElement.muted);
-    };
-
-    videoElement.addEventListener('volumechange', handleVolumeChange);
-
-    return () => {
-      videoElement.removeEventListener('volumechange', handleVolumeChange);
-      
-      // Clean up media session
-      if (navigator.mediaSession) {
-        navigator.mediaSession.setActionHandler('play', null);
-        navigator.mediaSession.setActionHandler('pause', null);
-      }
-    };
-  }, []);
-
-  // Manejar el video de forma agresiva
-  useEffect(() => {
-    const videoElement = videoRef.current;
-    
     if (!videoElement) return;
     
-    // Ensure video starts muted
+    // Configuraciones iniciales
     videoElement.muted = true;
+    videoElement.preload = "auto";
+    videoElement.playsInline = true;
+    videoElement.setAttribute('playsinline', '');
     
-    // Escuchar por el evento de tiempo actualizado para detectar el final más rápido
+    // Detectar cuando el video está listo
+    const handleCanPlay = () => {
+      console.log("Video listo para reproducir");
+      videoLoadedRef.current = true;
+    };
+    
+    // Actualizar duración real del video cuando esté disponible
+    const handleLoadedMetadata = () => {
+      if (videoElement.duration && videoElement.duration !== Infinity) {
+        console.log("Duración del video:", videoElement.duration);
+        setVideoDuration(videoElement.duration);
+      }
+      videoLoadedRef.current = true;
+    };
+    
+    // Monitorear el tiempo para detectar el final y controlar la transición
     const handleTimeUpdate = () => {
-      const videoDuration = videoElement.duration;
       const currentTime = videoElement.currentTime;
+      const duration = videoElement.duration || 6;
       
-      // Si estamos cerca del final del video (últimos 0.5 segundos), iniciar transición
-      if (videoDuration > 0 && currentTime >= videoDuration - 0.5) {
-        videoElement.removeEventListener('timeupdate', handleTimeUpdate);
+      // Comenzar a mostrar la imagen en el último segundo
+      if (currentTime >= duration - 1) {
+        const fadeProgress = Math.min((currentTime - (duration - 1)) / 0.7, 1);
+        setImageOpacity(fadeProgress);
+        
+        // Iniciar transición cuando estemos muy cerca del final
+        if (currentTime >= duration - 0.1 && !callbackFiredRef.current) {
+          console.log("Video cerca del final, iniciando transición");
+          triggerTransition();
+        }
+      }
+    };
+    
+    // Detectar fin del video
+    const handleEnded = () => {
+      console.log("Video terminado");
+      if (!callbackFiredRef.current) {
         triggerTransition();
       }
     };
     
-    // También escuchar el evento ended como respaldo
-    const handleVideoEnd = () => {
-      console.log("Video terminado - iniciando transición");
-      triggerTransition();
+    // Manejar errores
+    const handleError = (e) => {
+      console.error("Error en el video:", e);
+      if (videoLoadedRef.current && !callbackFiredRef.current) {
+        triggerTransition();
+      }
     };
-
-    videoElement.addEventListener('timeupdate', handleTimeUpdate);
-    videoElement.addEventListener('ended', handleVideoEnd);
     
-    // Start playing muted right away (should work in all browsers)
-    videoElement.play().catch(error => {
-      console.error("Error de autoplay incluso con silencio:", error);
-      // Si falla el autoplay, iniciar la transición pronto
-      setTimeout(triggerTransition, 300);
-    });
-
+    // Registrar eventos
+    videoElement.addEventListener('canplay', handleCanPlay);
+    videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
+    videoElement.addEventListener('timeupdate', handleTimeUpdate);
+    videoElement.addEventListener('ended', handleEnded);
+    videoElement.addEventListener('error', handleError);
+    
+    // Iniciar reproducción con un pequeño retraso para asegurar carga
+    setTimeout(() => {
+      videoElement.play().catch(error => {
+        console.error("Error al iniciar reproducción:", error);
+      });
+    }, 100);
+    
+    // Limpiar eventos
     return () => {
+      videoElement.removeEventListener('canplay', handleCanPlay);
+      videoElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
       videoElement.removeEventListener('timeupdate', handleTimeUpdate);
-      videoElement.removeEventListener('ended', handleVideoEnd);
+      videoElement.removeEventListener('ended', handleEnded);
+      videoElement.removeEventListener('error', handleError);
     };
   }, []);
   
-  // Función para disparar la transición una sola vez
+  // Función para manejar la transición final
   const triggerTransition = () => {
     if (callbackFiredRef.current) return;
     
     callbackFiredRef.current = true;
-    console.log("INICIANDO TRANSICIÓN INMEDIATA");
+    console.log("Ejecutando transición final");
     
-    // Comenzar a ocultar el contenedor de video inmediatamente
-    if (containerRef.current) {
-      containerRef.current.style.opacity = '0';
-      containerRef.current.style.transition = 'opacity 0.3s';
+    // Asegurar que la imagen esté completamente visible
+    setImageOpacity(1);
+    
+    // Pausar video para conservar recursos
+    if (videoRef.current) {
+      videoRef.current.pause();
     }
     
-    // Notificar sin demora al componente App
+    // PRIMERO notificar al componente App para que prepare la siguiente vista
+    // Es crítico que esto ocurra antes de desvanecer el contenedor
     if (onIntroComplete) {
       onIntroComplete(finalImageUrl);
     }
     
-    // Ocultar completamente el contenedor después de un breve desvanecimiento
+    // DESPUÉS iniciar el desvanecimiento de este contenedor
+    setTimeout(() => {
+      if (containerRef.current) {
+        containerRef.current.style.transition = 'opacity 1s ease-in-out';
+        containerRef.current.style.opacity = '0';
+      }
+    }, 50); // Tiempo mínimo para que App reaccione
+    
+    // Finalmente ocultar el contenedor
     setTimeout(() => {
       if (containerRef.current) {
         containerRef.current.style.display = 'none';
       }
-    }, 300);
+    }, 1100); // Después de completar la transición
   };
-
-  // Toggle mute/unmute with enhanced functionality
+  
+  // Manejar cambio de mute/unmute
   const toggleMute = (e) => {
-    e.stopPropagation(); // Prevent event from bubbling
+    e.stopPropagation();
     
     const newMutedState = !isMuted;
     setIsMuted(newMutedState);
@@ -229,18 +254,16 @@ function IntroVideo({ onIntroComplete }) {
     if (videoRef.current) {
       videoRef.current.muted = newMutedState;
       
-      // If we're unmuting, try to play again in case it was paused
       if (!newMutedState) {
         videoRef.current.play().catch(err => {
-          console.error("No se pudo reproducir el video después de desmutear:", err);
-          // If audio fails to play, revert to muted state
+          console.error("Error al reproducir con audio:", err);
           videoRef.current.muted = true;
           setIsMuted(true);
         });
       }
     }
   };
-
+  
   return (
     <VideoContainer ref={containerRef}>
       <Video
@@ -249,11 +272,14 @@ function IntroVideo({ onIntroComplete }) {
         muted={isMuted}
         playsInline
       >
-        <source src="/videos/ENTRADA WEB-1.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
+        <source src="/videos/ENTRADA_WEB2.1.mp4" type="video/mp4" />
+        Tu navegador no soporta videos.
       </Video>
       
-      {/* Enhanced sound control button */}
+      {/* Imagen final con opacidad controlada */}
+      <FinalImage opacity={imageOpacity} />
+      
+      {/* Botón de sonido */}
       <SoundButton onClick={toggleMute} isMuted={isMuted}>
         {isMuted ? <UnmuteIcon /> : <MuteIcon />}
       </SoundButton>

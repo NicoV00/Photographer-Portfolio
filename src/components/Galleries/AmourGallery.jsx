@@ -1,4 +1,7 @@
-import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
+'use client';
+
+// Importaciones necesarias
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Box, CircularProgress, useMediaQuery } from '@mui/material';
 import { styled, useTheme } from '@mui/material/styles';
 import { gsap } from 'gsap';
@@ -22,12 +25,13 @@ if (typeof gsap.registerPlugin === 'function') {
 // Get the color theme for this gallery
 const galleryTheme = getGalleryColors('amour');
 
-// Custom font loading
+// FUENTES PERSONALIZADAS - ACTUALIZADO A BOLD
+// --------------------------------------
 const GlobalStyle = styled('style')({
   '@font-face': {
-    fontFamily: 'Medium OTF',
-    src: 'url("/fonts/Medium.otf") format("opentype")',
-    fontWeight: 'normal',
+    fontFamily: 'Suisse Intl Bold',
+    src: 'url("/fonts/Suisse_Intl_Bold.ttf") format("truetype")',
+    fontWeight: 'bold',
     fontStyle: 'normal',
     fontDisplay: 'swap',
   },
@@ -48,6 +52,7 @@ const LoadingScreen = styled(Box)(({ theme }) => ({
   zIndex: 9999,
   transition: 'opacity 0.5s ease-out',
   overflow: 'hidden', // Prevent any overflow during animations
+  padding: '20px',
 }));
 
 // Optimized scroll progress bar with GPU acceleration
@@ -64,9 +69,9 @@ const ScrollProgressBar = styled(Box)({
   boxShadow: '0 0 3px rgba(0,0,0,0.2)', // Subtle shadow for better visibility
 });
 
-// Title component for loading screen
+// Title component for loading screen - FUENTE ACTUALIZADA A BOLD
 const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
+  fontFamily: '"Suisse Intl Bold", sans-serif',
   fontSize: '45px',
   fontWeight: 'bold',
   color: galleryTheme.text, // Using theme text color
@@ -74,10 +79,16 @@ const LoadingTitle = styled(Box)(({ theme }) => ({
   position: 'relative', // For positioning relative to container
   transform: 'translateY(100px)', // Start below viewport (for animation)
   opacity: 0,
+  textAlign: 'center',
+  width: '100%',
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '32px',
+    letterSpacing: '1.5px',
+  },
 }));
 
 const LoadingYear = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
+  fontFamily: '"Suisse Intl Bold", sans-serif',
   fontSize: '40px',
   fontWeight: 'bold',
   color: galleryTheme.text, // Using theme text color
@@ -87,6 +98,14 @@ const LoadingYear = styled(Box)(({ theme }) => ({
   transform: 'translateY(100px)', // Start below viewport (for animation)
   opacity: 0,
   marginBottom: '40px', // Space between text and loading circle
+  textAlign: 'center',
+  width: '100%',
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '28px',
+    letterSpacing: '1.5px',
+    marginTop: '5px',
+    marginBottom: '30px',
+  },
 }));
 
 // Main container with horizontal scroll - optimized
@@ -94,7 +113,7 @@ const GalleryContainer = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'scrollPosition'
 })(({ theme, scrollPosition = 0 }) => {
   // Start transition after 5th image (around 3900px scroll)
-  const scrollThreshold = 3900;
+  const scrollThreshold = 2000; // Adelantado para ocurrir antes
   // Complete transition over 800px of scrolling
   const transitionLength = 800;
   // Calculate transition progress (0 to 1)
@@ -156,29 +175,35 @@ const GalleryContainer = styled(Box, {
   };
 });
 
-// Content container with GPU acceleration
+// Content container with GPU acceleration - ANCHO AJUSTADO
 const GalleryContent = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  width: '7000px', // Width for all images
   height: '100%',
   padding: '40px',
   paddingRight: '300px', // Extra padding at the end
   position: 'relative',
   transform: 'translateZ(0)',  // Force GPU acceleration
-  [theme.breakpoints.down('sm')]: {
-    width: '7000px', // Keep same width for mobile
+  // Ancho ajustado por breakpoints
+  width: '7000px', // Base para XL y desktop
+  [theme.breakpoints.down('sm')]: { // Para SM (móviles)
+    width: '5000px', // Reducido para móvil
     flexDirection: 'row',
     height: '100%',
-    padding: '40px',
-    paddingRight: '300px',
+    padding: '40px 300px 40px 40px',
+  },
+  [theme.breakpoints.down('xs')]: { // Para XS (móviles muy pequeños)
+    width: '4500px',
   },
 }));
 
 // Image item - optimized with GPU acceleration
 const ImageItem = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'isMobile' && prop !== 'top' && prop !== 'left' && prop !== 'isVisible'
-})(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true }) => ({
+  shouldForwardProp: (prop) => 
+    prop !== 'isVisible' && 
+    prop !== 'isMobile' && 
+    prop !== 'isPhoto'
+})(({ theme, top, left, width, height, zIndex = 1, isVisible = true, isPhoto = true }) => ({
   position: 'absolute', // Always use absolute positioning for both mobile and desktop
   top: top,
   left: left,
@@ -187,7 +212,7 @@ const ImageItem = styled(Box, {
   zIndex: zIndex,
   marginBottom: '0', // No margin needed with absolute positioning
   opacity: isVisible ? 1 : 0,
-  transform: isVisible ? 'translateY(-50%)' : 'translateY(-50%) scale(0.98)',
+  transform: isVisible ? 'translateY(-50%) translateZ(0)' : 'translateY(-50%) translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
   willChange: 'transform, opacity',
   backfaceVisibility: 'hidden', // GPU optimization
@@ -195,7 +220,7 @@ const ImageItem = styled(Box, {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
-    borderRadius: '2px',
+    borderRadius: isPhoto ? '2px' : '0',
     boxShadow: 'none', // No shadows
     backfaceVisibility: 'hidden',
     transform: 'translateZ(0)', // Force GPU acceleration
@@ -220,19 +245,136 @@ const AmourGallery = ({ onBack }) => {
 
   // Get theme for media queries
   const theme = useTheme();
+  // Definición de breakpoints
+  const isXs = useMediaQuery(theme.breakpoints.down('xs'));
+  const isSm = useMediaQuery(theme.breakpoints.between('xs', 'sm'));
+  const isMd = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  const isLg = useMediaQuery(theme.breakpoints.between('md', 'lg'));
+  const isXl = useMediaQuery(theme.breakpoints.up('lg'));
+
+  // Estado de breakpoints activos
+  const activeBreakpoints = { isXs, isSm, isMd, isLg, isXl };
+  // Para useSmoothScroll
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // Images for AMOUR gallery
+  // Images for AMOUR gallery - ELIMINADA la imagen 3 problemática
   const images = useMemo(() => [
     '/images/AMOUR/ADELAMOUR-1.jpg',
     '/images/AMOUR/ADELAMOUR-2.jpg',
-    '/images/AMOUR/ADELAMOUR-3.jpg',
+    // ADELAMOUR-3.jpg ha sido eliminada
     '/images/AMOUR/ADELAMOUR-4.jpg',
     '/images/AMOUR/ADELAMOUR-5.jpg',
     '/images/AMOUR/ADELAMOUR-6.jpg',
     '/images/AMOUR/ADELAMOUR-7.jpg',
     '/images/AMOUR/ADELAMOUR-8.jpg',
   ], []);
+
+  // CONFIGURACIÓN DE ESTILOS RESPONSIVOS PARA IMÁGENES
+  // --------------------------------------------------
+  // NOTA: Solo se han ajustado las posiciones en móvil (sm y xs)
+  // Los valores de desktop (xl, lg, md) permanecen iguales a los originales
+  const imageConfigurations = {
+    // =========== IMAGEN 1 ===========
+    AMOUR1: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "50%", left: "450px", height: "85vh", innerMaxWidth: "600px", zIndex: 2 },
+      lg: { top: "50%", left: "450px", height: "85vh", innerMaxWidth: "550px", zIndex: 2 },
+      md: { top: "50%", left: "450px", height: "85vh", innerMaxWidth: "500px", zIndex: 2 },
+      // Móvil - AJUSTADO
+      sm: { top: "45%", left: "220px", height: "70vh", innerMaxWidth: "350px", zIndex: 2 },
+      xs: { top: "45%", left: "180px", height: "65vh", innerMaxWidth: "80vw", zIndex: 2 },
+    },
+    
+    // =========== IMAGEN 2 ===========
+    AMOUR2: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "50%", left: "1350px", height: "60vh", innerMaxWidth: "500px", zIndex: 2 },
+      lg: { top: "50%", left: "1350px", height: "60vh", innerMaxWidth: "480px", zIndex: 2 },
+      md: { top: "50%", left: "1350px", height: "60vh", innerMaxWidth: "450px", zIndex: 2 },
+      // Móvil - AJUSTADO: Más a la izquierda para superposición
+      sm: { top: "45%", left: "850px", height: "55vh", innerMaxWidth: "300px", zIndex: 2 },
+      xs: { top: "45%", left: "650px", height: "50vh", innerMaxWidth: "70vw", zIndex: 2 },
+    },
+    
+    // =========== IMAGEN 6 en posición 3 ===========
+    // Esta configuración es para la imagen 6 que aparece en el lugar donde estaba la imagen 3
+    AMOUR6_POSITION3: { 
+      // Desktop - valores originales del renderGalleryContent() original
+      xl: { top: "55%", left: "1770px", height: "60vh", innerMaxWidth: "500px", zIndex: 2 },
+      lg: { top: "55%", left: "1770px", height: "60vh", innerMaxWidth: "480px", zIndex: 2 },
+      md: { top: "55%", left: "1770px", height: "60vh", innerMaxWidth: "450px", zIndex: 2 },
+      // Móvil - AJUSTADO
+      sm: { top: "50%", left: "1100px", height: "55vh", innerMaxWidth: "300px", zIndex: 2 },
+      xs: { top: "50%", left: "1000px", height: "50vh", innerMaxWidth: "70vw", zIndex: 2 },
+    },
+    
+    // =========== IMAGEN 4 ===========
+    AMOUR4: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "60%", left: "3850px", height: "65vh", innerMaxWidth: "550px", zIndex: 2 },
+      lg: { top: "60%", left: "3850px", height: "65vh", innerMaxWidth: "520px", zIndex: 2 },
+      md: { top: "60%", left: "3850px", height: "65vh", innerMaxWidth: "500px", zIndex: 2 },
+      // Móvil - AJUSTADO
+      sm: { top: "55%", left: "2400px", height: "60vh", innerMaxWidth: "320px", zIndex: 2 },
+      xs: { top: "55%", left: "2300px", height: "55vh", innerMaxWidth: "80vw", zIndex: 2 },
+    },
+    
+    // =========== IMAGEN 5 ===========
+    AMOUR5: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "50%", left: "2550px", height: "100vh", innerMaxWidth: "800px", zIndex: 2 },
+      lg: { top: "50%", left: "2550px", height: "95vh", innerMaxWidth: "750px", zIndex: 2 },
+      md: { top: "50%", left: "2550px", height: "90vh", innerMaxWidth: "700px", zIndex: 2 },
+      // Móvil - AJUSTADO
+      sm: { top: "45%", left: "1700px", height: "90vh", innerMaxWidth: "600px", zIndex: 2 },
+      xs: { top: "45%", left: "1600px", height: "85vh", innerMaxWidth: "90vw", zIndex: 2 },
+    },
+    
+    // =========== IMAGEN 6 en posición normal ===========
+    AMOUR6: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "40%", left: "4350px", height: "60vh", innerMaxWidth: "550px", zIndex: 2 },
+      lg: { top: "40%", left: "4350px", height: "60vh", innerMaxWidth: "520px", zIndex: 2 },
+      md: { top: "40%", left: "4350px", height: "60vh", innerMaxWidth: "500px", zIndex: 2 },
+      // Móvil - AJUSTADO
+      sm: { top: "40%", left: "2750px", height: "55vh", innerMaxWidth: "300px", zIndex: 2 },
+      xs: { top: "40%", left: "2550px", height: "50vh", innerMaxWidth: "70vw", zIndex: 2 },
+    },
+    
+    // =========== IMAGEN 7 ===========
+    AMOUR7: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "50%", left: "5250px", height: "85vh", innerMaxWidth: "650px", zIndex: 2 },
+      lg: { top: "50%", left: "5250px", height: "85vh", innerMaxWidth: "600px", zIndex: 2 },
+      md: { top: "50%", left: "5250px", height: "85vh", innerMaxWidth: "550px", zIndex: 2 },
+      // Móvil - AJUSTADO
+      sm: { top: "45%", left: "3300px", height: "75vh", innerMaxWidth: "400px", zIndex: 2 },
+      xs: { top: "45%", left: "3100px", height: "70vh", innerMaxWidth: "85vw", zIndex: 2 },
+    },
+    
+    // =========== IMAGEN 8 ===========
+    AMOUR8: { 
+      // Desktop - valores originales sin cambios
+      xl: { top: "50%", left: "6000px", height: "85vh", innerMaxWidth: "650px", zIndex: 2 },
+      lg: { top: "50%", left: "6000px", height: "85vh", innerMaxWidth: "600px", zIndex: 2 },
+      md: { top: "50%", left: "6000px", height: "85vh", innerMaxWidth: "550px", zIndex: 2 },
+      // Móvil - AJUSTADO
+      sm: { top: "45%", left: "3800px", height: "75vh", innerMaxWidth: "400px", zIndex: 2 },
+      xs: { top: "45%", left: "3900px", height: "70vh", innerMaxWidth: "85vw", zIndex: 2 },
+    },
+  };
+
+  // Función para obtener estilos según breakpoint
+  const getCurrentStyles = (imageKey, breakpoints) => {
+    const config = imageConfigurations[imageKey];
+    if (!config) return {}; // Fallback
+    if (breakpoints.isXs) return config.xs || config.sm; // Fallback a sm si xs no está definido
+    if (breakpoints.isSm) return config.sm;
+    if (breakpoints.isMd) return config.md;
+    if (breakpoints.isLg) return config.lg;
+    if (breakpoints.isXl) return config.xl;
+    return config.xl; // Default a xl
+  };
   
   // Updated visibility check to always use horizontal scrolling logic
   const checkVisibility = useCallback(() => {
@@ -242,7 +384,7 @@ const AmourGallery = ({ onBack }) => {
     const containerRect = container.getBoundingClientRect();
     const containerWidth = containerRect.width;
     
-    const preloadMargin = containerWidth * 0.8;
+    const preloadMargin = containerWidth * 1.2; // Aumentado para mejor precarga
     
     const newVisibility = {};
     
@@ -382,6 +524,29 @@ const AmourGallery = ({ onBack }) => {
     };
   }, [loading]);
 
+  // Ajustes específicos para iOS
+  useEffect(() => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    if (isIOS) {
+      document.documentElement.style.height = '100%';
+      document.body.style.height = '100%';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.overflowY = 'hidden';
+    }
+    
+    return () => {
+      if (isIOS) {
+        document.documentElement.style.height = '';
+        document.body.style.height = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.overflowY = '';
+      }
+    };
+  }, []);
+
   // Set up IntersectionObserver for visibility detection
   useEffect(() => {
     if (loading || !containerRef.current) return;
@@ -421,122 +586,201 @@ const AmourGallery = ({ onBack }) => {
         observer.disconnect();
       };
     }
-  }, [loading, isMobile, checkVisibility]);
+  }, [loading, checkVisibility]);
 
-  // Gallery content rendering function for both mobile and desktop
-  // Images are arranged horizontally following the reference image
+  // Renderizar imágenes - AJUSTADO para mostrar la imagen 6 en la posición 3
   const renderGalleryContent = () => (
     <>
       {/* Image 1 */}
       <ImageItem 
         ref={el => imageRefs.current[0] = el}
-        top="50%"
-        left="450px"
-        height="85vh"
+        top={getCurrentStyles('AMOUR1', activeBreakpoints).top}
+        left={getCurrentStyles('AMOUR1', activeBreakpoints).left}
+        height={getCurrentStyles('AMOUR1', activeBreakpoints).height}
         width="auto"
-        zIndex={2}
+        zIndex={getCurrentStyles('AMOUR1', activeBreakpoints).zIndex}
         isVisible={visibleImages[0] !== false}
-        isMobile={isMobile}
       >
-        <Box component="img" src={images[0]} alt="ADELAMOUR 1" loading="eager" />
+        <Box 
+          component="img" 
+          src={images[0]} 
+          alt="ADELAMOUR 1" 
+          loading="eager"
+          sx={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            maxWidth: getCurrentStyles('AMOUR1', activeBreakpoints).innerMaxWidth,
+          }}
+        />
       </ImageItem>
       
       {/* Image 2 */}
       <ImageItem 
         ref={el => imageRefs.current[1] = el}
-        top="50%"
-        left="1350px"
-        height="60vh"
+        top={getCurrentStyles('AMOUR2', activeBreakpoints).top}
+        left={getCurrentStyles('AMOUR2', activeBreakpoints).left}
+        height={getCurrentStyles('AMOUR2', activeBreakpoints).height}
         width="auto"
-        zIndex={2}
+        zIndex={getCurrentStyles('AMOUR2', activeBreakpoints).zIndex}
         isVisible={visibleImages[1] !== false}
-        isMobile={isMobile}
       >
-        <Box component="img" src={images[1]} alt="ADELAMOUR 2" loading="lazy" />
+        <Box 
+          component="img" 
+          src={images[1]} 
+          alt="ADELAMOUR 2" 
+          loading="eager"
+          sx={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            maxWidth: getCurrentStyles('AMOUR2', activeBreakpoints).innerMaxWidth,
+          }}
+        />
       </ImageItem>
       
-      {/* Image 6 */}
+      {/* Image 6 en posición 3 - Usando la imagen 6 (índice 4) pero en la posición donde iba la imagen 3 */}
       <ImageItem 
-        ref={el => imageRefs.current[5] = el}
-        top="55%"
-        left="1770px"
-        height="60vh"
+        ref={el => imageRefs.current[2] = el}
+        top={getCurrentStyles('AMOUR6_POSITION3', activeBreakpoints).top}
+        left={getCurrentStyles('AMOUR6_POSITION3', activeBreakpoints).left}
+        height={getCurrentStyles('AMOUR6_POSITION3', activeBreakpoints).height}
         width="auto"
-        zIndex={2}
-        isVisible={visibleImages[5] !== false}
-        isMobile={isMobile}
+        zIndex={getCurrentStyles('AMOUR6_POSITION3', activeBreakpoints).zIndex}
+        isVisible={visibleImages[2] !== false}
       >
-        <Box component="img" src={images[5]} alt="ADELAMOUR 6" loading="lazy" />
+        <Box 
+          component="img" 
+          src={images[4]} /* Usando imagen 6 (índice 4 en el array) */
+          alt="ADELAMOUR 6 (en pos. 3)" 
+          loading="eager"
+          sx={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            maxWidth: getCurrentStyles('AMOUR6_POSITION3', activeBreakpoints).innerMaxWidth,
+          }}
+        />
       </ImageItem>
       
       {/* Image 4 */}
       <ImageItem 
         ref={el => imageRefs.current[3] = el}
-        top="60%"
-        left="3850px"
-        height="65vh"
+        top={getCurrentStyles('AMOUR4', activeBreakpoints).top}
+        left={getCurrentStyles('AMOUR4', activeBreakpoints).left}
+        height={getCurrentStyles('AMOUR4', activeBreakpoints).height}
         width="auto"
-        zIndex={2}
+        zIndex={getCurrentStyles('AMOUR4', activeBreakpoints).zIndex}
         isVisible={visibleImages[3] !== false}
-        isMobile={isMobile}
       >
-        <Box component="img" src={images[3]} alt="ADELAMOUR 4" loading="lazy" />
+        <Box 
+          component="img" 
+          src={images[2]} /* Imagen 4 es índice 2 en array actualizado */
+          alt="ADELAMOUR 4" 
+          loading="lazy"
+          sx={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            maxWidth: getCurrentStyles('AMOUR4', activeBreakpoints).innerMaxWidth,
+          }}
+        />
       </ImageItem>
       
       {/* Image 5 */}
       <ImageItem 
         ref={el => imageRefs.current[4] = el}
-        top="50%"
-        left="2550px"
-        height="100vh"
+        top={getCurrentStyles('AMOUR5', activeBreakpoints).top}
+        left={getCurrentStyles('AMOUR5', activeBreakpoints).left}
+        height={getCurrentStyles('AMOUR5', activeBreakpoints).height}
         width="auto"
-        zIndex={2}
+        zIndex={getCurrentStyles('AMOUR5', activeBreakpoints).zIndex}
         isVisible={visibleImages[4] !== false}
-        isMobile={isMobile}
       >
-        <Box component="img" src={images[4]} alt="ADELAMOUR 5" loading="lazy" />
+        <Box 
+          component="img" 
+          src={images[3]} /* Imagen 5 es índice 3 en array actualizado */
+          alt="ADELAMOUR 5" 
+          loading="lazy"
+          sx={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            maxWidth: getCurrentStyles('AMOUR5', activeBreakpoints).innerMaxWidth,
+          }}
+        />
       </ImageItem>
       
-      {/* Image 6 */}
+      {/* Image 6 en su posición original */}
       <ImageItem 
         ref={el => imageRefs.current[5] = el}
-        top="40%"
-        left="4350px"
-        height="60vh"
+        top={getCurrentStyles('AMOUR6', activeBreakpoints).top}
+        left={getCurrentStyles('AMOUR6', activeBreakpoints).left}
+        height={getCurrentStyles('AMOUR6', activeBreakpoints).height}
         width="auto"
-        zIndex={2}
+        zIndex={getCurrentStyles('AMOUR6', activeBreakpoints).zIndex}
         isVisible={visibleImages[5] !== false}
-        isMobile={isMobile}
       >
-        <Box component="img" src={images[5]} alt="ADELAMOUR 6" loading="lazy" />
+        <Box 
+          component="img" 
+          src={images[4]} /* Imagen 6 es índice 4 en array actualizado */
+          alt="ADELAMOUR 6" 
+          loading="lazy"
+          sx={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            maxWidth: getCurrentStyles('AMOUR6', activeBreakpoints).innerMaxWidth,
+          }}
+        />
       </ImageItem>
       
       {/* Image 7 */}
       <ImageItem 
         ref={el => imageRefs.current[6] = el}
-        top="50%"
-        left="5250px"
-        height="85vh"
+        top={getCurrentStyles('AMOUR7', activeBreakpoints).top}
+        left={getCurrentStyles('AMOUR7', activeBreakpoints).left}
+        height={getCurrentStyles('AMOUR7', activeBreakpoints).height}
         width="auto"
-        zIndex={2}
+        zIndex={getCurrentStyles('AMOUR7', activeBreakpoints).zIndex}
         isVisible={visibleImages[6] !== false}
-        isMobile={isMobile}
       >
-        <Box component="img" src={images[6]} alt="ADELAMOUR 7" loading="lazy" />
+        <Box 
+          component="img" 
+          src={images[5]} /* Imagen 7 es índice 5 en array actualizado */
+          alt="ADELAMOUR 7" 
+          loading="lazy"
+          sx={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            maxWidth: getCurrentStyles('AMOUR7', activeBreakpoints).innerMaxWidth,
+          }}
+        />
       </ImageItem>
       
       {/* Image 8 */}
       <ImageItem 
         ref={el => imageRefs.current[7] = el}
-        top="50%"
-        left="6000px"
-        height="85vh"
+        top={getCurrentStyles('AMOUR8', activeBreakpoints).top}
+        left={getCurrentStyles('AMOUR8', activeBreakpoints).left}
+        height={getCurrentStyles('AMOUR8', activeBreakpoints).height}
         width="auto"
-        zIndex={2}
+        zIndex={getCurrentStyles('AMOUR8', activeBreakpoints).zIndex}
         isVisible={visibleImages[7] !== false}
-        isMobile={isMobile}
       >
-        <Box component="img" src={images[7]} alt="ADELAMOUR 8" loading="lazy" />
+        <Box 
+          component="img" 
+          src={images[6]} /* Imagen 8 es índice 6 en array actualizado */
+          alt="ADELAMOUR 8" 
+          loading="lazy"
+          sx={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            maxWidth: getCurrentStyles('AMOUR8', activeBreakpoints).innerMaxWidth,
+          }}
+        />
       </ImageItem>
     </>
   );
@@ -559,9 +803,12 @@ const AmourGallery = ({ onBack }) => {
           <CircularProgress 
             variant="determinate" 
             value={loadProgress} 
-            size={60} 
-            thickness={4}
-            sx={{ color: galleryTheme.text }}
+            size={70} 
+            thickness={3}
+            sx={{ 
+              color: galleryTheme.text,
+              marginTop: '10px',
+            }}
           />
         </LoadingScreen>
       )}
@@ -571,8 +818,7 @@ const AmourGallery = ({ onBack }) => {
         ref={progressBarRef}
         data-scroll-progress 
         sx={{ 
-          opacity: loading ? 0 : 1,
-          width: `${scrollProgress}%`
+          opacity: loading ? 0 : 1
         }} 
       />
       
