@@ -506,7 +506,7 @@ const ConstelacionGallery = ({ onBack }) => {
         top="50%"
         left="450px"
         width="auto"
-        height="75vh"
+        height="85vh"
         zIndex={2}
         isVisible={visibleImages[0] !== false}
         isMobile={isMobile}
@@ -515,7 +515,7 @@ const ConstelacionGallery = ({ onBack }) => {
         mobileTop="45%" 
         mobileLeft="270px"
         mobileHeight="70vh"
-        mobileWidth="70vw"
+        mobileWidth="70vh"
       >
         <Box 
           component="img" 

@@ -252,9 +252,9 @@ const VideoContainer = styled(Box, {
   },
 }));
 
-// Logo item - Responsive version with adaptive sizing for mobile
+// Logo item - Responsive version with adaptive sizing for mobile with new hover effect
 const LogoItem = styled(Box, {
-  shouldForwardProp: (prop) => !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileWidth', 'mobileHeight'].includes(prop)
+  shouldForwardProp: (prop) => !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileWidth', 'mobileHeight', 'isInteractive', 'isPlaying'].includes(prop)
 })(({ 
   theme, 
   top, 
@@ -268,7 +268,10 @@ const LogoItem = styled(Box, {
   mobileTop,
   mobileLeft,
   mobileWidth,
-  mobileHeight 
+  mobileHeight,
+  // New props for interactivity
+  isInteractive = false,
+  isPlaying = false
 }) => ({
   position: 'absolute',
   top: top,
@@ -281,6 +284,7 @@ const LogoItem = styled(Box, {
   transition: 'opacity 0.5s ease, transform 0.5s ease',
   willChange: 'transform, opacity',
   backfaceVisibility: 'hidden', // GPU optimization
+  cursor: isInteractive ? 'pointer' : 'default',
   '& img': {
     width: '100%',
     height: '100%',
@@ -289,6 +293,16 @@ const LogoItem = styled(Box, {
     boxShadow: 'none',
     backfaceVisibility: 'hidden',
     transform: 'translateZ(0)', // Force GPU acceleration
+    transition: 'transform 0.3s ease-in-out', // Smooth transition for hover effect
+    ...(isInteractive && {
+      '&:hover': {
+        transform: 'translateZ(0) scale(1.08)', // Scale up on hover
+      },
+      ...(isPlaying && {
+        transform: 'translateZ(0) scale(1.05)', // Slightly scaled when playing
+        filter: 'brightness(1.1)', // Slightly brighter when playing
+      }),
+    }),
   },
   [theme.breakpoints.down('sm')]: {
     top: mobileTop || top,
@@ -302,6 +316,10 @@ const CaldoGallery = ({ onBack }) => {
   // Loading screen state
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
+  
+  // New audio state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
 
   // References for animation elements
   const titleRef = useRef(null);
@@ -324,11 +342,28 @@ const CaldoGallery = ({ onBack }) => {
     C5: '/images/CALDO/CALDO-5.mp4',
     C6: '/images/CALDO/CALDO-6.png', // Logo CALDO BASTARDO
     C7: '/images/CALDO/CALDO-7.mp4',
-    C8: '/images/CALDO/CALDO-8.png'  // Logo GRDN
+    C8: '/images/CALDO/CALDO-8.png',  // Logo GRDN
+    AUDIO: '/videos/CALDO AUDIO.mp3', // New audio file
   }), []);
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
+  // Handle audio playback toggle
+  const toggleAudio = useCallback(() => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play().catch(e => {
+          console.error('Error playing audio:', e);
+          // Fallback for browsers that require user interaction
+          alert('Click again to play audio');
+        });
+      }
+      setIsPlaying(!isPlaying);
+    }
+  }, [isPlaying]);
   
   // Updated visibility check to always use horizontal scrolling logic
   const checkVisibility = useCallback(() => {
@@ -518,15 +553,47 @@ const CaldoGallery = ({ onBack }) => {
     }
   }, [loading, isMobile, checkVisibility]);
 
+  // Setup audio element
+  useEffect(() => {
+    // Set up audio element and event listeners when component mounts
+    if (audioRef.current) {
+      audioRef.current.addEventListener('ended', () => {
+        setIsPlaying(false);
+      });
+      
+      // Optional: preload audio
+      audioRef.current.load();
+    }
+    
+    // Clean up when component unmounts
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.removeEventListener('ended', () => {
+          setIsPlaying(false);
+        });
+      }
+    };
+  }, []);
+
   // Single gallery content rendering function for both mobile and desktop
   const renderGalleryContent = () => (
     <>
+      {/* Hidden audio element */}
+      <Box 
+        component="audio" 
+        ref={audioRef} 
+        src={content.AUDIO} 
+        sx={{ display: 'none' }} 
+        onEnded={() => setIsPlaying(false)}
+      />
+      
       {/* Imagen de portada - izquierda */}
       <ImageItem 
         ref={el => imageRefs.current[0] = el}
         top="50%"
         left="450px"
-        height="75vh"
+        height="85vh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[0] !== false}
@@ -677,7 +744,7 @@ const CaldoGallery = ({ onBack }) => {
         />
       </VideoContainer>
       
-      {/* Logo CALDO BASTARDO - CALDO-6.png - centro */}
+      {/* Logo CALDO BASTARDO - CALDO-6.png - centro - WITH AUDIO INTERACTION */}
       <LogoItem 
         ref={el => imageRefs.current[5] = el}
         top="45%"
@@ -687,13 +754,28 @@ const CaldoGallery = ({ onBack }) => {
         zIndex={3}
         isVisible={visibleImages[5] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        isInteractive={true} // New prop for hover effect
+        isPlaying={isPlaying} // New prop to track audio state
+        onClick={toggleAudio} // Click handler to play/pause audio
+        sx={{ 
+          transform: 'translateY(-50%) translateZ(0)',
+          cursor: 'pointer', // Show pointer on hover
+        }}
         // Ajustes específicos para móvil
         mobileTop="45%"
         mobileLeft="2550px"
         mobileWidth="450px"
       >
-        <Box component="img" src={content.C6} alt="CALDO BASTARDO" loading="eager" />
+        <Box 
+          component="img" 
+          src={content.C6} 
+          alt="CALDO BASTARDO" 
+          loading="eager"
+          sx={{ 
+            // Visual indicator when audio is playing
+            filter: isPlaying ? 'brightness(1.1)' : 'brightness(1)',
+          }}
+        />
       </LogoItem>
       
       {/* Video 5 - CALDO-7.mp4 en marco */}

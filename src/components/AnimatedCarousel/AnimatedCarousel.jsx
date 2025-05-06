@@ -24,7 +24,6 @@ const AnimatedCarousel = ({
     "./images/blua_constelaciones_finales.jpg",
     "./images/PLATA/PLATA-2.jpg",
     "./images/CAT-17.jpg",
-    "./images/D-09.jpg",
     "./images/L-12.jpg",
     "./images/NWB&W-09.jpg",
     "./images/S-1.jpg",
@@ -32,7 +31,7 @@ const AnimatedCarousel = ({
     "./images/TEO/V1.jpg",
     "./images/LENOIR/LENOIR-1.jpg",
     "./images/KABOA/KABOA-1.jpg", // Add this line to include KABOA
-    "./images/AMOUR/ADELAMOUR-1.jpg",
+    "./images/AMOUR/portada.jpg",
     "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg",
     "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg",
   ], []);

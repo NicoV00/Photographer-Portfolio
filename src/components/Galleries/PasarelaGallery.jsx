@@ -101,8 +101,9 @@ const GalleryContainer = styled(Box, {
   const gradientProgress = Math.min(Math.max((scrollPosition - scrollThreshold) / transitionLength, 0), 1);
   
   // Color stays the same (dark) throughout
-  const initialColor = '#121212'; // Dark background
-  const finalColor = '#121212';   // Dark background
+  const initialColor = galleryTheme.main;
+  const finalColor = galleryTheme.main;
+  
   
   // Color interpolation function
   const interpolateColor = (progress) => {
@@ -513,7 +514,7 @@ const PasarelaGallery = ({ onBack }) => {
       <ImageItem 
         ref={el => imageRefs.current[11] = el}
         top="50%"
-        left="7500px"
+        left="7400px"
         height="100vh"
         width="auto"
         zIndex={3}
@@ -578,8 +579,8 @@ const PasarelaGallery = ({ onBack }) => {
       <ImageItem 
         ref={el => imageRefs.current[10] = el}
         top="50%"
-        left="6750px"
-        height="60vh"
+        left="6515px"
+        height="70vh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[10] !== false}
@@ -591,7 +592,7 @@ const PasarelaGallery = ({ onBack }) => {
       <ImageItem 
         ref={el => imageRefs.current[12] = el}
         top="50%"
-        left="8400px"
+        left="8500px"
         height="85vh"
         width="auto"
         zIndex={2}

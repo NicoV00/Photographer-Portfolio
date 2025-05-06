@@ -102,7 +102,7 @@ function App() {
     "./images/PLATA/PLATA-2.jpg": "plata",
     "./images/LENOIR/LENOIR-1.jpg": "lenoir",
     "./images/KABOA/KABOA-1.jpg": "kaboa",
-    "./images/AMOUR/ADELAMOUR-1.jpg": "amour",
+    "./images/AMOUR/portada.jpg": "amour",
     "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg": "marcos",
     "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg": "pasarela" // Añadir PASARELA
   };

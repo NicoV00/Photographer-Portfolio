@@ -51,7 +51,7 @@ const galleryMap = {
     component: KaboaGallery,
     props: {}
   },
-  "./images/AMOUR/ADELAMOUR-1.jpg": {
+  "./images/AMOUR/portada.jpg": {
     component: AmourGallery,
     props: {}
   },

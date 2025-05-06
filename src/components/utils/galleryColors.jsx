@@ -33,8 +33,8 @@ const galleryColors = {
   },
   "pasarela": {          // Añadido esquema de colores para PASARELA
     main: "#1e1815",     // Fondo negro/oscuro para la pasarela
-    text: "#FFFFFF",     // Texto blanco para fondo oscuro
-    highlight: "#FFFFFF" // Highlights en blanco
+    text: "#13359B",     // Texto blanco para fondo oscuro
+    highlight: "#13359B" // Highlights en blanco
   },
   "plata": {
     main: "#e6e6e6",     // Actualizado a gris claro (como BLUA)

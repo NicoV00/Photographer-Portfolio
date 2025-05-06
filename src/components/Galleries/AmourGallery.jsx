@@ -261,10 +261,11 @@ const AmourGallery = ({ onBack }) => {
   const images = useMemo(() => [
     '/images/AMOUR/ADELAMOUR-1.jpg',
     '/images/AMOUR/ADELAMOUR-2.jpg',
+    '/images/AMOUR/ADELAMOUR-6.jpg',
     // ADELAMOUR-3.jpg ha sido eliminada
     '/images/AMOUR/ADELAMOUR-4.jpg',
     '/images/AMOUR/ADELAMOUR-5.jpg',
-    '/images/AMOUR/ADELAMOUR-6.jpg',
+    '/images/AMOUR/sape.jpg',
     '/images/AMOUR/ADELAMOUR-7.jpg',
     '/images/AMOUR/ADELAMOUR-8.jpg',
   ], []);
@@ -311,9 +312,9 @@ const AmourGallery = ({ onBack }) => {
     // =========== IMAGEN 4 ===========
     AMOUR4: { 
       // Desktop - valores originales sin cambios
-      xl: { top: "60%", left: "3850px", height: "65vh", innerMaxWidth: "550px", zIndex: 2 },
-      lg: { top: "60%", left: "3850px", height: "65vh", innerMaxWidth: "520px", zIndex: 2 },
-      md: { top: "60%", left: "3850px", height: "65vh", innerMaxWidth: "500px", zIndex: 2 },
+      xl: { top: "50%", left: "3450px", height: "65vh", innerMaxWidth: "550px", zIndex: 3 },
+      lg: { top: "50%", left: "3450px", height: "65vh", innerMaxWidth: "520px", zIndex: 3 },
+      md: { top: "50%", left: "3450px", height: "65vh", innerMaxWidth: "500px", zIndex: 3 },
       // Móvil - AJUSTADO
       sm: { top: "55%", left: "2400px", height: "60vh", innerMaxWidth: "320px", zIndex: 2 },
       xs: { top: "55%", left: "2300px", height: "55vh", innerMaxWidth: "80vw", zIndex: 2 },
@@ -322,9 +323,9 @@ const AmourGallery = ({ onBack }) => {
     // =========== IMAGEN 5 ===========
     AMOUR5: { 
       // Desktop - valores originales sin cambios
-      xl: { top: "50%", left: "2550px", height: "100vh", innerMaxWidth: "800px", zIndex: 2 },
-      lg: { top: "50%", left: "2550px", height: "95vh", innerMaxWidth: "750px", zIndex: 2 },
-      md: { top: "50%", left: "2550px", height: "90vh", innerMaxWidth: "700px", zIndex: 2 },
+      xl: { top: "50%", left: "2750px", height: "100vh", innerMaxWidth: "800px", zIndex: 2 },
+      lg: { top: "50%", left: "2750px", height: "95vh", innerMaxWidth: "750px", zIndex: 2 },
+      md: { top: "50%", left: "2750px", height: "90vh", innerMaxWidth: "700px", zIndex: 2 },
       // Móvil - AJUSTADO
       sm: { top: "45%", left: "1700px", height: "90vh", innerMaxWidth: "600px", zIndex: 2 },
       xs: { top: "45%", left: "1600px", height: "85vh", innerMaxWidth: "90vw", zIndex: 2 },
@@ -333,9 +334,9 @@ const AmourGallery = ({ onBack }) => {
     // =========== IMAGEN 6 en posición normal ===========
     AMOUR6: { 
       // Desktop - valores originales sin cambios
-      xl: { top: "40%", left: "4350px", height: "60vh", innerMaxWidth: "550px", zIndex: 2 },
-      lg: { top: "40%", left: "4350px", height: "60vh", innerMaxWidth: "520px", zIndex: 2 },
-      md: { top: "40%", left: "4350px", height: "60vh", innerMaxWidth: "500px", zIndex: 2 },
+      xl: { top: "50%", left: "4450px", height: "85vh", innerMaxWidth: "650px", zIndex: 2 },
+      lg: { top: "50%", left: "4450px", height: "80vh", innerMaxWidth: "620px", zIndex: 2 },
+      md: { top: "50%", left: "4450px", height: "80vh", innerMaxWidth: "600px", zIndex: 2 },
       // Móvil - AJUSTADO
       sm: { top: "40%", left: "2750px", height: "55vh", innerMaxWidth: "300px", zIndex: 2 },
       xs: { top: "40%", left: "2550px", height: "50vh", innerMaxWidth: "70vw", zIndex: 2 },

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, useTheme, useMediaQuery, CircularProgress } from '@mui/material';
+import { Box, useTheme, useMediaQuery } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
@@ -9,15 +9,25 @@ import { getGalleryColors } from '../utils/galleryColors';
 // Get the color theme for this gallery
 const galleryTheme = getGalleryColors('plata');
 
-// Custom font loading
-const GlobalStyle = styled('style')({
+// Custom font loading - separamos cada declaración de fuente en su propio componente
+const MediumFontStyle = styled('style')({
   '@font-face': {
     fontFamily: 'Medium OTF',
     src: 'url("/fonts/Medium.otf") format("opentype")',
     fontWeight: 'normal',
     fontStyle: 'normal',
     fontDisplay: 'swap',
-  },
+  }
+});
+
+const MyriadFontStyle = styled('style')({
+  '@font-face': {
+    fontFamily: 'MYRIADPRO-BOLD',
+    src: 'url("/fonts/MYRIADPRO-BOLD.OTF") format("opentype")',
+    fontWeight: 'bold',
+    fontStyle: 'normal',
+    fontDisplay: 'swap',
+  }
 });
 
 // Loading screen
@@ -51,9 +61,9 @@ const ScrollProgressBar = styled(Box)({
   boxShadow: '0 0 3px rgba(255,255,255,0.2)',
 });
 
-// Separate components for PLATA and 2024
+// Separate components for PLATA and 2024 - Ahora usando MYRIADPRO-BOLD
 const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
+  fontFamily: '"MYRIADPRO-BOLD", sans-serif',
   fontSize: '45px',
   fontWeight: 'bold',
   color: '#000000', // Texto negro en la pantalla de carga
@@ -64,7 +74,7 @@ const LoadingTitle = styled(Box)(({ theme }) => ({
 }));
 
 const LoadingYear = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
+  fontFamily: '"MYRIADPRO-BOLD", sans-serif',
   fontSize: '40px',
   fontWeight: 'bold',
   color: '#000000', // Texto negro en la pantalla de carga
@@ -74,6 +84,28 @@ const LoadingYear = styled(Box)(({ theme }) => ({
   transform: 'translateY(100px)',
   opacity: 0,
   marginBottom: '40px',
+}));
+
+// Barra de progreso personalizada
+const ProgressBarContainer = styled(Box)({
+  width: '300px', // Más ancha que el texto PLATA
+  height: '8px', // Altura de la barra
+  backgroundColor: 'rgba(0, 0, 0, 0.1)', // Fondo sutil
+  borderRadius: '4px',
+  overflow: 'hidden',
+  position: 'relative',
+  marginBottom: '20px',
+});
+
+const ProgressBarFill = styled(Box)(({ progress }) => ({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: `${progress}%`,
+  height: '100%',
+  backgroundColor: '#000000', // Color negro igual que el texto
+  borderRadius: '4px',
+  transition: 'width 0.3s ease-out', // Transición suave de la barra
 }));
 
 // Modificación del gradiente en GalleryContainer
@@ -436,16 +468,20 @@ const PlataGallery = ({ onBack }) => {
         <Box component="img" src={images.P3} alt="PLATA 3" loading="eager" />
       </ImageItem>
 
+
       {/* Imagen central */}
       <ImageItem 
         ref={el => imageRefs.current[3] = el}
         top="50%" 
-        left="2100px"
-        height="80vh" 
+        left="2000px"
+        height="100vh" 
         zIndex={2}
         isVisible={visibleImages[3] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ 
+          transform: 'translateY(-50%) translateZ(0) rotate(10deg) scale(1.4)', // Añadido rotate y scale
+          transformOrigin: 'center center'
+        }}
       >
         <Box component="img" src={images.P4} alt="PLATA 4" loading="eager" />
       </ImageItem>
@@ -526,7 +562,7 @@ const PlataGallery = ({ onBack }) => {
         ref={el => imageRefs.current[9] = el}
         top="50%" 
         left="5350px"
-        height="100vh" 
+        height="170vh" 
         zIndex={3}
         isVisible={visibleImages[9] !== false}
         isMobile={isMobile}
@@ -582,26 +618,24 @@ const PlataGallery = ({ onBack }) => {
 
   return (
     <>
-      <GlobalStyle />
+      <MediumFontStyle />
+      <MyriadFontStyle />
       
       {/* Loading screen with title animation */}
       {loading && (
         <LoadingScreen ref={loadingScreenRef}>
           <LoadingTitle ref={titleRef}>
-            PLATA
+            Plata
           </LoadingTitle>
           
           <LoadingYear ref={yearRef}>
             2024
           </LoadingYear>
           
-          <CircularProgress 
-            variant="determinate" 
-            value={loadProgress} 
-            size={60} 
-            thickness={4}
-            sx={{ color: '#000000' }} // Color negro para el indicador de progreso
-          />
+          {/* Barra de progreso personalizada en lugar del círculo */}
+          <ProgressBarContainer>
+            <ProgressBarFill progress={loadProgress} />
+          </ProgressBarContainer>
         </LoadingScreen>
       )}
       
