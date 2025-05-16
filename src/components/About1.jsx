@@ -43,6 +43,7 @@ const About1 = ({
         enabled={!initialTransition}
         minPolarAngle={Math.PI / 4}
         maxPolarAngle={(3 * Math.PI) / 4}
+        enableZoom={false}
       />
       
       <AnimatedCarousel 
