@@ -158,12 +158,7 @@ function IntroVideo({ onIntroComplete }) {
       if (currentTime >= duration - 1) {
         const fadeProgress = Math.min((currentTime - (duration - 1)) / 0.7, 1);
         setImageOpacity(fadeProgress);
-        
-        // Iniciar transición cuando estemos muy cerca del final
-        if (currentTime >= duration - 0.1 && !callbackFiredRef.current) {
-          console.log("Video cerca del final, iniciando transición");
-          triggerTransition();
-        }
+
       }
     };
     

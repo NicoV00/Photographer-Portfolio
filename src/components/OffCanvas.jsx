@@ -308,7 +308,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
             {/* Content sections with improved responsiveness */}
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
-              top: { md: '20rem' },
+              top: { md: '18rem' },
               left: '12px', 
               right: '12px', 
               display: 'flex',
@@ -354,7 +354,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
             
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
-              top: { md: '32rem' },
+              top: { md: '26rem' },
               left: '12px', 
               right: '12px', 
               display: 'flex',
@@ -424,7 +424,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
             
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
-              bottom: { md: '8rem' }, // Lo subo un poco
+              bottom: { md: '6rem' }, // Lo subo un poco
               left: '12px', 
               right: '12px', 
               display: 'flex',
