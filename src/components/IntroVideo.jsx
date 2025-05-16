@@ -271,8 +271,7 @@ function IntroVideo({ onIntroComplete }) {
         Tu navegador no soporta videos.
       </Video>
       
-      {/* Imagen final con opacidad controlada */}
-      <FinalImage opacity={imageOpacity} />
+
       
       {/* Botón de sonido */}
       <SoundButton onClick={toggleMute} isMuted={isMuted}>

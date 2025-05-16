@@ -30,6 +30,7 @@ const StyledDiv = styled.div`
 `;
 
 const QualitySwitch = ({ isHighQuality, onChange }) => {
+  console.log('////////is high?', isHighQuality)
   return (
     <Html position={[0, 0, 0]}
           zIndexRange={[50, 0]}
@@ -131,7 +132,7 @@ const ImageMesh = React.memo(({ position, textureUrl, refProp, onClick, isHighQu
 });
 
 const AnimatedCarousel = ({ setShowCollection, setCollection, setIndex }) => {
-  const [isHighQuality, setIsHighQuality] = useState(false);
+  const [isHighQuality, setIsHighQuality] = useState(true);
   const imageUrls = useMemo(() => [
     "./images/blua_constelaciones_finales.jpg",
     "./images/LF-11.jpg",

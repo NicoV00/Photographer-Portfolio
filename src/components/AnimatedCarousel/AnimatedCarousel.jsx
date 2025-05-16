@@ -15,7 +15,7 @@ const AnimatedCarousel = ({
   initialImageUrl = null,
   onTransitionComplete = null
 }) => {
-  const [isHighQuality, setIsHighQuality] = useState(false);
+  const [isHighQuality, setIsHighQuality] = useState(true);
   const [isInitializing, setIsInitializing] = useState(initialTransition);
   const hasStartedTransitionRef = useRef(false);
   
