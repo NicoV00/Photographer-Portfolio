@@ -266,6 +266,7 @@ const AmourGallery = ({ onBack }) => {
     '/images/AMOUR/ADELAMOUR-4.jpg',
     '/images/AMOUR/ADELAMOUR-5.jpg',
     '/images/AMOUR/sape.jpg',
+    
     '/images/AMOUR/ADELAMOUR-7.jpg',
     '/images/AMOUR/ADELAMOUR-8.jpg',
   ], []);

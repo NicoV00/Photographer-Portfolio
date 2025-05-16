@@ -254,6 +254,10 @@ const AnimatedCarousel = ({
       // Get the gallery color based on the selected image URL
       const galleryImageUrl = imageUrls[index];
       const galleryColors = getGalleryColors(galleryImageUrl);
+      const imageGaleryDict = {
+        "caldo": "/images/CALDO/CALDO-1 (PORTADA).jpg",
+      };
+      
       
       // Pass the gallery colors to parent component
       if (setActiveGalleryColor) {
@@ -263,7 +267,7 @@ const AnimatedCarousel = ({
       // Apply gallery background color to scene
       if (galleryColors && galleryColors.main) {
         // Convert hex color to THREE.Color
-        const newColor = new THREE.Color(galleryColors.main);
+        const newColor = new THREE.Color("#aa88ef");
         backgroundRef.current = newColor;
       }
     } else {

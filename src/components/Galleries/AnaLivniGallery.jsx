@@ -455,7 +455,7 @@ const AnaLivniGallery = ({ onBack }) => {
         ref={el => imageRefs.current[4] = el}
         top="50%" 
         left="2460px" // Aumentado el espaciado
-        height="50vh" 
+        height="80vh" 
         zIndex={1}
         isVisible={visibleImages[4] !== false}
         isMobile={isMobile}
@@ -468,7 +468,7 @@ const AnaLivniGallery = ({ onBack }) => {
       <ImageItem 
         ref={el => imageRefs.current[5] = el}
         top="50%" 
-        left="3100px" 
+        left="3200px" 
         height="50vh" 
         zIndex={2}
         isVisible={visibleImages[5] !== false}

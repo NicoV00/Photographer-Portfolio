@@ -7,6 +7,8 @@ import { CircularProgress, Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import IntroVideo from './components/IntroVideo';
 import CursorManager from './components/CursorManager';
+import { gsap } from 'gsap';
+import * as THREE from 'three';
 
 // Lazy loaded galleries - pero iniciar precarga inmediatamente
 const AnaLivniGallery = lazy(() => import('./components/Galleries/AnaLivniGallery'));
@@ -85,7 +87,11 @@ function App() {
   const [showIntro, setShowIntro] = useState(true);
   const containerRef = useRef(null);
   const photographerNameRef = useRef(null);
-  
+
+  const [bgColor, setBgColor] = useState('#1e1e1e');
+  const glRef = useRef(null);
+  const clearColor = useRef(new THREE.Color(bgColor));
+
   // Estados para la transición
   const [initialTransition, setInitialTransition] = useState(false);
   const [transitionImageUrl, setTransitionImageUrl] = useState(null);
@@ -110,6 +116,40 @@ function App() {
   const handleOffCanvasState = (show) => {
     setIsOffCanvasOpen(show);
   };
+
+  useEffect(() => {
+    const fallback = '#ffffff'; // white as fallback
+    const hex = bgColor?.main || fallback;
+
+    console.log('||||| ---> bgColor RECIBIDO:', hex);
+
+    const newColor = new THREE.Color(hex);
+    gsap.to(clearColor.current, {
+      r: newColor.r,
+      g: newColor.g,
+      b: newColor.b,
+      duration: 1,
+      onUpdate: () => {
+        if (glRef.current) {
+          glRef.current.setClearColor(clearColor.current);
+        }
+      },
+    });
+  }, [bgColor]);
+
+  const hexToRGB = (hex) => {
+    if (typeof hex !== 'string') return [0, 0, 0]; // fallback to black
+
+    const cleanedHex = hex.replace('#', '');
+
+    const bigint = parseInt(cleanedHex, 16);
+    return [
+      ((bigint >> 16) & 255) / 255,
+      ((bigint >> 8) & 255) / 255,
+      (bigint & 255) / 255,
+    ];
+  };
+
 
   // Preparar escena 3D inmediatamente al cargar
   useEffect(() => {
@@ -248,12 +288,16 @@ function App() {
             fov: 64,
             position: [0, 0, 45],
           }}
+          onCreated={({ gl }) => {
+            gl.setClearColor(bgColor);
+            glRef.current = gl;
+          }}
         >
           <About1 
             setIndex={setIndex} 
             setShowCollection={() => {setShowGallery(!showGallery)}} 
             setCollection={(index) => { setCollection(index);}}
-            setActiveGalleryColor={null}
+            setActiveGalleryColor={setBgColor}
             // Props para la transición
             initialTransition={initialTransition}
             initialImageUrl={transitionImageUrl}
