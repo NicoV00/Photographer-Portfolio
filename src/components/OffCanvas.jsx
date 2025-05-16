@@ -8,9 +8,24 @@ import {
   useTheme
 } from '@mui/material';
 
+// Importar la fuente Suisse Intl Medium
+import { createGlobalStyle } from 'styled-components';
+
+// Componente para importar la fuente globalmente
+const GlobalFontStyle = createGlobalStyle`
+  @font-face {
+    font-family: 'Suisse Intl Medium';
+    src: url('fonnts.com-Suisse_Intl_Medium.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+`;
+
 // Import components
 import SequentialGlitchText from './SequentialGlitchText';
-import SmoothGlowingTitle from './SmoothGlowingTitle';
+// Ya no necesitamos importar SmoothGlowingTitle ya que usaremos una imagen
+// import SmoothGlowingTitle from './SmoothGlowingTitle';
 import UruguayTime from './UruguayTime';
 import { 
   InfoButton, 
@@ -175,8 +190,16 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
   // Calculate responsive dimensions
   const drawerWidth = isMobile ? '100%' : isTablet ? '90%' : '800px';
   
+  // Estilo común para todos los textos que NO son "ENZO CIMILLO"
+  const suisseTextStyle = {
+    fontFamily: "'Suisse Intl Medium', sans-serif"
+  };
+  
   return (
     <>
+      {/* Importar la fuente globalmente */}
+      <GlobalFontStyle />
+      
       <InfoButton
         onClick={handleOpen}
         onMouseEnter={() => setIsHovered(true)}
@@ -184,7 +207,8 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
         sx={{ 
           backgroundColor: isHovered ? 'white' : 'black',
           color: isHovered ? 'black' : 'white',
-          boxShadow: isHovered ? '0 0 8px rgba(255,255,255,0.8)' : 'none'
+          boxShadow: isHovered ? '0 0 8px rgba(255,255,255,0.8)' : 'none',
+          fontFamily: "'Suisse Intl Medium', sans-serif" // Aplicar fuente al botón de info
         }}
       >
         I
@@ -204,7 +228,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               height: '100%',
               bgcolor: 'black',
               color: 'white',
-              padding: isMobile ? '12px 20px 12px 12px' : isTablet ? '16px 24px 16px 16px' : '20px',
+              padding: isMobile ? '14px 24px 14px 14px' : isTablet ? '18px 26px 18px 18px' : '22px',
               display: 'flex',
               flexDirection: 'column',
               position: 'relative',
@@ -213,7 +237,8 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               overflowX: 'hidden',
               cursor: 'none', // Hide default cursor in the drawer
               '& *': { 
-                cursor: 'none !important' // Force cursor:none on all child elements
+                cursor: 'none !important', // Force cursor:none on all child elements
+                fontFamily: "'Suisse Intl Medium', sans-serif" // Aplicar fuente globalmente
               }
             }}
           >
@@ -229,116 +254,169 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               width: '100%', 
               display: 'flex', 
               justifyContent: 'center', 
-              padding: isMobile ? '40px 0 10px' : '20px 0',
-              marginBottom: isMobile ? '2rem' : 0
+              pt: { xs: '12px', sm: '16px', md: '8px' }, // menos espacio arriba
+              pb: { xs: '12px', sm: '12px', md: '12px' }, // mantengo bottom
+              marginBottom: isMobile ? '2.5rem' : '0.5rem'
             }}>
-              <SmoothGlowingTitle 
-                text="ENZO CIMILLO" 
-                open={canvasReady} 
-                isMobile={isMobile}
-                noGlowOnMobile={true} // Desactivar glow en móvil
+              {/* 
+                IMAGEN DEL TÍTULO ENZO CIMILLO
+                
+                AJUSTES DE TAMAÑO:
+                - Modifica width para cambiar el ancho de la imagen
+                - Los valores actuales son: 
+                  * Móvil: 80% del ancho del contenedor
+                  * Tablet: 70% del ancho del contenedor
+                  * Desktop: 60% del ancho del contenedor o 450px máximo
+                
+                - Para un tamaño fijo en todas las pantallas, reemplaza el objeto por un valor único, ejemplo:
+                  width: '400px'
+                
+                - Para control preciso por breakpoint, usa:
+                  width: { xs: '280px', sm: '350px', md: '400px', lg: '450px' }
+                
+                - También puedes ajustar maxHeight si es necesario
+              */}
+              <Box
+                component="img"
+                src="/images/image3.png"
+                alt="ENZO CIMILLO"
+                sx={{
+                  // Ajustar tamaño según el dispositivo
+                  width: { 
+                    xs: '80%',   // Móvil
+                    sm: '70%',   // Tablet
+                    md: '100%'    // Desktop
+                  },
+                  maxWidth: '1050px',
+                  
+                  // Controlar altura máxima si es necesario
+                  // maxHeight: { xs: '60px', sm: '80px', md: '100px' },
+                  
+                  // Invertir colores de la imagen para que coincida con el tema oscuro
+                  filter: 'invert(1)',
+                  
+                  // Asegurar que la imagen se carga con transición suave
+                  opacity: canvasReady ? 1 : 0,
+                  transition: 'opacity 0.5s ease',
+                  
+                  // Mantener proporciones de la imagen
+                  objectFit: 'contain',
+                }}
               />
             </Box>
             
             {/* Content sections with improved responsiveness */}
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
-              top: { md: '18rem' },
-              left: '8px', 
-              right: '8px', 
+              top: { md: '20rem' },
+              left: '12px', 
+              right: '12px', 
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' }, 
               alignItems: 'flex-start',
-              marginBottom: { xs: '2rem', md: 0 } 
+              flexWrap: 'wrap',
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
+              marginBottom: { xs: '2.5rem', md: 0 } 
             }}>
               <Box sx={{ 
-                width: { xs: '100%', sm: '11rem' },
-                marginBottom: { xs: '1rem', sm: 0 },
-                marginRight: { sm: '2rem' },
-                paddingRight: { xs: '8px', sm: 0 } // Padding adicional en móvil
+                width: { xs: '100%', sm: '12rem' },
+                marginBottom: { xs: '1.2rem', sm: 0 },
+                marginRight: { sm: '2.5rem' },
+                paddingRight: { xs: '10px', sm: 0 } // Padding adicional en móvil
               }}>
                 <SequentialGlitchText 
                   text="(BASED IN MONTEVIDEO, URUGUAY)" 
                   fontWeight="bold" 
-                  fontSize={{ xs: '0.75rem', sm: '0.875rem' }}
+                  fontSize={{ xs: '0.8rem', sm: '0.95rem' }}
                   initialGlitch={canvasReady}
+                  style={suisseTextStyle} // Aplicar la fuente Suisse
                 />
               </Box>
               <Box sx={{ flex: 1 }}>
                 <SequentialGlitchText 
                   text="I AM A YOUNG PHOTOGRAPHER AND VIDEOGRAPHER WITH A STRONG INCLINATION TOWARD FASHION PRODUCTIONS."
-                  fontSize={{ xs: '0.875rem', sm: '1rem' }}
-                  lineHeight={{ xs: '1.1rem', sm: '1.2rem' }}
+                  fontSize={{ xs: '0.95rem', sm: '1.1rem' }}
+                  lineHeight={{ xs: '1.25rem', sm: '1.35rem' }}
                   fontWeight="500"
-                  style={{ marginBottom: '1rem' }}
+                  style={{ ...suisseTextStyle, marginBottom: '1.2rem' }} // Aplicar la fuente Suisse
                   initialGlitch={canvasReady}
                 />
                 <SequentialGlitchText 
                   text="REEL 2024" 
                   fontWeight="bold" 
-                  fontSize={{ xs: '0.75rem', sm: '0.875rem' }}
+                  fontSize={{ xs: '0.8rem', sm: '0.95rem' }}
                   initialGlitch={canvasReady}
+                  style={suisseTextStyle} // Aplicar la fuente Suisse
                 />
               </Box>
             </Box>
             
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
-              top: { md: '25rem' },
-              left: '8px', 
-              right: '8px', 
+              top: { md: '32rem' },
+              left: '12px', 
+              right: '12px', 
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' }, 
               alignItems: 'flex-start',
-              marginBottom: { xs: '2rem', md: 0 } 
+              flexWrap: 'wrap',
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
+              marginBottom: { xs: '2.5rem', md: 0 } 
             }}>
               <Box sx={{ 
-                width: { xs: '100%', sm: '11rem' },
-                marginBottom: { xs: '1rem', sm: 0 },
-                marginRight: { sm: '2rem' }
+                width: { xs: '100%', sm: '12rem' },
+                marginBottom: { xs: '1.2rem', sm: 0 },
+                marginRight: { sm: '2.5rem' }
               }}>
                 <SequentialGlitchText 
                   text="(CAPABILITIES)" 
                   fontWeight="bold" 
-                  fontSize={{ xs: '0.75rem', sm: '0.875rem' }}
+                  fontSize={{ xs: '0.8rem', sm: '0.95rem' }}
                   initialGlitch={canvasReady}
+                  style={suisseTextStyle} // Aplicar la fuente Suisse
                 />
               </Box>
               <Box sx={{ flex: 1 }}>
-                <Box sx={{ marginBottom: '0.5rem' }}>
+                <Box sx={{ marginBottom: '0.7rem' }}>
                   <SequentialGlitchText 
                     text="EDITING"
-                    fontSize={{ xs: '0.875rem', sm: '1rem' }}
-                    lineHeight={{ xs: '1.2rem', sm: '1.4rem' }}
+                    fontSize={{ xs: '0.95rem', sm: '1.1rem' }}
+                    lineHeight={{ xs: '1.25rem', sm: '1.45rem' }}
                     fontWeight="500"
                     initialGlitch={canvasReady}
+                    style={suisseTextStyle} // Aplicar la fuente Suisse
                   />
                 </Box>
-                <Box sx={{ marginBottom: '0.5rem' }}>
+                <Box sx={{ marginBottom: '0.7rem' }}>
                   <SequentialGlitchText 
                     text="PHOTOGRAPHY"
-                    fontSize={{ xs: '0.875rem', sm: '1rem' }}
-                    lineHeight={{ xs: '1.2rem', sm: '1.4rem' }}
+                    fontSize={{ xs: '0.95rem', sm: '1.1rem' }}
+                    lineHeight={{ xs: '1.25rem', sm: '1.45rem' }}
                     fontWeight="500"
                     initialGlitch={canvasReady}
+                    style={suisseTextStyle} // Aplicar la fuente Suisse
                   />
                 </Box>
-                <Box sx={{ marginBottom: '0.5rem' }}>
+                <Box sx={{ marginBottom: '0.7rem' }}>
                   <SequentialGlitchText 
                     text="VIDEOGRAPHY"
-                    fontSize={{ xs: '0.875rem', sm: '1rem' }}
-                    lineHeight={{ xs: '1.2rem', sm: '1.4rem' }}
+                    fontSize={{ xs: '0.95rem', sm: '1.1rem' }}
+                    lineHeight={{ xs: '1.25rem', sm: '1.45rem' }}
                     fontWeight="500"
                     initialGlitch={canvasReady}
+                    style={suisseTextStyle} // Aplicar la fuente Suisse
                   />
                 </Box>
-                <Box sx={{ marginBottom: '0.5rem' }}>
+                <Box sx={{ marginBottom: '0.7rem' }}>
                   <SequentialGlitchText 
                     text="VISUAL COMMUNICATION"
-                    fontSize={{ xs: '0.875rem', sm: '1rem' }}
-                    lineHeight={{ xs: '1.2rem', sm: '1.4rem' }}
+                    fontSize={{ xs: '0.95rem', sm: '1.1rem' }}
+                    lineHeight={{ xs: '1.25rem', sm: '1.45rem' }}
                     fontWeight="500"
                     initialGlitch={canvasReady}
+                    style={suisseTextStyle} // Aplicar la fuente Suisse
                   />
                 </Box>
               </Box>
@@ -346,41 +424,49 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
             
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
-              bottom: { md: '8rem' },
-              left: '8px', 
-              right: '8px', 
+              bottom: { md: '8rem' }, // Lo subo un poco
+              left: '12px', 
+              right: '12px', 
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' }, 
               alignItems: 'flex-start',
-              marginBottom: { xs: '2rem', md: 0 } 
+              flexWrap: 'wrap',
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
+              marginBottom: { xs: '2.5rem', md: 0 },
+              mt: { xs: '3rem', md: 0 } // espacio extra en móvil
             }}>
               <Box sx={{ 
-                width: { xs: '100%', sm: '11rem' },
-                marginBottom: { xs: '1rem', sm: 0 },
-                marginRight: { sm: '2rem' }
+                width: { xs: '100%', sm: '12rem' },
+                marginBottom: { xs: '1.2rem', sm: 0 },
+                marginRight: { sm: '2.5rem' }
               }}>
                 <SequentialGlitchText 
                   text="(CONTACT)" 
                   fontWeight="bold" 
-                  fontSize={{ xs: '0.75rem', sm: '0.875rem' }}
+                  fontSize={{ xs: '0.8rem', sm: '0.95rem' }}
                   initialGlitch={canvasReady}
                   isNeonGreen={true}
+                  style={suisseTextStyle} // Aplicar la fuente Suisse
                 />
               </Box>
               <Box sx={{ flex: 1 }}>
                 <SequentialGlitchText 
                   text="AVAILABLE FOR COMMISSION AND FREELANCE WORK."
-                  fontSize={{ xs: '0.875rem', sm: '1rem' }}
-                  lineHeight={{ xs: '1.2rem', sm: '1.4rem' }}
+                  fontSize={{ xs: '0.95rem', sm: '1.1rem' }}
+                  lineHeight={{ xs: '1.25rem', sm: '1.45rem' }}
                   fontWeight="500"
-                  style={{ marginBottom: '1rem' }}
+                  style={{ ...suisseTextStyle, marginBottom: '1.2rem' }} // Aplicar la fuente Suisse
                   initialGlitch={canvasReady}
                 />
                 <Box sx={{ 
                   display: 'flex', 
-                  gap: '1rem',
+                  gap: '1.2rem',
                   flexDirection: { xs: 'column', sm: 'row' },
-                  alignItems: { xs: 'flex-start', sm: 'center' }
+                  alignItems: { xs: 'flex-start', sm: 'center' },
+                  flexWrap: 'wrap',
+                  overflowWrap: 'break-word',
+                  wordBreak: 'break-word'
                 }}>
                   <Box position="relative" display="inline-block">
                     <Link 
@@ -400,11 +486,11 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                         }
                       }}
                       sx={{ 
-                        fontSize: { xs: '0.875rem', sm: '1rem' }, 
+                        fontSize: { xs: '0.95rem', sm: '1.1rem' }, 
                         textDecoration: 'underline', 
                         color: '#00ff00', 
                         fontWeight: '500',
-                        fontFamily: 'monospace',
+                        fontFamily: "'Suisse Intl Medium', sans-serif", // Aplicar la fuente Suisse
                         textShadow: '0 0 2px #00ff00, 0 0 4px #00ff00, 0 0 6px #00ff00',
                         transition: 'text-shadow 0.3s ease, color 0.3s ease',
                         '&:hover': {
@@ -450,11 +536,11 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                         }
                       }}
                       sx={{ 
-                        fontSize: { xs: '0.875rem', sm: '1rem' }, 
+                        fontSize: { xs: '0.95rem', sm: '1.1rem' }, 
                         textDecoration: 'underline', 
                         color: '#00ff00', 
                         fontWeight: '500',
-                        fontFamily: 'monospace',
+                        fontFamily: "'Suisse Intl Medium', sans-serif", // Aplicar la fuente Suisse
                         textShadow: '0 0 2px #00ff00, 0 0 4px #00ff00, 0 0 6px #00ff00',
                         transition: 'text-shadow 0.3s ease, color 0.3s ease',
                         '&:hover': {
@@ -486,27 +572,32 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
               bottom: { md: '3rem' },
-              left: '8px', 
-              right: '8px', 
+              left: '12px', 
+              right: '12px', 
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' }, 
               alignItems: 'flex-start',
-              marginTop: { xs: '1rem', md: 0 }
+              flexWrap: 'wrap',
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
+              marginTop: { xs: '1.2rem', md: 0 }
             }}>
               <Box sx={{ 
-                width: { xs: '100%', sm: '11rem' },
-                marginBottom: { xs: '0.5rem', sm: 0 },
-                marginRight: { sm: '2rem' }
+                width: { xs: '100%', sm: '12rem' },
+                marginBottom: { xs: '0.7rem', sm: 0 },
+                marginRight: { sm: '2.5rem' }
               }}>
                 <SequentialGlitchText 
                   text="(LOCAL TIME)" 
                   fontWeight="bold" 
-                  fontSize={{ xs: '0.75rem', sm: '0.875rem' }}
+                  fontSize={{ xs: '0.8rem', sm: '0.95rem' }}
                   initialGlitch={canvasReady}
+                  style={suisseTextStyle} // Aplicar la fuente Suisse
                 />
               </Box>
               <Box sx={{ flex: 1 }}>
-                <UruguayTime />
+                {/* Asegúrate de modificar el componente UruguayTime para que use la fuente Suisse */}
+                <UruguayTime fontFamily="'Suisse Intl Medium', sans-serif" fontSize={{ xs: '0.95rem', sm: '1.1rem' }} />
               </Box>
             </Box>
           </Box>
@@ -529,7 +620,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               alignItems: 'center',
               fontSize: '24px',
               fontWeight: 'bold',
-              fontFamily: 'monospace',
+              fontFamily: "'Suisse Intl Medium', sans-serif", // Aplicar la fuente Suisse
               backgroundColor: 'black',
               color: 'white',
               border: '2px solid white',
@@ -579,6 +670,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                 color: 'white',
                 fontSize: '12px',
                 fontWeight: 'bold',
+                fontFamily: "'Suisse Intl Medium', sans-serif", // Aplicar la fuente Suisse
                 pointerEvents: 'none',
                 zIndex: 10001,
                 padding: '2px 4px',

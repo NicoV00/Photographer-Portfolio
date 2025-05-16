@@ -272,7 +272,7 @@ function IntroVideo({ onIntroComplete }) {
         muted={isMuted}
         playsInline
       >
-        <source src="/videos/ENTRADA_WEB2.1.mp4" type="video/mp4" />
+        <source src="/videos/ENTRADA_WEB2.2.mp4" type="video/mp4" />
         Tu navegador no soporta videos.
       </Video>
       

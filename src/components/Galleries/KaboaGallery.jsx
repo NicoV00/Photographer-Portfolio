@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, CircularProgress, useMediaQuery } from '@mui/material';
+import { Box, useMediaQuery } from '@mui/material';
 import { styled, useTheme } from '@mui/material/styles';
 import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow'; // Assuming this component exists
@@ -21,15 +21,36 @@ if (typeof gsap.registerPlugin === 'function') {
 // Get the color theme for this gallery (kept as is)
 const galleryTheme = getGalleryColors('kaboa');
 
-// Custom font loading (kept as is)
-const GlobalStyle = styled('style')({
+// Custom font loading - separating each font declaration into its own component
+const MediumFontStyle = styled('style')({
   '@font-face': {
     fontFamily: 'Medium OTF',
     src: 'url("/fonts/Medium.otf") format("opentype")',
     fontWeight: 'normal',
     fontStyle: 'normal',
     fontDisplay: 'swap',
-  },
+  }
+});
+
+const MyriadFontStyle = styled('style')({
+  '@font-face': {
+    fontFamily: 'MYRIADPRO-BOLD',
+    src: 'url("/fonts/MYRIADPRO-BOLD.OTF") format("opentype")',
+    fontWeight: 'bold',
+    fontStyle: 'normal',
+    fontDisplay: 'swap',
+  }
+});
+
+// Adding PPEditorialNew-Ultrabold font for titles
+const PPEditorialUltraboldStyle = styled('style')({
+  '@font-face': {
+    fontFamily: 'PPEditorialNew-Ultrabold',
+    src: 'url("/fonts/PPEditorialNew-Ultrabold.otf") format("opentype")',
+    fontWeight: 'normal',
+    fontStyle: 'normal',
+    fontDisplay: 'swap',
+  }
 });
 
 // Loading screen (kept as is, already uses theme)
@@ -63,38 +84,55 @@ const ScrollProgressBar = styled(Box)({
   boxShadow: '0 0 3px rgba(0,0,0,0.2)',
 });
 
-// Loading Title - Responsive font size using MUI breakpoints
+// Title component with PPEditorialNew-Ultrabold font
 const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
-  fontWeight: 'bold',
+  fontFamily: '"PPEditorialNew-Ultrabold", sans-serif',
+  fontSize: '80px', // Increased from 45px to 80px
+  fontWeight: 'normal', // The Ultrabold font is already heavy enough
   color: galleryTheme.text,
   letterSpacing: '2px',
   position: 'relative',
-  transform: 'translateY(100px)', // Start below viewport (for animation)
+  transform: 'translateY(100px)',
   opacity: 0,
-  // Responsive font size
-  fontSize: '32px', // Base size (mobile first)
-  [theme.breakpoints.up('sm')]: {
-    fontSize: '45px', // Larger on sm screens and up
+  textTransform: 'uppercase', // Ensures uppercase text
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '60px', // Slightly smaller on mobile but still large
   },
 }));
 
-// Loading Year - Responsive font size using MUI breakpoints
 const LoadingYear = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
+  fontFamily: '"MYRIADPRO-BOLD", sans-serif',
+  fontSize: '40px', // Maintained at 40px for contrast with title
   fontWeight: 'bold',
   color: galleryTheme.text,
   letterSpacing: '2px',
   marginTop: '8px',
   position: 'relative',
-  transform: 'translateY(100px)', // Start below viewport (for animation)
+  transform: 'translateY(100px)',
   opacity: 0,
   marginBottom: '40px',
-  // Responsive font size
-  fontSize: '28px', // Base size (mobile first)
-  [theme.breakpoints.up('sm')]: {
-    fontSize: '40px', // Larger on sm screens and up
-  },
+}));
+
+// Minimalist progress bar
+const ProgressBarContainer = styled(Box)({
+  width: '300px', // Wider than the title
+  height: '3px', // Reduced height for minimalist look
+  backgroundColor: 'rgba(0, 0, 0, 0.1)', // Subtle background - adjusted for KABOA theme
+  borderRadius: '0', // No rounded borders, more minimalist
+  overflow: 'hidden',
+  position: 'relative',
+  marginBottom: '20px',
+});
+
+const ProgressBarFill = styled(Box)(({ progress }) => ({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: `${progress}%`,
+  height: '100%',
+  backgroundColor: galleryTheme.text, // Using theme text color for the fill
+  borderRadius: '0', // No rounded borders
+  transition: 'width 0.2s ease-out', // Faster transition for the bar
 }));
 
 // Main container with horizontal scroll - Optimized with responsive background logic
@@ -136,18 +174,24 @@ const GalleryContainer = styled(Box, {
     position: 'relative',
     overflowX: 'auto',
     overflowY: 'hidden',
-    transform: 'translateZ(0)',
-    perspective: '1000px',
-    backfaceVisibility: 'hidden',
-    willChange: 'scroll-position, background-color', // Keep will-change
-    '-webkit-overflow-scrolling': 'touch',
-    '&::-webkit-scrollbar': { display: 'none' },
+    transform: 'translateZ(0)',  // Force GPU acceleration
+    perspective: '1000px',      // Enhance GPU acceleration
+    backfaceVisibility: 'hidden', // Further GPU optimization
+    willChange: 'scroll-position',
+    WebkitOverflowScrolling: 'touch',
+    '&::-webkit-scrollbar': {
+      display: 'none',
+    },
     scrollbarWidth: 'none',
     msOverflowStyle: 'none',
     transition: 'background-color 0.1s ease-out',
     // Ensures full height on all devices
     minHeight: '100vh', 
-    // No specific mobile overrides needed here anymore as overflow is handled
+    [theme.breakpoints.down('sm')]: {
+      overflowX: 'auto', // Ensure horizontal scrolling on mobile
+      overflowY: 'hidden', // Prevent vertical scrolling
+      height: '100vh',
+    },
   };
 });
 
@@ -158,18 +202,14 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   height: '100%',
   position: 'relative', // Keep relative for absolute children positioning
   transform: 'translateZ(0)', // GPU acceleration
-
-  // Responsive width and padding
-  // Mobile first approach: start with mobile values (xs breakpoint implicitly)
-  width: '5200px', // Mobile width from original code
-  padding: theme.spacing(2.5), // 20px using theme spacing
-  paddingRight: theme.spacing(18.75), // 150px mobile padding right
-
-  // Styles for 'md' breakpoint and up (tablets/desktops)
-  [theme.breakpoints.up('md')]: {
-    width: '8000px', // Desktop width
-    padding: theme.spacing(5), // 40px desktop padding
-    paddingRight: theme.spacing(37.5), // 300px desktop padding right
+  width: '8000px', // Desktop width
+  padding: theme.spacing(5), // 40px desktop padding
+  paddingRight: theme.spacing(37.5), // 300px desktop padding right
+  
+  [theme.breakpoints.down('md')]: {
+    width: '5200px', // Mobile width
+    padding: theme.spacing(2.5), // 20px using theme spacing
+    paddingRight: theme.spacing(18.75), // 150px mobile padding right
   },
 }));
 
@@ -352,94 +392,108 @@ const KaboaGallery = ({ onBack }) => {
   // Still use isMobile for logic if needed (e.g., in useSmoothScroll), but not for styling components
   const isMobile = useMediaQuery(theme.breakpoints.down('md')); // Using 'md' as the breakpoint
 
-  // Visibility Check (Keep as is, uses container dimensions)
+  // Visibility Check - simplified for better performance
   const checkVisibility = useCallback(() => {
     if (!containerRef.current) return;
+    
     const container = containerRef.current;
     const containerRect = container.getBoundingClientRect();
     const containerWidth = containerRect.width;
-    const preloadMargin = containerWidth * 0.8; // Preload when 80% of viewport width away
+    
+    // Increased preload margin for smoother experience
+    const preloadMargin = containerWidth * 1.2;
+    
     const newVisibility = {};
-
-    imageRefs.current.forEach((itemRef, index) => {
-      if (itemRef && itemRef.current) {
-        const element = itemRef.current;
-        // Get bounding client rect relative to viewport
-        const elementRect = element.getBoundingClientRect();
+    
+    imageRefs.current.forEach((ref, index) => {
+      if (ref && ref.current) {
+        const imageRect = ref.current.getBoundingClientRect();
         
-        // Check if the element's horizontal range overlaps with the container's
-        // visible range plus the preload margin on both sides.
+        // Always use horizontal scrolling check logic
         const isVisible = (
-          elementRect.left < containerRect.right + preloadMargin &&
-          elementRect.right > containerRect.left - preloadMargin
+          imageRect.left < containerRect.right + preloadMargin &&
+          imageRect.right > containerRect.left - preloadMargin
         );
-
-        // Update visibility state only if it changes
-        if (visibleImages[index] !== isVisible) {
-             newVisibility[index] = isVisible;
-        } else if (visibleImages[index] === undefined && isVisible) {
-             // Handle initial visibility
-             newVisibility[index] = isVisible;
-        } else if (visibleImages[index] !== undefined) {
-             // Keep previous state if no change
-             newVisibility[index] = visibleImages[index];
-        }
+        
+        newVisibility[index] = isVisible;
       }
     });
+    
+    // Only update state if visibility has changed
+    setVisibleImages(prev => {
+      if (JSON.stringify(prev) !== JSON.stringify(newVisibility)) {
+        return newVisibility;
+      }
+      return prev;
+    });
+  }, []);
 
-    // Only update state if there are actual changes to avoid unnecessary re-renders
-     if (Object.keys(newVisibility).length > 0 && JSON.stringify(visibleImages) !== JSON.stringify({...visibleImages, ...newVisibility})) {
-       setVisibleImages(prev => ({...prev, ...newVisibility}));
-     }
-  }, [visibleImages]); // Add visibleImages dependency
 
-
-  // Use Smooth Scroll Hook (Pass isMobile if the hook uses it internally)
-  const { scrollLeft, scrollProgress } = useSmoothScroll({
+  // Use Smooth Scroll Hook
+  const { scrollLeft, scrollProgress, lenis } = useSmoothScroll({
     containerRef,
-    isMobile, // Pass the breakpoint-based isMobile flag
+    isMobile,
     isLoading: loading,
-    checkVisibility, // Pass the visibility check function
-    horizontal: true,
-    duration: 2.5,
-    wheelMultiplier: 1.2,
-    touchMultiplier: 2,
-    lerp: 0.04,
+    checkVisibility,
+    horizontal: true, // Always use horizontal scrolling
+    duration: 2.5,           // Extended duration for smoother motion
+    wheelMultiplier: 1.2,     // Higher multiplier for more responsive scrolling
+    touchMultiplier: 2,       // Higher touch multiplier
+    lerp: 0.04,               // Lower lerp for ultra smooth motion
     colors: galleryTheme
   });
   
-  // Loading screen animations (Keep as is)
+  // Loading screen title and year animation effect
   useEffect(() => {
     if (!loading) return;
+    
     if (titleRef.current && yearRef.current) {
-      const options = { y: 0, opacity: 1, duration: 1, ease: "power2.out" };
-      gsap.to(titleRef.current, { ...options, delay: 0.3 });
-      gsap.to(yearRef.current, { ...options, delay: 0.5 });
+      gsap.to(titleRef.current, {
+        y: 0,
+        opacity: 1,
+        duration: 1,
+        ease: "power2.out",
+        delay: 0.3,
+      });
+      
+      gsap.to(yearRef.current, {
+        y: 0,
+        opacity: 1,
+        duration: 1,
+        ease: "power2.out",
+        delay: 0.5,
+      });
     }
+    
     return () => {
       gsap.killTweensOf(titleRef.current);
       gsap.killTweensOf(yearRef.current);
     };
   }, [loading]);
   
-  // Loading progress animation (Keep as is)
+  // Loading progress animation effect
   useEffect(() => {
     let interval;
+    
     if (loading) {
       interval = setInterval(() => {
         setLoadProgress(prev => {
           const next = prev + (Math.random() * 15);
           if (next >= 100) {
             clearInterval(interval);
+            
             if (titleRef.current && yearRef.current && loadingScreenRef.current) {
-              const options = { y: -100, opacity: 0, duration: 0.8, ease: "power2.in" };
-              gsap.to(titleRef.current, options);
-              gsap.to(yearRef.current, {
-                ...options,
-                delay: 0.1,
+              gsap.to([titleRef.current, yearRef.current], {
+                y: -100,
+                opacity: 0,
+                duration: 0.8,
+                ease: "power2.in",
+                stagger: 0.1,
                 onComplete: () => {
                   gsap.to(loadingScreenRef.current, {
-                    opacity: 0, duration: 0.5, delay: 0.2,
+                    opacity: 0,
+                    duration: 0.5,
+                    delay: 0.2,
                     onComplete: () => setLoading(false)
                   });
                 }
@@ -447,12 +501,14 @@ const KaboaGallery = ({ onBack }) => {
             } else {
               setTimeout(() => setLoading(false), 500);
             }
+            
             return 100;
           }
           return next;
         });
       }, 250);
     }
+    
     return () => clearInterval(interval);
   }, [loading]);
 
@@ -467,116 +523,92 @@ const KaboaGallery = ({ onBack }) => {
     return () => clearTimeout(timer);
   }, [loading]);
 
-  // Optimize browser performance (Keep as is)
+  // Optimize browser performance
   useEffect(() => {
     if (!loading) {
+      // Add will-change hint for smoother overall page performance
+      document.body.style.willChange = 'scroll-position';
+      
+      // Disable overscroll for smoother experience
       document.body.style.overscrollBehavior = 'none';
-      document.documentElement.style.scrollBehavior = 'auto'; // Use 'auto' for smooth scroll libraries
+      
+      // Enable smooth scrolling at the browser level for maximum smoothness
+      document.documentElement.style.scrollBehavior = 'smooth';
     }
+    
     return () => {
+      // Cleanup optimizations when component unmounts
+      document.body.style.willChange = '';
       document.body.style.overscrollBehavior = '';
       document.documentElement.style.scrollBehavior = '';
     };
   }, [loading]);
   
-   // IntersectionObserver for visibility (Revised to simplify state updates)
-   // NOTE: Using the checkVisibility on scroll might be more reliable for this horizontal layout
-   // than IntersectionObserver, which usually works better with vertical scrolling roots.
-   // Consider removing IO if checkVisibility on scroll works well. Keep IO for now.
-   useEffect(() => {
-     if (loading || !containerRef.current || !('IntersectionObserver' in window)) {
-        // If IO not supported or loading, rely solely on scroll-based checkVisibility
-        return;
-     };
+  // Set up optimized IntersectionObserver for visibility detection
+  useEffect(() => {
+    if (loading || !containerRef.current) return;
 
-     // Initial check
-     checkVisibility(); 
-     
-     const options = {
-       root: null, // Observe intersections relative to the viewport
-       rootMargin: '0px 150px 0px 150px', // Horizontal margin for preloading/unloading
-       threshold: 0.01 // Trigger even if only a small part is visible
-     };
-     
-     const observer = new IntersectionObserver((entries) => {
-       const newVisibility = {};
-       let changed = false;
-       entries.forEach(entry => {
-         const id = entry.target.dataset.id;
-         if (id) {
-             const index = parseInt(id, 10);
-             const isNowVisible = entry.isIntersecting;
-             if (visibleImages[index] !== isNowVisible) {
-                 newVisibility[index] = isNowVisible;
-                 changed = true;
-             }
-         }
-       });
-
-       if (changed) {
-         setVisibleImages(prev => ({ ...prev, ...newVisibility }));
-       }
-     }, options);
-     
-     const refs = imageRefs.current; // Cache refs
-     refs.forEach((itemRef, index) => {
-       if (itemRef?.current) {
-         itemRef.current.dataset.id = index; // Set ID for observer callback
-         observer.observe(itemRef.current);
-       }
-     });
-     
-     return () => {
-        refs.forEach(itemRef => {
-            if (itemRef?.current) {
-                // Check if observer is still valid before unobserving
-                try {
-                    observer.unobserve(itemRef.current);
-                } catch (e) {
-                    console.warn("Error unobserving element:", e);
-                }
-            }
+    checkVisibility();
+    
+    if ('IntersectionObserver' in window) {
+      const options = {
+        root: containerRef.current, // Use container as root for both mobile and desktop
+        rootMargin: '300px', // Increased margin for earlier loading
+        threshold: 0.1
+      };
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const id = entry.target.dataset.id;
+          if (id) {
+            setVisibleImages(prev => ({
+              ...prev,
+              [id]: entry.isIntersecting
+            }));
+          }
         });
-       // Make sure to disconnect the observer
-       observer.disconnect(); 
-     };
-   }, [loading, checkVisibility, visibleImages]); // Added visibleImages
+      }, options);
+      
+      imageRefs.current.forEach((ref, index) => {
+        if (ref?.current) {
+          ref.current.dataset.id = index;
+          observer.observe(ref.current);
+        }
+      });
+      
+      return () => {
+        imageRefs.current.forEach(ref => {
+          if (ref?.current) observer.unobserve(ref.current);
+        });
+        observer.disconnect();
+      };
+    }
+  }, [loading, checkVisibility]);
 
-  // Specific mobile device adjustments (Keep as is, if needed)
+  // Specific mobile device adjustments (simplified)
   useEffect(() => {
     const detectRealMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (detectRealMobile()) {
-      // Apply styles carefully - 'position: fixed' on body can break scrolling.
-      // document.documentElement.style.fontSize = '14px'; // Be careful with global font size changes
-      document.body.style.overscrollBehavior = 'none'; // Good for preventing pull-to-refresh
-      // Avoid fixing body position if using a scroll container like GalleryContainer
-      // document.body.style.position = 'fixed'; 
-      // document.body.style.width = '100%';
-      // document.body.style.height = '100%';
-      // document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      document.body.style.overscrollBehavior = 'none';
     }
     
     return () => {
-      // document.documentElement.style.fontSize = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
       document.body.style.overscrollBehavior = '';
-      // document.body.style.position = '';
-      // document.body.style.width = '';
-      // document.body.style.height = '';
-      // document.body.style.overflow = '';
     };
   }, []);
 
-  // --- Render Gallery Content ---
-  // Pass desktop values as props. Mobile overrides are handled *inside* the styled components.
   const renderGalleryContent = () => (
     <>
       {/* Image 1 */}
       <ImageItem 
-        ref={el => imageRefs.current[0] = { current: el }} // Ensure ref is assigned correctly
+        ref={el => imageRefs.current[0] = el}
         top="50%" left="450px" height="80vh" width="auto" zIndex={2}
-        isVisible={!!visibleImages[0]} // Use boolean check
-        // Mobile overrides passed to the styled component for internal use
+        isVisible={visibleImages[0] !== false}
         mobileTop="45%" mobileLeft="270px" mobileHeight="75vh" mobileWidth="85vw"
       >
         <Box component="img" src={content.K1} alt="KABOA 1" loading="eager" />
@@ -584,9 +616,9 @@ const KaboaGallery = ({ onBack }) => {
       
       {/* Image 2 */}
       <ImageItem 
-        ref={el => imageRefs.current[1] = { current: el }}
+        ref={el => imageRefs.current[1] = el}
         top="50%" left="1400px" height="85vh" width="auto" zIndex={2}
-        isVisible={!!visibleImages[1]}
+        isVisible={visibleImages[1] !== false}
         mobileTop="45%" mobileLeft="840px" mobileHeight="75vh" mobileWidth="85vw"
       >
         <Box component="img" src={content.K2} alt="KABOA 2" loading="lazy" />
@@ -594,9 +626,9 @@ const KaboaGallery = ({ onBack }) => {
       
       {/* Image 3 */}
       <ImageItem 
-        ref={el => imageRefs.current[2] = { current: el }}
+        ref={el => imageRefs.current[2] = el}
         top="33%" left="2100px" height="45vh" width="auto" zIndex={2}
-        isVisible={!!visibleImages[2]}
+        isVisible={visibleImages[2] !== false}
         mobileTop="33%" mobileLeft="1260px" mobileHeight="40vh" mobileWidth="65vw"
       >
         <Box component="img" src={content.K3} alt="KABOA 3" loading="lazy" />
@@ -604,9 +636,9 @@ const KaboaGallery = ({ onBack }) => {
       
       {/* Image 4 */}
       <ImageItem 
-        ref={el => imageRefs.current[3] = { current: el }}
+        ref={el => imageRefs.current[3] = el}
         top="50%" left="2700px" height="80vh" width="auto" zIndex={2}
-        isVisible={!!visibleImages[3]}
+        isVisible={visibleImages[3] !== false}
         mobileTop="45%" mobileLeft="1620px" mobileHeight="75vh" mobileWidth="85vw"
       >
         <Box component="img" src={content.K4} alt="KABOA 4" loading="lazy" />
@@ -614,19 +646,19 @@ const KaboaGallery = ({ onBack }) => {
       
       {/* Image 5 */}
       <ImageItem 
-        ref={el => imageRefs.current[4] = { current: el }}
+        ref={el => imageRefs.current[4] = el}
         top="50%" left="3500px" height="80vh" width="auto" zIndex={2}
-        isVisible={!!visibleImages[4]}
-        mobileTop="45%" mobileLeft="2100px" mobileHeight="75vh" mobileWidth="180vw" // Kept 180vw as per original mobile spec
+        isVisible={visibleImages[4] !== false}
+        mobileTop="45%" mobileLeft="2100px" mobileHeight="75vh" mobileWidth="180vw"
       >
         <Box component="img" src={content.K5} alt="KABOA 5" loading="lazy" />
       </ImageItem>
       
       {/* Image 6 */}
       <ImageItem 
-        ref={el => imageRefs.current[5] = { current: el }}
+        ref={el => imageRefs.current[5] = el}
         top="42%" left="4450px" height="70vh" width="auto" zIndex={2}
-        isVisible={!!visibleImages[5]}
+        isVisible={visibleImages[5] !== false}
         mobileTop="42%" mobileLeft="2670px" mobileHeight="63vh" mobileWidth="85vw"
       >
         <Box component="img" src={content.K6} alt="KABOA 6" loading="lazy" />
@@ -634,19 +666,16 @@ const KaboaGallery = ({ onBack }) => {
       
       {/* Video 7 in frame */}
       <VideoContainer 
-        ref={el => imageRefs.current[6] = { current: el }}
+        ref={el => imageRefs.current[6] = el}
         top="50%" left="5300px" width="70vh" height="90vh" zIndex={2}
-        isVisible={!!visibleImages[6]}
-        // Desktop internal video position
+        isVisible={visibleImages[6] !== false}
         videoTop="3%" videoLeft="17%" videoWidth="67%" videoHeight="94%"
-        // Mobile overrides for container
         mobileTop="45%" mobileLeft="3180px" mobileHeight="75vh" mobileWidth="85vw"
-        // Mobile overrides for internal video position
         mobileVideoTop="3%" mobileVideoLeft="7%" mobileVideoWidth="86%" mobileVideoHeight="94%"
       >
         <Box 
           component="video" className="video" src={content.K7} alt="KABOA Video 7"
-          autoPlay loop muted playsInline // playsInline is important for mobile
+          autoPlay loop muted playsInline
         />
         <Box 
           component="img" className="frame" src={content.FRAME} alt="KABOA Video Frame" 
@@ -655,9 +684,9 @@ const KaboaGallery = ({ onBack }) => {
       
       {/* Image 8 */}
       <ImageItem 
-        ref={el => imageRefs.current[7] = { current: el }}
+        ref={el => imageRefs.current[7] = el}
         top="50%" left="6200px" height="80vh" width="auto" zIndex={2}
-        isVisible={!!visibleImages[7]}
+        isVisible={visibleImages[7] !== false}
         mobileTop="45%" mobileLeft="3720px" mobileHeight="72vh" mobileWidth="85vw"
       >
         <Box component="img" src={content.K8} alt="KABOA 8" loading="lazy" />
@@ -665,12 +694,10 @@ const KaboaGallery = ({ onBack }) => {
       
       {/* Image 9 */}
       <ImageItem 
-        ref={el => imageRefs.current[8] = { current: el }}
-        // Desktop: Note original was top: 35%, using that instead of 50%? Let's use 35% as specified.
+        ref={el => imageRefs.current[8] = el}
         top="35%" left="6900px" height="75vh" width="auto" zIndex={2} 
-        isVisible={!!visibleImages[8]}
-        // Mobile overrides
-        mobileTop="35%" mobileLeft="4140px" mobileHeight="67vh" mobileWidth="180vw" // Kept 180vw as per original mobile spec
+        isVisible={visibleImages[8] !== false}
+        mobileTop="35%" mobileLeft="4140px" mobileHeight="67vh" mobileWidth="180vw"
       >
         <Box component="img" src={content.K9} alt="KABOA 9" loading="lazy" />
       </ImageItem>
@@ -679,17 +706,20 @@ const KaboaGallery = ({ onBack }) => {
 
   return (
     <>
-      <GlobalStyle />
+      <MediumFontStyle />
+      <MyriadFontStyle />
+      <PPEditorialUltraboldStyle />
       
-      {/* Loading screen */}
+      {/* Loading screen with new styling */}
       {loading && (
         <LoadingScreen ref={loadingScreenRef}>
           <LoadingTitle ref={titleRef}>KABOA</LoadingTitle>
           <LoadingYear ref={yearRef}>2024</LoadingYear>
-          <CircularProgress 
-            variant="determinate" value={loadProgress} size={60} thickness={4}
-            sx={{ color: galleryTheme.text }}
-          />
+          
+          {/* Minimalist progress bar instead of CircularProgress */}
+          <ProgressBarContainer>
+            <ProgressBarFill progress={loadProgress} />
+          </ProgressBarContainer>
         </LoadingScreen>
       )}
       
