@@ -89,7 +89,7 @@ function App() {
   const containerRef = useRef(null);
   const photographerNameRef = useRef(null);
 
-  const [bgColor, setBgColor] = useState('#1e1e1e');
+  const [bgColor, setBgColor] = useState('#ffffff');
   const glRef = useRef(null);
   const clearColor = useRef(new THREE.Color(bgColor));
 
@@ -291,7 +291,7 @@ function App() {
             position: [0, 0, 45],
           }}
           onCreated={({ gl }) => {
-            gl.setClearColor(bgColor);
+            gl.setClearColor("white");
             glRef.current = gl;
           }}
         >

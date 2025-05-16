@@ -268,7 +268,7 @@ const AnimatedCarousel = ({
       // Apply gallery background color to scene
       if (galleryColors && galleryColors.main) {
         // Convert hex color to THREE.Color
-        const newColor = new THREE.Color("#aa88ef");
+        const newColor = new THREE.Color("white");
         backgroundRef.current = newColor;
       }
     } else {
