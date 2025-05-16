@@ -19,7 +19,8 @@ const LenoirGallery = lazy(() => import('./components/Galleries/LenoirGallery'))
 const KaboaGallery = lazy(() => import('./components/Galleries/KaboaGallery'));
 const AmourGallery = lazy(() => import('./components/Galleries/AmourGallery'));
 const MarcosGallery = lazy(() => import('./components/Galleries/MarcosGallery'));
-const PasarelaGallery = lazy(() => import('./components/Galleries/PasarelaGallery')); // Añadir PasarelaGallery
+const PasarelaGallery = lazy(() => import('./components/Galleries/PasarelaGallery'));
+const IdentidadGallery = lazy(() => import('./components/Galleries/IdentidadGallery')); // Añadir IdentidadGallery
 
 // Iniciar precarga de componentes clave inmediatamente
 import('./components/Galleries/BluaGallery');
@@ -104,7 +105,8 @@ function App() {
     "./images/KABOA/KABOA-1.jpg": "kaboa",
     "./images/AMOUR/portada.jpg": "amour",
     "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg": "marcos",
-    "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg": "pasarela" // Añadir PASARELA
+    "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg": "pasarela",
+    "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": "identidad" // Añadir IDENTIDAD
   };
 
   const handleOffCanvasState = (show) => {
@@ -339,10 +341,16 @@ function App() {
             <MarcosGallery onBack={handleBackToCarousel} />
           </Suspense>
         );
-      } else if (collectionType === "pasarela") { // Añadir case para PASARELA
+      } else if (collectionType === "pasarela") {
         return (
           <Suspense fallback={loadingComponent}>
             <PasarelaGallery onBack={handleBackToCarousel} />
+          </Suspense>
+        );
+      } else if (collectionType === "identidad") { // Añadir case para IDENTIDAD
+        return (
+          <Suspense fallback={loadingComponent}>
+            <IdentidadGallery onBack={handleBackToCarousel} />
           </Suspense>
         );
       } else {
