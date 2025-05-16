@@ -14,7 +14,8 @@ import {
   KaboaGallery,
   AmourGallery,
   MarcosGallery,
-  PasarelaGallery // Añadido PasarelaGallery
+  PasarelaGallery,
+  IdentidadGallery // Añadido IdentidadGallery
 } from './Galleries';
 
 // Mapeo de imágenes a componentes de galería
@@ -59,8 +60,12 @@ const galleryMap = {
     component: MarcosGallery,
     props: {}
   },
-  "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg": { // Añadido el mapeo para PASARELA
+  "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg": {
     component: PasarelaGallery,
+    props: {}
+  },
+  "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": { // Añadido el mapeo para IDENTIDAD
+    component: IdentidadGallery,
     props: {}
   }
 };

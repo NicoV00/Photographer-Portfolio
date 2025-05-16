@@ -30,10 +30,11 @@ const AnimatedCarousel = ({
     "./images/MDLST/MDLST-1.png",
     "./images/TEO/V1.jpg",
     "./images/LENOIR/LENOIR-1.jpg",
-    "./images/KABOA/KABOA-1.jpg", // Add this line to include KABOA
+    "./images/KABOA/KABOA-1.jpg",
     "./images/AMOUR/portada.jpg",
     "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg",
     "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg",
+    "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg", // Agregada la portada de IDENTIDAD
   ], []);
 
   // Encontrar el índice de la imagen inicial
