@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, CircularProgress, useMediaQuery } from '@mui/material';
+import { Box, useMediaQuery } from '@mui/material';
 import { styled, useTheme } from '@mui/material/styles';
 import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
@@ -22,15 +22,36 @@ if (typeof gsap.registerPlugin === 'function') {
 // Get the color theme for this gallery
 const galleryTheme = getGalleryColors('lenoir');
 
-// Custom font loading
-const GlobalStyle = styled('style')({
+// Custom font loading - separating each font declaration into its own component
+const MediumFontStyle = styled('style')({
   '@font-face': {
     fontFamily: 'Medium OTF',
     src: 'url("/fonts/Medium.otf") format("opentype")',
     fontWeight: 'normal',
     fontStyle: 'normal',
     fontDisplay: 'swap',
-  },
+  }
+});
+
+const MyriadFontStyle = styled('style')({
+  '@font-face': {
+    fontFamily: 'MYRIADPRO-BOLD',
+    src: 'url("/fonts/MYRIADPRO-BOLD.OTF") format("opentype")',
+    fontWeight: 'bold',
+    fontStyle: 'normal',
+    fontDisplay: 'swap',
+  }
+});
+
+// Adding PPEditorialNew-Ultrabold font for titles
+const PPEditorialUltraboldStyle = styled('style')({
+  '@font-face': {
+    fontFamily: 'PPEditorialNew-Ultrabold',
+    src: 'url("/fonts/PPEditorialNew-Ultrabold.otf") format("opentype")',
+    fontWeight: 'normal',
+    fontStyle: 'normal',
+    fontDisplay: 'swap',
+  }
 });
 
 // Loading screen
@@ -47,7 +68,7 @@ const LoadingScreen = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   zIndex: 9999,
   transition: 'opacity 0.5s ease-out',
-  overflow: 'hidden', // Prevent any overflow during animations
+  overflow: 'hidden',
 }));
 
 // Optimized scroll progress bar with GPU acceleration
@@ -64,29 +85,55 @@ const ScrollProgressBar = styled(Box)({
   boxShadow: '0 0 3px rgba(0,0,0,0.2)', // Subtle shadow for better visibility
 });
 
-// Title component for loading screen
+// Title component with PPEditorialNew-Ultrabold font
 const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
-  fontSize: '45px',
-  fontWeight: 'bold',
-  color: '#e6e6e6', // Color as requested
+  fontFamily: '"PPEditorialNew-Ultrabold", sans-serif',
+  fontSize: '80px', // Increased from 45px to 80px
+  fontWeight: 'normal', // The Ultrabold font is already heavy enough
+  color: '#e6e6e6', // Using light color on dark background for LENOIR
   letterSpacing: '2px',
-  position: 'relative', // For positioning relative to container
-  transform: 'translateY(100px)', // Start below viewport (for animation)
+  position: 'relative',
+  transform: 'translateY(100px)',
   opacity: 0,
+  textTransform: 'uppercase', // Ensures uppercase text
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '60px', // Slightly smaller on mobile but still large
+  },
 }));
 
 const LoadingYear = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
-  fontSize: '40px',
+  fontFamily: '"MYRIADPRO-BOLD", sans-serif',
+  fontSize: '40px', // Maintained at 40px for contrast with title
   fontWeight: 'bold',
-  color: '#e6e6e6', // Color as requested
+  color: '#e6e6e6', // Light color for LENOIR theme
   letterSpacing: '2px',
-  marginTop: '8px', // Space between the title and year
-  position: 'relative', // For positioning relative to container
-  transform: 'translateY(100px)', // Start below viewport (for animation)
+  marginTop: '8px',
+  position: 'relative',
+  transform: 'translateY(100px)',
   opacity: 0,
-  marginBottom: '40px', // Space between text and loading circle
+  marginBottom: '40px',
+}));
+
+// Minimalist progress bar
+const ProgressBarContainer = styled(Box)({
+  width: '300px', // Wider than the title
+  height: '3px', // Reduced height for minimalist look
+  backgroundColor: 'rgba(255, 255, 255, 0.1)', // Subtle light background for LENOIR
+  borderRadius: '0', // No rounded borders, more minimalist
+  overflow: 'hidden',
+  position: 'relative',
+  marginBottom: '20px',
+});
+
+const ProgressBarFill = styled(Box)(({ progress }) => ({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: `${progress}%`,
+  height: '100%',
+  backgroundColor: '#e6e6e6', // Light color for fill on LENOIR's dark background
+  borderRadius: '0', // No rounded borders
+  transition: 'width 0.2s ease-out', // Faster transition for the bar
 }));
 
 // Main container with horizontal scroll and dynamic background color
@@ -287,20 +334,19 @@ const LenoirGallery = ({ onBack }) => {
     if (!loading) return;
     
     if (titleRef.current && yearRef.current) {
-      const options = { 
+      gsap.to(titleRef.current, {
         y: 0,
         opacity: 1,
         duration: 1,
-        ease: "power2.out"
-      };
-      
-      gsap.to(titleRef.current, {
-        ...options,
+        ease: "power2.out",
         delay: 0.3,
       });
       
       gsap.to(yearRef.current, {
-        ...options,
+        y: 0,
+        opacity: 1,
+        duration: 1,
+        ease: "power2.out",
         delay: 0.5,
       });
     }
@@ -323,17 +369,12 @@ const LenoirGallery = ({ onBack }) => {
             clearInterval(interval);
             
             if (titleRef.current && yearRef.current && loadingScreenRef.current) {
-              const options = {
+              gsap.to([titleRef.current, yearRef.current], {
                 y: -100,
                 opacity: 0,
                 duration: 0.8,
-                ease: "power2.in"
-              };
-              
-              gsap.to(titleRef.current, options);
-              gsap.to(yearRef.current, {
-                ...options,
-                delay: 0.1,
+                ease: "power2.in",
+                stagger: 0.1,
                 onComplete: () => {
                   gsap.to(loadingScreenRef.current, {
                     opacity: 0,
@@ -361,7 +402,6 @@ const LenoirGallery = ({ onBack }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (loading) {
-        console.log('Forcing loading to complete');
         setLoading(false);
       }
     }, 5000);
@@ -407,7 +447,9 @@ const LenoirGallery = ({ onBack }) => {
 
   return (
     <>
-      <GlobalStyle />
+      <MediumFontStyle />
+      <MyriadFontStyle />
+      <PPEditorialUltraboldStyle />
       
       {/* Loading screen with title animation */}
       {loading && (
@@ -420,13 +462,10 @@ const LenoirGallery = ({ onBack }) => {
             2024
           </LoadingYear>
           
-          <CircularProgress 
-            variant="determinate" 
-            value={loadProgress} 
-            size={60} 
-            thickness={4}
-            sx={{ color: '#e6e6e6' }}
-          />
+          {/* Minimalist progress bar instead of CircularProgress */}
+          <ProgressBarContainer>
+            <ProgressBarFill progress={loadProgress} />
+          </ProgressBarContainer>
         </LoadingScreen>
       )}
       

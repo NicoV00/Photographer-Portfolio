@@ -30,6 +30,17 @@ const MyriadFontStyle = styled('style')({
   }
 });
 
+// Añadimos la fuente PPEditorialNew-Ultrabold para los títulos
+const PPEditorialUltraboldStyle = styled('style')({
+  '@font-face': {
+    fontFamily: 'PPEditorialNew-Ultrabold',
+    src: 'url("/fonts/PPEditorialNew-Ultrabold.otf") format("opentype")',
+    fontWeight: 'normal',
+    fontStyle: 'normal',
+    fontDisplay: 'swap',
+  }
+});
+
 // Loading screen
 const LoadingScreen = styled(Box)(({ theme }) => ({
   position: 'fixed',
@@ -61,21 +72,26 @@ const ScrollProgressBar = styled(Box)({
   boxShadow: '0 0 3px rgba(255,255,255,0.2)',
 });
 
-// Separate components for PLATA and 2024 - Ahora usando MYRIADPRO-BOLD
+// Separate components for PLATA and 2024
+// Título con la nueva fuente PPEditorialNew-Ultrabold
 const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"MYRIADPRO-BOLD", sans-serif',
-  fontSize: '45px',
-  fontWeight: 'bold',
+  fontFamily: '"PPEditorialNew-Ultrabold", sans-serif',
+  fontSize: '80px', // Aumentado de 45px a 80px
+  fontWeight: 'normal', // La fuente Ultrabold ya es suficientemente pesada
   color: '#000000', // Texto negro en la pantalla de carga
   letterSpacing: '2px',
   position: 'relative',
   transform: 'translateY(100px)',
   opacity: 0,
+  textTransform: 'uppercase', // Asegura que esté en mayúsculas
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '60px', // Ligeramente más pequeño en móviles pero sigue siendo grande
+  },
 }));
 
 const LoadingYear = styled(Box)(({ theme }) => ({
   fontFamily: '"MYRIADPRO-BOLD", sans-serif',
-  fontSize: '40px',
+  fontSize: '40px', // Se mantiene en 40px para que haya contraste con el título
   fontWeight: 'bold',
   color: '#000000', // Texto negro en la pantalla de carga
   letterSpacing: '2px',
@@ -86,12 +102,12 @@ const LoadingYear = styled(Box)(({ theme }) => ({
   marginBottom: '40px',
 }));
 
-// Barra de progreso personalizada
+// Barra de progreso minimalista
 const ProgressBarContainer = styled(Box)({
   width: '300px', // Más ancha que el texto PLATA
-  height: '8px', // Altura de la barra
+  height: '3px', // Altura de la barra reducida para hacerla más minimalista (era 8px)
   backgroundColor: 'rgba(0, 0, 0, 0.1)', // Fondo sutil
-  borderRadius: '4px',
+  borderRadius: '0', // Sin bordes redondeados, más minimalista
   overflow: 'hidden',
   position: 'relative',
   marginBottom: '20px',
@@ -104,8 +120,8 @@ const ProgressBarFill = styled(Box)(({ progress }) => ({
   width: `${progress}%`,
   height: '100%',
   backgroundColor: '#000000', // Color negro igual que el texto
-  borderRadius: '4px',
-  transition: 'width 0.3s ease-out', // Transición suave de la barra
+  borderRadius: '0', // Sin bordes redondeados, más minimalista
+  transition: 'width 0.2s ease-out', // Transición más rápida para la barra
 }));
 
 // Modificación del gradiente en GalleryContainer
@@ -620,12 +636,13 @@ const PlataGallery = ({ onBack }) => {
     <>
       <MediumFontStyle />
       <MyriadFontStyle />
+      <PPEditorialUltraboldStyle />
       
       {/* Loading screen with title animation */}
       {loading && (
         <LoadingScreen ref={loadingScreenRef}>
           <LoadingTitle ref={titleRef}>
-            Plata
+            PLATA
           </LoadingTitle>
           
           <LoadingYear ref={yearRef}>
