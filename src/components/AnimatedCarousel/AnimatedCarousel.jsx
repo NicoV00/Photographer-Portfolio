@@ -6,25 +6,26 @@ import QualitySwitch from './QualitySwitch';
 import ImageMesh from './ImageMesh';
 import { getGalleryColors } from '../utils/galleryColors';
 
-const AnimatedCarousel = ({ 
-  setShowCollection, 
-  setCollection, 
-  setIndex, 
+const AnimatedCarousel = ({
+  setShowCollection,
+  setCollection,
+  setIndex,
   setActiveGalleryColor,
+  setSelectedProjectInfo, // NUEVA PROP para la información del proyecto
   initialTransition = false,
   initialImageUrl = null,
-  onTransitionComplete = null
+  onTransitionComplete = null,
+  isUserInactive = false // NUEVA PROP: pausar animaciones cuando el usuario está inactivo
 }) => {
   const [isHighQuality, setIsHighQuality] = useState(true);
   const [isInitializing, setIsInitializing] = useState(initialTransition);
   const hasStartedTransitionRef = useRef(false);
-  
+
   const imageUrls = useMemo(() => [
     "./images/CALDO/CALDO-1 (PORTADA).jpg",
     "./images/blua_constelaciones_finales.jpg",
     "./images/PLATA/PLATA-2.jpg",
     "./images/CAT-17.jpg",
-    "./images/L-12.jpg",
     "./images/NWB&W-09.jpg",
     "./images/S-1.jpg",
     "./images/MDLST/MDLST-1.png",
@@ -34,8 +35,26 @@ const AnimatedCarousel = ({
     "./images/AMOUR/portada.jpg",
     "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg",
     "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg",
-    "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg", // Agregada la portada de IDENTIDAD
+    "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg",
   ], []);
+
+  // MAPEO DE INFORMACIÓN DE PROYECTOS - Aquí defines nombres y años
+  const projectInfo = useMemo(() => ({
+    "./images/CALDO/CALDO-1 (PORTADA).jpg": { name: "Caldo Bastardo", year: "2024" },
+    "./images/blua_constelaciones_finales.jpg": { name: "Constelacion, Blua", year: "2024" },
+    "./images/PLATA/PLATA-2.jpg": { name: "Plata, Blua", year: "2024" },
+    "./images/CAT-17.jpg": { name: "Catatumbo", year: "2024" },
+    "./images/NWB&W-09.jpg": { name: "NEW BLACK & WHITE", year: "2024" },
+    "./images/S-1.jpg": { name: "Ana Livni", year: "2024" },
+    "./images/MDLST/MDLST-1.png": { name: "Maison de l'Est", year: "2024" },
+    "./images/TEO/V1.jpg": { name: "La Notte, Vestimeteo", year: "2024" },
+    "./images/LENOIR/LENOIR-1.jpg": { name: "Lenoir", year: "2024" },
+    "./images/KABOA/KABOA-1.jpg": { name: "Kaboa SS24", year: "2024" },
+    "./images/AMOUR/portada.jpg": { name: "A del Amour", year: "2024" },
+    "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg": { name: "Catalogo MUF", year: "2024" },
+    "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg": { name: "Pasarela MUF", year: "2024" },
+    "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": { name: "Montevideo Under Fashion", year: "2024" }
+  }), []);
 
   // Encontrar el índice de la imagen inicial
   const initialImageIndex = useMemo(() => {
@@ -50,38 +69,38 @@ const AnimatedCarousel = ({
       loader.setCrossOrigin('anonymous');
     }
   );
-  
+
   const refs = Array.from({ length: textures.length }, () => useRef());
 
   const originalPositions = useMemo(() => {
     const areaWidth = 25;
     const areaHeight = 25;
     const areaDepth = 20;
-    
+
     return imageUrls.map((url, index) => {
       // Si es la imagen especial, darle una posición fija prominente
       if (url === "./images/blua_constelaciones_finales.jpg") {
         return [0, 3, 15]; // Posición central, ligeramente elevada y más adelante
       }
-      
+
       // Para el resto de imágenes, usar el posicionamiento estándar
       const cluster = Math.floor(index / 4);
       const intraClusterIndex = index % 4;
-      
+
       let baseX = (cluster % 3 - 1) * (areaWidth / 2);
       let baseZ = Math.floor(cluster / 3) * (areaDepth / 2) - areaDepth / 4;
-      
+
       const angleInCluster = (intraClusterIndex / 4) * Math.PI * 2;
       const clusterRadius = 8;
-      
+
       const randomOffset = () => (Math.random() - 0.5) * 5;
-      
+
       const x = baseX + Math.cos(angleInCluster) * clusterRadius + randomOffset();
       const y = (Math.random() - 0.5) * areaHeight;
       const z = baseZ + Math.sin(angleInCluster) * clusterRadius + randomOffset();
-      
+
       const indexVariation = Math.sin(index * 0.5) * 3;
-      
+
       return [
         x + indexVariation,
         y + Math.cos(index * 0.7) * 2,
@@ -111,13 +130,13 @@ const AnimatedCarousel = ({
 
   // Gestionar la transición inicial desde la foto del video
   useEffect(() => {
-    if (initialTransition && initialImageIndex !== -1 && refs[initialImageIndex]?.current 
+    if (initialTransition && initialImageIndex !== -1 && refs[initialImageIndex]?.current
         && !hasStartedTransitionRef.current && !animationInProgressRef.current) {
-      
+
       hasStartedTransitionRef.current = true;
       animationInProgressRef.current = true;
       setIsInitializing(true);
-      
+
       refs.forEach((ref, idx) => {
         if (ref.current) {
           ref.current.visible = idx === initialImageIndex;
@@ -126,19 +145,19 @@ const AnimatedCarousel = ({
           }
         }
       });
-      
+
       const targetRef = refs[initialImageIndex].current;
       const camera = cameraRef.current;
-      
+
       if (targetRef && camera) {
         const finalPosition = [...originalPositions[initialImageIndex]];
-        
+
         camera.position.set(0, 0, 5);
         camera.lookAt(0, 0, 0);
-        
+
         targetRef.position.set(0, 0, 0);
         targetRef.scale.set(6, 6, 6);
-        
+
         const timeline = gsap.timeline({
           onComplete: () => {
             // IMPORTANTE: Eliminar cualquier movimiento residual estableciendo posiciones exactas
@@ -149,21 +168,21 @@ const AnimatedCarousel = ({
               overwrite: true,
               force3D: true
             });
-            
+
             gsap.set(targetRef.scale, {
               x: 1,
               y: 1,
               z: 1,
               overwrite: true
             });
-            
+
             gsap.set(camera.position, {
               x: 0,
               y: 0,
               z: 45,
               overwrite: true
             });
-            
+
             setIsInitializing(false);
             animationInProgressRef.current = false;
             if (onTransitionComplete) {
@@ -171,7 +190,7 @@ const AnimatedCarousel = ({
             }
           }
         });
-        
+
         timeline.to(targetRef.position, {
           x: finalPosition[0],
           y: finalPosition[1],
@@ -184,7 +203,7 @@ const AnimatedCarousel = ({
             }
           }
         }, 0);
-        
+
         timeline.to(targetRef.scale, {
           x: 1,
           y: 1,
@@ -192,7 +211,7 @@ const AnimatedCarousel = ({
           duration: 1.8,
           ease: "power3.inOut"
         }, 0);
-        
+
         timeline.to(camera.position, {
           x: 0,
           y: 0,
@@ -200,12 +219,12 @@ const AnimatedCarousel = ({
           duration: 1.8,
           ease: "power3.inOut"
         }, 0);
-        
+
         timeline.call(() => {
           refs.forEach((ref, idx) => {
             if (ref.current && idx !== initialImageIndex) {
               ref.current.visible = true;
-              
+
               gsap.fromTo(ref.current.scale,
                 { x: 0.001, y: 0.001, z: 0.001 },
                 {
@@ -239,7 +258,7 @@ const AnimatedCarousel = ({
 
   const handleClick = (index) => {
     if (isInitializing || animationInProgressRef.current) return;
-    
+
     if (!(selectedImage.includes(index))) {
       setSelectedImage((prev) => {
         const updatedList = [...prev, index];
@@ -251,20 +270,16 @@ const AnimatedCarousel = ({
         }
         return updatedList;
       });
-      
+
       // Get the gallery color based on the selected image URL
       const galleryImageUrl = imageUrls[index];
       const galleryColors = getGalleryColors(galleryImageUrl);
-      const imageGaleryDict = {
-        "caldo": "/images/CALDO/CALDO-1 (PORTADA).jpg",
-      };
-      
-      
+
       // Pass the gallery colors to parent component
       if (setActiveGalleryColor) {
         setActiveGalleryColor(galleryColors);
       }
-      
+
       // Apply gallery background color to scene
       if (galleryColors && galleryColors.main) {
         // Convert hex color to THREE.Color
@@ -281,14 +296,22 @@ const AnimatedCarousel = ({
     // Evitar animaciones simultáneas
     if (animationInProgressRef.current) return;
     animationInProgressRef.current = true;
-    
+
     // Cancelar cualquier animación previa si existe
     if (timelineRef.current) {
       timelineRef.current.kill();
     }
-    
+
     setIsImageUpFront(true);
-    
+
+    // *** ENVIAR INFORMACIÓN DEL PROYECTO AL COMPONENTE PADRE ***
+    if (setSelectedProjectInfo) {
+      const imageUrl = imageUrls[index];
+      const info = projectInfo[imageUrl];
+      console.log("Enviando información del proyecto:", info); // Para debug
+      setSelectedProjectInfo(info);
+    }
+
     // Crear nuevo timeline coordinado para toda la animación
     timelineRef.current = gsap.timeline({
       onComplete: () => {
@@ -303,34 +326,34 @@ const AnimatedCarousel = ({
             force3D: true
           });
         }
-        
+
         // Finalizar animación
         animationInProgressRef.current = false;
       }
     });
-    
+
     // Referencia a la imagen seleccionada y cámara
     const selectedRef = refs[index]?.current;
     const camera = cameraRef.current;
-    
+
     if (!selectedRef || !camera) {
       animationInProgressRef.current = false;
       return;
     }
-    
+
     // 1. Notificar el índice seleccionado
     setIndex(index);
-    
+
     // 2. Guardar posición original de la imagen seleccionada
     const originalPosition = selectedRef.position.clone();
-    
+
     // 3. Colocar cámara en posición ideal para la vista de cerca
     const idealCameraPosition = new THREE.Vector3(3, 3, 3);
-    
+
     // 4. Animación ultra suave para la imagen seleccionada
     timelineRef.current.to(selectedRef.position, {
       x: 0,
-      y: 0, 
+      y: 0,
       z: 0,
       duration: 1.2,
       ease: "power3.inOut", // Easing más suave
@@ -341,7 +364,7 @@ const AnimatedCarousel = ({
         }
       }
     }, 0);
-    
+
     // 5. Mover la cámara coordinadamente con la imagen
     timelineRef.current.to(camera.position, {
       x: idealCameraPosition.x,
@@ -351,11 +374,11 @@ const AnimatedCarousel = ({
       ease: "power3.inOut",
       force3D: true
     }, 0);
-    
+
     // 6. Animar las demás imágenes hacia afuera con movimiento orgánico
     refs.forEach((ref, i) => {
       if (i === index) return; // Saltar imagen seleccionada
-      
+
       const mesh = ref.current;
       if (!mesh) return;
 
@@ -365,10 +388,10 @@ const AnimatedCarousel = ({
         mesh.position.y - originalPosition.y,
         mesh.position.z - originalPosition.z
       ).normalize();
-      
+
       // Distancia variable para movimiento más natural
       const distance = 500 + Math.random() * 200;
-      
+
       // Animar cada imagen con timing ligeramente diferente
       timelineRef.current.to(mesh.position, {
         x: originalPositions[i][0] + direction.x * distance,
@@ -382,7 +405,7 @@ const AnimatedCarousel = ({
         }
       }, 0);
     });
-    
+
     // Iniciar la animación
     timelineRef.current.play();
   };
@@ -407,9 +430,10 @@ const AnimatedCarousel = ({
     return closestIndex;
   };
 
+  // *** USEFRAME MODIFICADO: PAUSAR ANIMACIONES DURANTE INACTIVIDAD ***
   useFrame(({ camera, scene }) => {
     cameraRef.current = camera;
-    
+
     // Hacer que las imágenes miren a la cámara (solo si no están en animación activa)
     if (!animationInProgressRef.current) {
       refs.forEach(ref => {
@@ -426,8 +450,12 @@ const AnimatedCarousel = ({
       scene.background.lerp(new THREE.Color('white'), 0.05);
     }
 
-    // Rotación suave del grupo solo cuando es apropiado
-    if (groupRef.current && !isImageUpFront && !isInitializing && !animationInProgressRef.current) {
+    // *** ROTACIÓN PAUSADA DURANTE INACTIVIDAD - SOLUCIÓN CLAVE ***
+    if (groupRef.current && 
+        !isImageUpFront && 
+        !isInitializing && 
+        !animationInProgressRef.current && 
+        !isUserInactive) { // NUEVA CONDICIÓN: No rotar si el usuario está inactivo
       groupRef.current.rotation.y += 0.0003;
     }
   });
@@ -437,14 +465,19 @@ const AnimatedCarousel = ({
     // Evitar múltiples resets
     if (animationInProgressRef.current) return;
     animationInProgressRef.current = true;
-    
+
     // Cancelar cualquier animación previa
     if (timelineRef.current) {
       timelineRef.current.kill();
     }
-    
+
     const camera = cameraRef.current;
-    
+
+    // *** LIMPIAR INFORMACIÓN DEL PROYECTO ***
+    if (setSelectedProjectInfo) {
+      setSelectedProjectInfo(null);
+    }
+
     // Crear nuevo timeline para reset coordinado
     timelineRef.current = gsap.timeline({
       onComplete: () => {
@@ -461,18 +494,18 @@ const AnimatedCarousel = ({
             });
           }
         });
-        
+
         setIsImageUpFront(false);
         setSelectedImage([]);
-        
+
         if (setActiveGalleryColor) {
           setActiveGalleryColor(null);
         }
-        
+
         animationInProgressRef.current = false;
       }
     });
-    
+
     // 1. Primero mover la cámara a posición general
     timelineRef.current.to(camera.position, {
       x: 0,
@@ -482,13 +515,13 @@ const AnimatedCarousel = ({
       ease: "power3.inOut",
       force3D: true
     }, 0);
-    
+
     // 2. Restaurar posición de cada imagen con movimiento armonioso
     refs.forEach((ref, index) => {
       if (ref.current) {
         // Hacer visible inmediatamente sin parpadeo
         ref.current.visible = true;
-        
+
         // Calcular distancia para timing proporcional (más lejos = más tiempo)
         const currentPos = ref.current.position;
         const targetPos = originalPositions[index];
@@ -497,10 +530,10 @@ const AnimatedCarousel = ({
           Math.pow(currentPos.y - targetPos[1], 2) +
           Math.pow(currentPos.z - targetPos[2], 2)
         );
-        
+
         // Ajustar duración basada en distancia (más suave para objetos lejanos)
         const duration = Math.min(1.2, 0.6 + (distance / 500));
-        
+
         // Animar cada imagen a su posición original
         timelineRef.current.to(ref.current.position, {
           x: targetPos[0],
@@ -518,7 +551,7 @@ const AnimatedCarousel = ({
         }, 0.1 + Math.random() * 0.1); // Pequeño retraso escalonado
       }
     });
-    
+
     // Iniciar reset
     timelineRef.current.play();
   };
@@ -527,11 +560,11 @@ const AnimatedCarousel = ({
     const handleClickOutside = (event) => {
       if (isInitializing || animationInProgressRef.current) return;
       if (!isImageUpFront) return;
-      
+
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
       raycaster.setFromCamera(mouse, cameraRef.current);
-      
+
       const intersects = refs
         .map(ref => ref.current)
         .filter(ref => ref && ref.visible)
@@ -539,7 +572,7 @@ const AnimatedCarousel = ({
           const intersection = raycaster.intersectObject(ref);
           return acc.concat(intersection);
         }, []);
-      
+
       if (intersects.length === 0) {
         resetImagePositions();
       }
@@ -551,6 +584,16 @@ const AnimatedCarousel = ({
     };
   }, [refs, isInitializing]);
 
+  // *** EFECTO DE DEBUG: mostrar estado de inactividad ***
+  useEffect(() => {
+    if (isUserInactive) {
+      console.log("🔄 Carrusel PAUSADO - animaciones detenidas para screensaver");
+    } else {
+      console.log("▶️ Carrusel ACTIVO - animaciones normales");
+    }
+  }, [isUserInactive]);
+
+  // IMPORTANTE: Solo devolvemos elementos de Three.js, NUNCA HTML
   return (
     <group ref={groupRef}>
       <QualitySwitch isHighQuality={isHighQuality} onChange={handleQualityChange} />
@@ -563,9 +606,9 @@ const AnimatedCarousel = ({
           onClick={() => handleClick(index)}
           isHighQuality={isHighQuality}
           isSelected={selectedImage.includes(index)}
-          onGalleryToggle={() => { 
-            setShowCollection(true); 
-            setCollection(imageUrls[index]); 
+          onGalleryToggle={() => {
+            setShowCollection(true);
+            setCollection(imageUrls[index]);
           }}
         />
       ))}

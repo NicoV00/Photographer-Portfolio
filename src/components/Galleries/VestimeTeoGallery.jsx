@@ -2,10 +2,10 @@
 
 // Importaciones necesarias
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, useMediaQuery, useTheme, CircularProgress } from '@mui/material';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
+import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll';
 import { getGalleryColors } from '../utils/galleryColors';
 
@@ -24,25 +24,6 @@ const GlobalStyle = styled('style')({
   },
 });
 
-// PANTALLA DE CARGA
-// --------------------------------------
-const LoadingScreen = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
-  backgroundColor: '#f5f5f5',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 9999,
-  transition: 'opacity 0.5s ease-out',
-  overflow: 'hidden',
-  padding: '20px',
-}));
-
 const ScrollProgressBar = styled(Box)({
   position: 'fixed',
   top: 0,
@@ -55,44 +36,6 @@ const ScrollProgressBar = styled(Box)({
   willChange: 'width',
   boxShadow: '0 0 3px rgba(0,0,0,0.2)',
 });
-
-const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
-  fontSize: '45px',
-  fontWeight: 'bold',
-  color: galleryTheme.text,
-  letterSpacing: '2px',
-  position: 'relative',
-  transform: 'translateY(100px)',
-  opacity: 0,
-  textAlign: 'center',
-  width: '100%',
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '32px',
-    letterSpacing: '1.5px',
-  },
-}));
-
-const LoadingYear = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
-  fontSize: '40px',
-  fontWeight: 'bold',
-  color: galleryTheme.text,
-  letterSpacing: '2px',
-  marginTop: '8px',
-  position: 'relative',
-  transform: 'translateY(100px)',
-  opacity: 0,
-  marginBottom: '40px',
-  textAlign: 'center',
-  width: '100%',
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '28px',
-    letterSpacing: '1.5px',
-    marginTop: '5px',
-    marginBottom: '30px',
-  },
-}));
 
 // CONTENEDOR PRINCIPAL DE LA GALERÍA
 // --------------------------------------
@@ -200,9 +143,6 @@ const VestimeTeoGallery = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
 
-  const titleRef = useRef(null);
-  const yearRef = useRef(null);
-  const loadingScreenRef = useRef(null);
   const progressBarRef = useRef(null);
   const containerRef = useRef(null);
   const [visibleImages, setVisibleImages] = useState({});
@@ -222,7 +162,6 @@ const VestimeTeoGallery = ({ onBack }) => {
   const isXl = useMediaQuery(theme.breakpoints.up('lg'));
   const activeBreakpoints = { isXs, isSm, isMd, isLg, isXl };
   const isMobileForScroll = useMediaQuery(theme.breakpoints.down('sm'));
-
 
   const imageConfigurations = {
     V1: { // img index 0
@@ -332,48 +271,27 @@ const VestimeTeoGallery = ({ onBack }) => {
     colors: galleryTheme
   });
 
-  useEffect(() => {
-    if (!loading) return;
-    if (titleRef.current && yearRef.current) {
-      gsap.to(titleRef.current, { y: 0, opacity: 1, duration: 1, ease: "power2.out", delay: 0.3 });
-      gsap.to(yearRef.current, { y: 0, opacity: 1, duration: 1, ease: "power2.out", delay: 0.5 });
-    }
-    return () => {
-      if (titleRef.current) gsap.killTweensOf(titleRef.current);
-      if (yearRef.current) gsap.killTweensOf(yearRef.current);
-    };
-  }, [loading]);
-
+  // Loading progress animation effect
   useEffect(() => {
     let interval;
+    
     if (loading) {
       interval = setInterval(() => {
         setLoadProgress(prev => {
           const next = prev + (Math.random() * 15);
           if (next >= 100) {
             clearInterval(interval);
-            if (titleRef.current && yearRef.current && loadingScreenRef.current) {
-              gsap.to([titleRef.current, yearRef.current], {
-                y: -100, opacity: 0, duration: 0.8, ease: "power2.in", stagger: 0.1,
-                onComplete: () => {
-                  gsap.to(loadingScreenRef.current, {
-                    opacity: 0, duration: 0.5, delay: 0.2,
-                    onComplete: () => setLoading(false)
-                  });
-                }
-              });
-            } else {
-              setTimeout(() => setLoading(false), 500);
-            }
             return 100;
           }
           return next;
         });
       }, 250);
     }
+    
     return () => clearInterval(interval);
   }, [loading]);
 
+  // Force loading to complete after a timeout
   useEffect(() => {
     const timer = setTimeout(() => {
       if (loading) {
@@ -383,6 +301,11 @@ const VestimeTeoGallery = ({ onBack }) => {
     }, 5000);
     return () => clearTimeout(timer);
   }, [loading]);
+
+  // Handle loading animation complete
+  const handleLoadingComplete = () => {
+    setLoading(false);
+  };
 
   useEffect(() => {
     if (!loading) {
@@ -489,30 +412,35 @@ const VestimeTeoGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
-      {loading && (
-        <LoadingScreen ref={loadingScreenRef}>
-          <LoadingTitle ref={titleRef}>VESTIMETEO</LoadingTitle>
-          <LoadingYear ref={yearRef}>2024</LoadingYear>
-          <CircularProgress
-            variant="determinate"
-            value={loadProgress}
-            size={70}
-            thickness={3}
-            sx={{ color: galleryTheme.text, marginTop: '10px' }}
-          />
-        </LoadingScreen>
-      )}
+      
+      {/* Loading screen component */}
+      <GalleryLoadingScreen 
+        title="VESTIMETEO"
+        year="2024"
+        loading={loading}
+        loadProgress={loadProgress}
+        onAnimationComplete={handleLoadingComplete}
+        backgroundColor={galleryTheme.main}
+        textColor={galleryTheme.text}
+        progressColor={galleryTheme.text}
+      />
+      
       <ScrollProgressBar
         ref={progressBarRef}
         data-scroll-progress
-        sx={{ opacity: loading ? 0 : 1 }}
+        sx={{ 
+          opacity: loading ? 0 : 1,
+          width: `${scrollProgress}%`
+        }}
       />
+      
       <NavigationArrow
         onBack={onBack}
         containerRef={containerRef}
         colors={galleryTheme}
         isLoading={loading}
       />
+      
       <GalleryContainer
         ref={containerRef}
         scrollPosition={scrollLeft}

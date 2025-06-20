@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, useTheme, useMediaQuery, CircularProgress } from '@mui/material';
+import { Box, useTheme, useMediaQuery } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
+import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll';
 import { getGalleryColors } from '../utils/galleryColors';
 
@@ -20,23 +20,6 @@ const GlobalStyle = styled('style')({
   },
 });
 
-// Loading screen
-const LoadingScreen = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
-  backgroundColor: galleryTheme.main, // Using theme main color
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 9999,
-  transition: 'opacity 0.5s ease-out',
-  overflow: 'hidden', // Prevent any overflow during animations
-}));
-
 // Optimized scroll progress bar with GPU acceleration
 const ScrollProgressBar = styled(Box)({
   position: 'fixed',
@@ -50,37 +33,6 @@ const ScrollProgressBar = styled(Box)({
   willChange: 'width',
   boxShadow: '0 0 3px rgba(0,0,0,0.2)', // Subtle shadow for better visibility
 });
-
-// Separate components for CALDO BASTARDO and 2024
-const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
-  fontSize: '45px',
-  fontWeight: 'bold',
-  color: galleryTheme.text, // Using theme text color
-  letterSpacing: '2px',
-  position: 'relative', // For positioning relative to container
-  transform: 'translateY(100px)', // Start below viewport (for animation)
-  opacity: 0,
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '32px', // Smaller font on mobile
-  },
-}));
-
-const LoadingYear = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
-  fontSize: '40px',
-  fontWeight: 'bold',
-  color: galleryTheme.text, // Using theme text color
-  letterSpacing: '2px',
-  marginTop: '8px', // Space between the title and year
-  position: 'relative', // For positioning relative to container
-  transform: 'translateY(100px)', // Start below viewport (for animation)
-  opacity: 0,
-  marginBottom: '40px', // Space between text and loading circle
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '28px', // Smaller font on mobile
-  },
-}));
 
 // Main container with horizontal scroll - optimized
 const GalleryContainer = styled(Box)(({ theme }) => ({
@@ -322,9 +274,6 @@ const CaldoGallery = ({ onBack }) => {
   const audioRef = useRef(null);
 
   // References for animation elements
-  const titleRef = useRef(null);
-  const yearRef = useRef(null);
-  const loadingScreenRef = useRef(null);
   const progressBarRef = useRef(null);
   const containerRef = useRef(null);
   
@@ -413,34 +362,6 @@ const CaldoGallery = ({ onBack }) => {
     colors: galleryTheme
   });
   
-  // Loading screen title and year animation effect
-  useEffect(() => {
-    if (!loading) return;
-    
-    if (titleRef.current && yearRef.current) {
-      gsap.to(titleRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.3,
-      });
-      
-      gsap.to(yearRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.5,
-      });
-    }
-    
-    return () => {
-      gsap.killTweensOf(titleRef.current);
-      gsap.killTweensOf(yearRef.current);
-    };
-  }, [loading]);
-  
   // Loading progress animation effect
   useEffect(() => {
     let interval;
@@ -451,27 +372,6 @@ const CaldoGallery = ({ onBack }) => {
           const next = prev + (Math.random() * 15);
           if (next >= 100) {
             clearInterval(interval);
-            
-            if (titleRef.current && yearRef.current && loadingScreenRef.current) {
-              gsap.to([titleRef.current, yearRef.current], {
-                y: -100,
-                opacity: 0,
-                duration: 0.8,
-                ease: "power2.in",
-                stagger: 0.1,
-                onComplete: () => {
-                  gsap.to(loadingScreenRef.current, {
-                    opacity: 0,
-                    duration: 0.5,
-                    delay: 0.2,
-                    onComplete: () => setLoading(false)
-                  });
-                }
-              });
-            } else {
-              setTimeout(() => setLoading(false), 500);
-            }
-            
             return 100;
           }
           return next;
@@ -493,6 +393,11 @@ const CaldoGallery = ({ onBack }) => {
     
     return () => clearTimeout(timer);
   }, [loading]);
+
+  // Handle loading animation complete
+  const handleLoadingComplete = () => {
+    setLoading(false);
+  };
 
   // Optimize browser performance
   useEffect(() => {
@@ -873,26 +778,17 @@ const CaldoGallery = ({ onBack }) => {
     <>
       <GlobalStyle />
       
-      {/* Loading screen with title animation */}
-      {loading && (
-        <LoadingScreen ref={loadingScreenRef}>
-          <LoadingTitle ref={titleRef}>
-            CALDO BASTARDO
-          </LoadingTitle>
-          
-          <LoadingYear ref={yearRef}>
-            2024
-          </LoadingYear>
-          
-          <CircularProgress 
-            variant="determinate" 
-            value={loadProgress} 
-            size={isMobile ? 40 : 60} 
-            thickness={4}
-            sx={{ color: galleryTheme.text }}
-          />
-        </LoadingScreen>
-      )}
+      {/* Loading screen component */}
+      <GalleryLoadingScreen 
+        title="Caldo Bastardo"
+        year="2024"
+        loading={loading}
+        loadProgress={loadProgress}
+        onAnimationComplete={handleLoadingComplete}
+        backgroundColor={galleryTheme.main}
+        textColor={galleryTheme.text}
+        progressColor={galleryTheme.text}
+      />
       
       {/* Scroll progress bar - always visible after loading but controlled by Lenis */}
       <ScrollProgressBar 

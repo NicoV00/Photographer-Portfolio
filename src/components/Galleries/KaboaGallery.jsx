@@ -1,16 +1,17 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { Box, useMediaQuery } from '@mui/material';
 import { styled, useTheme } from '@mui/material/styles';
-import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow'; // Assuming this component exists
+import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll'; // Assuming this hook exists
 import { getGalleryColors } from '../utils/galleryColors'; // Assuming this utility exists
 
 // Register GSAP plugins if needed (kept as is)
-if (typeof gsap.registerPlugin === 'function') {
+if (typeof window !== 'undefined' && typeof require === 'function') {
   try {
-    if (typeof window !== 'undefined') {
-      const { CSSPlugin } = require('gsap/CSSPlugin');
+    const { gsap } = require('gsap');
+    const { CSSPlugin } = require('gsap/CSSPlugin');
+    if (typeof gsap.registerPlugin === 'function') {
       gsap.registerPlugin(CSSPlugin);
     }
   } catch (e) {
@@ -42,34 +43,6 @@ const MyriadFontStyle = styled('style')({
   }
 });
 
-// Adding PPEditorialNew-Ultrabold font for titles
-const PPEditorialUltraboldStyle = styled('style')({
-  '@font-face': {
-    fontFamily: 'PPEditorialNew-Ultrabold',
-    src: 'url("/fonts/PPEditorialNew-Ultrabold.otf") format("opentype")',
-    fontWeight: 'normal',
-    fontStyle: 'normal',
-    fontDisplay: 'swap',
-  }
-});
-
-// Loading screen (kept as is, already uses theme)
-const LoadingScreen = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
-  backgroundColor: galleryTheme.main,
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 9999,
-  transition: 'opacity 0.5s ease-out',
-  overflow: 'hidden',
-}));
-
 // Optimized scroll progress bar (kept as is, already uses theme)
 const ScrollProgressBar = styled(Box)({
   position: 'fixed',
@@ -83,57 +56,6 @@ const ScrollProgressBar = styled(Box)({
   willChange: 'width',
   boxShadow: '0 0 3px rgba(0,0,0,0.2)',
 });
-
-// Title component with PPEditorialNew-Ultrabold font
-const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"PPEditorialNew-Ultrabold", sans-serif',
-  fontSize: '80px', // Increased from 45px to 80px
-  fontWeight: 'normal', // The Ultrabold font is already heavy enough
-  color: galleryTheme.text,
-  letterSpacing: '2px',
-  position: 'relative',
-  transform: 'translateY(100px)',
-  opacity: 0,
-  textTransform: 'uppercase', // Ensures uppercase text
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '60px', // Slightly smaller on mobile but still large
-  },
-}));
-
-const LoadingYear = styled(Box)(({ theme }) => ({
-  fontFamily: '"MYRIADPRO-BOLD", sans-serif',
-  fontSize: '40px', // Maintained at 40px for contrast with title
-  fontWeight: 'bold',
-  color: galleryTheme.text,
-  letterSpacing: '2px',
-  marginTop: '8px',
-  position: 'relative',
-  transform: 'translateY(100px)',
-  opacity: 0,
-  marginBottom: '40px',
-}));
-
-// Minimalist progress bar
-const ProgressBarContainer = styled(Box)({
-  width: '300px', // Wider than the title
-  height: '3px', // Reduced height for minimalist look
-  backgroundColor: 'rgba(0, 0, 0, 0.1)', // Subtle background - adjusted for KABOA theme
-  borderRadius: '0', // No rounded borders, more minimalist
-  overflow: 'hidden',
-  position: 'relative',
-  marginBottom: '20px',
-});
-
-const ProgressBarFill = styled(Box)(({ progress }) => ({
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  width: `${progress}%`,
-  height: '100%',
-  backgroundColor: galleryTheme.text, // Using theme text color for the fill
-  borderRadius: '0', // No rounded borders
-  transition: 'width 0.2s ease-out', // Faster transition for the bar
-}));
 
 // Main container with horizontal scroll - Optimized with responsive background logic
 const GalleryContainer = styled(Box, {
@@ -366,9 +288,6 @@ const KaboaGallery = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
 
-  const titleRef = useRef(null);
-  const yearRef = useRef(null);
-  const loadingScreenRef = useRef(null);
   const progressBarRef = useRef(null);
   const containerRef = useRef(null);
   
@@ -443,34 +362,6 @@ const KaboaGallery = ({ onBack }) => {
     colors: galleryTheme
   });
   
-  // Loading screen title and year animation effect
-  useEffect(() => {
-    if (!loading) return;
-    
-    if (titleRef.current && yearRef.current) {
-      gsap.to(titleRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.3,
-      });
-      
-      gsap.to(yearRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.5,
-      });
-    }
-    
-    return () => {
-      gsap.killTweensOf(titleRef.current);
-      gsap.killTweensOf(yearRef.current);
-    };
-  }, [loading]);
-  
   // Loading progress animation effect
   useEffect(() => {
     let interval;
@@ -481,27 +372,6 @@ const KaboaGallery = ({ onBack }) => {
           const next = prev + (Math.random() * 15);
           if (next >= 100) {
             clearInterval(interval);
-            
-            if (titleRef.current && yearRef.current && loadingScreenRef.current) {
-              gsap.to([titleRef.current, yearRef.current], {
-                y: -100,
-                opacity: 0,
-                duration: 0.8,
-                ease: "power2.in",
-                stagger: 0.1,
-                onComplete: () => {
-                  gsap.to(loadingScreenRef.current, {
-                    opacity: 0,
-                    duration: 0.5,
-                    delay: 0.2,
-                    onComplete: () => setLoading(false)
-                  });
-                }
-              });
-            } else {
-              setTimeout(() => setLoading(false), 500);
-            }
-            
             return 100;
           }
           return next;
@@ -522,6 +392,11 @@ const KaboaGallery = ({ onBack }) => {
     }, 5000);
     return () => clearTimeout(timer);
   }, [loading]);
+
+  // Handle loading animation complete
+  const handleLoadingComplete = () => {
+    setLoading(false);
+  };
 
   // Optimize browser performance
   useEffect(() => {
@@ -708,20 +583,18 @@ const KaboaGallery = ({ onBack }) => {
     <>
       <MediumFontStyle />
       <MyriadFontStyle />
-      <PPEditorialUltraboldStyle />
       
-      {/* Loading screen with new styling */}
-      {loading && (
-        <LoadingScreen ref={loadingScreenRef}>
-          <LoadingTitle ref={titleRef}>KABOA</LoadingTitle>
-          <LoadingYear ref={yearRef}>2024</LoadingYear>
-          
-          {/* Minimalist progress bar instead of CircularProgress */}
-          <ProgressBarContainer>
-            <ProgressBarFill progress={loadProgress} />
-          </ProgressBarContainer>
-        </LoadingScreen>
-      )}
+      {/* Loading screen component */}
+      <GalleryLoadingScreen 
+        title="Kaboa SS24"
+        year="2024"
+        loading={loading}
+        loadProgress={loadProgress}
+        onAnimationComplete={handleLoadingComplete}
+        backgroundColor={galleryTheme.main}
+        textColor={galleryTheme.text}
+        progressColor={galleryTheme.text}
+      />
       
       {/* Scroll progress bar */}
       <ScrollProgressBar 

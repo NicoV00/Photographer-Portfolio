@@ -1,15 +1,15 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { Box, useTheme, useMediaQuery } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
+import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll';
 import { getGalleryColors } from '../utils/galleryColors';
 
 // Get the color theme for this gallery
 const galleryTheme = getGalleryColors('plata');
 
-// Custom font loading - separamos cada declaración de fuente en su propio componente
+// Custom font loading - solo mantenemos Medium y Myriad para otros usos en la galería
 const MediumFontStyle = styled('style')({
   '@font-face': {
     fontFamily: 'Medium OTF',
@@ -30,34 +30,6 @@ const MyriadFontStyle = styled('style')({
   }
 });
 
-// Añadimos la fuente PPEditorialNew-Ultrabold para los títulos
-const PPEditorialUltraboldStyle = styled('style')({
-  '@font-face': {
-    fontFamily: 'PPEditorialNew-Ultrabold',
-    src: 'url("/fonts/PPEditorialNew-Ultrabold.otf") format("opentype")',
-    fontWeight: 'normal',
-    fontStyle: 'normal',
-    fontDisplay: 'swap',
-  }
-});
-
-// Loading screen
-const LoadingScreen = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
-  backgroundColor: '#e6e6e6', // Color de fondo gris claro para la pantalla de carga
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 9999,
-  transition: 'opacity 0.5s ease-out',
-  overflow: 'hidden',
-}));
-
 // Optimized scroll progress bar with GPU acceleration
 const ScrollProgressBar = styled(Box)({
   position: 'fixed',
@@ -71,58 +43,6 @@ const ScrollProgressBar = styled(Box)({
   willChange: 'width',
   boxShadow: '0 0 3px rgba(255,255,255,0.2)',
 });
-
-// Separate components for PLATA and 2024
-// Título con la nueva fuente PPEditorialNew-Ultrabold
-const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"PPEditorialNew-Ultrabold", sans-serif',
-  fontSize: '80px', // Aumentado de 45px a 80px
-  fontWeight: 'normal', // La fuente Ultrabold ya es suficientemente pesada
-  color: '#000000', // Texto negro en la pantalla de carga
-  letterSpacing: '2px',
-  position: 'relative',
-  transform: 'translateY(100px)',
-  opacity: 0,
-  textTransform: 'uppercase', // Asegura que esté en mayúsculas
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '60px', // Ligeramente más pequeño en móviles pero sigue siendo grande
-  },
-}));
-
-const LoadingYear = styled(Box)(({ theme }) => ({
-  fontFamily: '"MYRIADPRO-BOLD", sans-serif',
-  fontSize: '40px', // Se mantiene en 40px para que haya contraste con el título
-  fontWeight: 'bold',
-  color: '#000000', // Texto negro en la pantalla de carga
-  letterSpacing: '2px',
-  marginTop: '8px',
-  position: 'relative',
-  transform: 'translateY(100px)',
-  opacity: 0,
-  marginBottom: '40px',
-}));
-
-// Barra de progreso minimalista
-const ProgressBarContainer = styled(Box)({
-  width: '300px', // Más ancha que el texto PLATA
-  height: '3px', // Altura de la barra reducida para hacerla más minimalista (era 8px)
-  backgroundColor: 'rgba(0, 0, 0, 0.1)', // Fondo sutil
-  borderRadius: '0', // Sin bordes redondeados, más minimalista
-  overflow: 'hidden',
-  position: 'relative',
-  marginBottom: '20px',
-});
-
-const ProgressBarFill = styled(Box)(({ progress }) => ({
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  width: `${progress}%`,
-  height: '100%',
-  backgroundColor: '#000000', // Color negro igual que el texto
-  borderRadius: '0', // Sin bordes redondeados, más minimalista
-  transition: 'width 0.2s ease-out', // Transición más rápida para la barra
-}));
 
 // Modificación del gradiente en GalleryContainer
 const GalleryContainer = styled(Box)(({ theme }) => ({
@@ -217,9 +137,6 @@ const PlataGallery = ({ onBack }) => {
   const [loadProgress, setLoadProgress] = useState(0);
   
   // References for animation elements
-  const titleRef = useRef(null);
-  const yearRef = useRef(null);
-  const loadingScreenRef = useRef(null);
   const containerRef = useRef(null);
   const progressBarRef = useRef(null);
   
@@ -297,34 +214,6 @@ const PlataGallery = ({ onBack }) => {
     colors: galleryTheme
   });
 
-  // Loading screen title and year animation effect
-  useEffect(() => {
-    if (!loading) return;
-    
-    if (titleRef.current && yearRef.current) {
-      gsap.to(titleRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.3,
-      });
-      
-      gsap.to(yearRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.5,
-      });
-    }
-    
-    return () => {
-      gsap.killTweensOf(titleRef.current);
-      gsap.killTweensOf(yearRef.current);
-    };
-  }, [loading]);
-  
   // Loading progress animation effect
   useEffect(() => {
     let interval;
@@ -335,27 +224,6 @@ const PlataGallery = ({ onBack }) => {
           const next = prev + (Math.random() * 15);
           if (next >= 100) {
             clearInterval(interval);
-            
-            if (titleRef.current && yearRef.current && loadingScreenRef.current) {
-              gsap.to([titleRef.current, yearRef.current], {
-                y: -100,
-                opacity: 0,
-                duration: 0.8,
-                ease: "power2.in",
-                stagger: 0.1,
-                onComplete: () => {
-                  gsap.to(loadingScreenRef.current, {
-                    opacity: 0,
-                    duration: 0.5,
-                    delay: 0.2,
-                    onComplete: () => setLoading(false)
-                  });
-                }
-              });
-            } else {
-              setTimeout(() => setLoading(false), 500);
-            }
-            
             return 100;
           }
           return next;
@@ -376,6 +244,11 @@ const PlataGallery = ({ onBack }) => {
     
     return () => clearTimeout(timer);
   }, [loading]);
+
+  // Handle loading animation complete
+  const handleLoadingComplete = () => {
+    setLoading(false);
+  };
 
   // Optimize browser performance
   useEffect(() => {
@@ -483,7 +356,6 @@ const PlataGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.P3} alt="PLATA 3" loading="eager" />
       </ImageItem>
-
 
       {/* Imagen central */}
       <ImageItem 
@@ -636,25 +508,18 @@ const PlataGallery = ({ onBack }) => {
     <>
       <MediumFontStyle />
       <MyriadFontStyle />
-      <PPEditorialUltraboldStyle />
       
-      {/* Loading screen with title animation */}
-      {loading && (
-        <LoadingScreen ref={loadingScreenRef}>
-          <LoadingTitle ref={titleRef}>
-            PLATA
-          </LoadingTitle>
-          
-          <LoadingYear ref={yearRef}>
-            2024
-          </LoadingYear>
-          
-          {/* Barra de progreso personalizada en lugar del círculo */}
-          <ProgressBarContainer>
-            <ProgressBarFill progress={loadProgress} />
-          </ProgressBarContainer>
-        </LoadingScreen>
-      )}
+      {/* Loading screen component */}
+      <GalleryLoadingScreen 
+        title="PLATA"
+        year="2024"
+        loading={loading}
+        loadProgress={loadProgress}
+        onAnimationComplete={handleLoadingComplete}
+        backgroundColor="#e6e6e6"
+        textColor="#000000"
+        progressColor="#000000"
+      />
       
       {/* Scroll progress bar - always visible after loading but controlled by Lenis via data-scroll-progress */}
       <ScrollProgressBar 

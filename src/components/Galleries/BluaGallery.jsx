@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, useMediaQuery, useTheme, CircularProgress } from '@mui/material';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
+import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll';
 
 // Custom color theme for Constelacion gallery
@@ -23,54 +23,6 @@ const GlobalStyle = styled('style')({
     fontDisplay: 'swap',
   },
 });
-
-// Loading screen
-const LoadingScreen = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
-  backgroundColor: galleryTheme.main, // Using theme main color
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 9999,
-  transition: 'opacity 0.5s ease-out',
-  overflow: 'hidden', // Prevent any overflow during animations
-}));
-
-// Separate components for CONSTELACION and 2024
-const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
-  fontSize: '45px',
-  fontWeight: 'bold',
-  color: galleryTheme.text, // Using theme text color
-  letterSpacing: '2px',
-  position: 'relative', // For positioning relative to container
-  transform: 'translateY(100px)', // Start below viewport (for animation)
-  opacity: 0,
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '32px', // Más pequeño en móvil
-  },
-}));
-
-const LoadingYear = styled(Box)(({ theme }) => ({
-  fontFamily: '"Medium OTF", sans-serif',
-  fontSize: '40px',
-  fontWeight: 'bold',
-  color: galleryTheme.text, // Using theme text color
-  letterSpacing: '2px',
-  marginTop: '8px', // Space between the title and year
-  position: 'relative', // For positioning relative to container
-  transform: 'translateY(100px)', // Start below viewport (for animation)
-  opacity: 0,
-  marginBottom: '40px', // Space between text and loading circle
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '28px', // Más pequeño en móvil
-  },
-}));
 
 // Optimized scroll progress bar with GPU acceleration
 const ScrollProgressBar = styled(Box)({
@@ -246,9 +198,6 @@ const ConstelacionGallery = ({ onBack }) => {
   const [loadProgress, setLoadProgress] = useState(0);
 
   // Referencias para los elementos de animación
-  const titleRef = useRef(null);
-  const yearRef = useRef(null);
-  const loadingScreenRef = useRef(null);
   const progressBarRef = useRef(null);
   const containerRef = useRef(null);
   
@@ -318,73 +267,16 @@ const ConstelacionGallery = ({ onBack }) => {
     colors: galleryTheme
   });
   
-  // Efecto para animar el título y año en la pantalla de carga
-  useEffect(() => {
-    if (!loading) return;
-    
-    // Asegurarse de que las referencias existen
-    if (titleRef.current && yearRef.current) {
-      // Animación de entrada desde abajo
-      gsap.to(titleRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.3, // Pequeño retraso para que sea más natural
-      });
-      
-      gsap.to(yearRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.5, // El año aparece después del título
-      });
-    }
-    
-    // Limpieza de la animación al desmontar
-    return () => {
-      gsap.killTweensOf(titleRef.current);
-      gsap.killTweensOf(yearRef.current);
-    };
-  }, [loading]);
-  
-  // Efecto para controlar la pantalla de carga con progreso
+  // Loading progress animation effect
   useEffect(() => {
     let interval;
     
-    // Simular carga progresiva
     if (loading) {
       interval = setInterval(() => {
         setLoadProgress(prev => {
           const next = prev + (Math.random() * 15);
           if (next >= 100) {
             clearInterval(interval);
-            
-            // Animación de salida hacia arriba cuando la carga está completa
-            if (titleRef.current && yearRef.current && loadingScreenRef.current) {
-              // Primero animamos los textos hacia arriba
-              gsap.to([titleRef.current, yearRef.current], {
-                y: -100,
-                opacity: 0,
-                duration: 0.8,
-                ease: "power2.in",
-                stagger: 0.1,
-                onComplete: () => {
-                  // Luego desvanecemos toda la pantalla de carga
-                  gsap.to(loadingScreenRef.current, {
-                    opacity: 0,
-                    duration: 0.5,
-                    delay: 0.2,
-                    onComplete: () => setLoading(false)
-                  });
-                }
-              });
-            } else {
-              // Fallback si las referencias no están disponibles
-              setTimeout(() => setLoading(false), 500);
-            }
-            
             return 100;
           }
           return next;
@@ -406,6 +298,11 @@ const ConstelacionGallery = ({ onBack }) => {
     
     return () => clearTimeout(timer);
   }, [loading]);
+
+  // Handle loading animation complete
+  const handleLoadingComplete = () => {
+    setLoading(false);
+  };
 
   // Optimize browser performance
   useEffect(() => {
@@ -590,28 +487,17 @@ const ConstelacionGallery = ({ onBack }) => {
       <GlobalStyle />
       <SpotifyCustomStyle />
       
-      {/* Pantalla de carga con texto animado y círculo de progreso */}
-      {loading && (
-        <LoadingScreen ref={loadingScreenRef}>
-          {/* Título "CONSTELACION" con animación de entrada desde abajo */}
-          <LoadingTitle ref={titleRef}>
-            CONSTELACION
-          </LoadingTitle>
-          
-          {/* Año "2024" debajo con su propia animación */}
-          <LoadingYear ref={yearRef}>
-            2024
-          </LoadingYear>
-          
-          <CircularProgress 
-            variant="determinate" 
-            value={loadProgress} 
-            size={60} 
-            thickness={4}
-            sx={{ color: galleryTheme.text }}
-          />
-        </LoadingScreen>
-      )}
+      {/* Loading screen component */}
+      <GalleryLoadingScreen 
+        title="Cosntelación, Blua"
+        year="2024"
+        loading={loading}
+        loadProgress={loadProgress}
+        onAnimationComplete={handleLoadingComplete}
+        backgroundColor={galleryTheme.main}
+        textColor={galleryTheme.text}
+        progressColor={galleryTheme.text}
+      />
       
       {/* Scroll progress bar - always visible after loading but controlled by Lenis */}
       <ScrollProgressBar 

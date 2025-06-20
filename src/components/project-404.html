@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Under Creation 404</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        /* Fuentes */
+        @font-face {
+            font-family: 'Bigger';
+            src: url('./public/fonts/Bigger-Display.woff2') format('woff2'),
+                 url('./public/fonts/Bigger-Display.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'PPFraktionMono';
+            src: url('./public/fonts/PPFraktionMono-Regular.woff2') format('woff2'),
+                 url('./public/fonts/PPFraktionMono-Regular.woff') format('woff');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: white;
+        }
+
+        .s-my-way {
+            --padding: 40rem;
+            --smiley-size: 5.625rem;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 3;
+            padding: calc(var(--padding) * 0.75) 0 calc(var(--padding) * 1.5);
+            clip-path: inset(-100vh 0 calc(var(--padding) * -1.375));
+            min-height: 100vh;
+            background: white;
+        }
+
+        @media (max-width: 768px) {
+            .s-my-way {
+                --padding: 25rem;
+            }
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .s__smiley {
+            position: relative;
+            z-index: 2;
+            display: block;
+            width: var(--smiley-size);
+            height: var(--smiley-size);
+            background: #ffff00;
+            border-radius: 50%;
+            animation: rotate 10s linear infinite;
+            will-change: transform;
+        }
+
+        .s__smiley path {
+            fill: #000000;
+        }
+
+        .s__smiley circle {
+            fill: #ffff00;
+        }
+
+        .s__objects {
+            position: absolute;
+            top: -100vh;
+            bottom: -100vh;
+            left: 0;
+            z-index: 3;
+            width: 100%;
+            height: auto;
+            overflow: hidden;
+            perspective: 1000px;
+            perspective-origin: 50% calc(50% - var(--padding) * 0.4);
+            pointer-events: none;
+            transform-style: preserve-3d;
+            will-change: opacity;
+        }
+
+        .s__ruler {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: calc(50% - var(--padding) * 0.4);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .a-object {
+            --s: 0;
+            --x: 50vw;
+            --y: 50vh;
+            --z: -1000vw;
+            --rx: 0;
+            --ry: 0;
+            --rz: 0;
+            --depth: 1rem;
+            --size: 1;
+
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            display: block;
+            cursor: grab;
+            transform: translate3d(
+                calc(var(--x) - 50%),
+                calc(var(--y) - 50%),
+                var(--z)
+            )
+            rotateX(calc(var(--rx) * 1deg)) 
+            rotateY(calc(var(--ry) * 1deg))
+            rotateZ(calc(var(--rz) * 1deg)) 
+            scale(var(--s));
+            transform-style: preserve-3d;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .a-object.is-waiting {
+            transform: scale(0);
+        }
+
+        .a-object--frame {
+            width: 500px;
+            pointer-events: all;
+        }
+
+        @media (max-width: 640px) {
+            .a-object--frame {
+                width: 300px;
+            }
+        }
+
+        .a__inner {
+            display: block;
+            margin: 0;
+            padding: 1.5rem 1.5rem 0;
+            background: #000000;
+        }
+
+        .a__img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .a__caption {
+            display: block;
+            padding: 1.2rem 0;
+            color: #ffffff;
+            font-family: 'PPFraktionMono', monospace;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 1;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .a-object--star {
+            --depth: 1rem;
+            left: 65%;
+            width: calc(var(--size) * 300px);
+            height: calc(var(--size) * 300px);
+        }
+
+        .a-object--star::before {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: #ffff00;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            content: '';
+        }
+
+        .a-object.is-dragging {
+            z-index: 2;
+            cursor: grabbing;
+        }
+
+        @keyframes vanish {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0); }
+        }
+
+        .a-object.is-vanishing {
+            z-index: 2;
+            cursor: default;
+            pointer-events: none;
+            animation: vanish 0.75s ease-out forwards;
+        }
+
+        /* TEXTO DISTORSIONADO - LA PARTE PRINCIPAL */
+        .s__catcher {
+            --amplitude: 50%;
+            --offset: 15%;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            z-index: 2;
+            width: 100%;
+            height: calc(var(--padding) * 1.05 + var(--smiley-size) / 2);
+            perspective: calc(var(--distortion) * 0.85em);
+            user-select: none;
+            font-family: 'Bigger', 'Impact', 'Arial Black', sans-serif;
+            font-weight: 700;
+            font-size: calc(var(--padding) * 1.2);
+            line-height: 0.82;
+            text-align: center;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 768px) {
+            .s__catcher {
+                --amplitude: 75%;
+                --offset: 27.5%;
+                perspective: calc(var(--distortion) * 1.05em);
+                font-size: calc(var(--padding) * 0.75);
+            }
+        }
+
+        .s__catcher__distorted-wrapper {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: calc(var(--padding) * 1.5);
+            overflow: hidden;
+            perspective: calc(var(--distortion) * 0.7em);
+        }
+
+        .s__catcher__distorted {
+            position: absolute;
+            bottom: 0;
+            left: -100%;
+            width: 300%;
+            height: calc(var(--padding) * 1.05 + var(--smiley-size) / 2);
+            transform-origin: 50% 100%;
+            /* EL EFECTO MATRIX3D PRINCIPAL */
+            transform: matrix3d(
+                1, 0, 0, 0,
+                0, 1, var(--distortion), 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1
+            );
+        }
+
+        .s__catcher__normal-wrapper {
+            position: absolute;
+            top: calc(100% - 1px);
+            left: 0;
+            width: 100%;
+            height: calc(100% + 100vh);
+            overflow: hidden;
+        }
+
+        .s__catcher__normal {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 300%;
+            height: 100%;
+        }
+
+        .s__catcher__text {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            will-change: transform;
+            color: #000000;
+        }
+
+        .s__catcher__text--distorted {
+            bottom: 0;
+            transform: translate3d(0, calc(var(--scroll-progress) * var(--amplitude) - var(--offset)), 0);
+        }
+
+        .s__catcher__text--normal {
+            top: 0;
+            transform: translate3d(0, calc(var(--scroll-progress) * var(--amplitude) - 100% - var(--offset)), 0);
+        }
+
+        .s__svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .s__svg__circular-path {
+            fill: none;
+            stroke: #000000;
+            stroke-width: 1px;
+        }
+
+        /* Botón de volver */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            padding: 12px 24px;
+            background: #000000;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: sans-serif;
+            font-weight: 400;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .back-button:hover {
+            background: #333333;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <section class="s-my-way" data-intersect>
+        <!-- Smiley giratorio -->
+        <svg class="s__smiley" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 77.8 77.8" xml:space="preserve">
+            <circle cx="38.9" cy="38.9" r="38.9"></circle>
+            <path d="M38.9 77.8c-2 0-4.1-.2-6.2-.5C11.6 73.9-2.9 53.9.5 32.8 2.1 22.5 7.7 13.5 16.1 7.4c8.4-6.1 18.7-8.5 29-6.9 10.3 1.6 19.3 7.2 25.4 15.6 6.1 8.4 8.5 18.7 6.9 29-3.1 19.1-19.7 32.7-38.5 32.7zM38.8 1c-7.9 0-15.6 2.5-22.1 7.2C8.5 14.1 3.1 22.9 1.5 32.9-1.8 53.5 12.3 73 32.9 76.3 53.5 79.6 73 65.5 76.3 44.9l.5.1-.5-.1c1.6-10-.8-20-6.7-28.2S54.9 3.1 44.9 1.5c-2-.3-4.1-.5-6.1-.5zM25.5 23.1c-1.9 0-3.5 2-4.1 5.1l-.1.3 3 2.2-2.9 2.2.1.3c.6 2.5 1.5 5.1 4.1 5.1 2.4 0 4.2-3.3 4.2-7.6s-2.4-7.6-4.3-7.6zm26.6 0c-1.9 0-3.5 2-4.1 5.1v.3l3 2.2-3 2.2.1.3c.6 2.5 1.5 5.1 4.1 5.1 2.4 0 4.2-3.3 4.2-7.6s-2.3-7.6-4.3-7.6zM62 39c0-.3-.2-.5-.5-.5s-.5.2-.5.5c0 12.2-9.9 22.1-22.1 22.1-12.2 0-22.1-9.9-22.1-22.1 0-.3-.2-.5-.5-.5s-.5.2-.5.5c0 12.7 10.4 23.1 23.1 23.1S62 51.7 62 39z"></path>
+        </svg>
+
+        <!-- Objetos 3D -->
+        <div class="s__objects">
+            <!-- Imágenes flotantes -->
+            <div class="a-object a-object--frame">
+                <figure class="a__inner">
+                    <img loading="lazy" class="a__img" src="./public/images/blua_constelaciones_finales.jpg" alt="Blua Constelaciones">
+                    <figcaption class="a__caption">Blua Constelaciones</figcaption>
+                </figure>
+            </div>
+
+            <div class="a-object a-object--frame">
+                <figure class="a__inner">
+                    <img loading="lazy" class="a__img" src="./public/images/CAT-17.jpg" alt="Cat Portrait">
+                    <figcaption class="a__caption">Cat Portrait</figcaption>
+                </figure>
+            </div>
+
+            <div class="a-object a-object--frame">
+                <figure class="a__inner">
+                    <img loading="lazy" class="a__img" src="./public/images/image.png" alt="Creative Image">
+                    <figcaption class="a__caption">Creative Image</figcaption>
+                </figure>
+            </div>
+
+            <!-- Estrellas -->
+            <div class="a-object a-object--star"></div>
+            <div class="a-object a-object--star"></div>
+            <div class="a-object a-object--star"></div>
+            <div class="a-object a-object--star"></div>
+            <div class="a-object a-object--star"></div>
+
+            <div class="s__ruler"></div>
+        </div>
+
+        <!-- TEXTO DISTORSIONADO PRINCIPAL -->
+        <div class="s__catcher">
+            <div class="s__catcher__distorted-wrapper">
+                <div class="s__catcher__distorted">
+                    <div class="s__catcher__text s__catcher__text--distorted">
+                        Project<br>
+                        under<br>
+                        creation<br>
+                        404
+                    </div>
+                </div>
+            </div>
+
+            <div class="s__catcher__normal-wrapper">
+                <div class="s__catcher__normal">
+                    <div class="s__catcher__text s__catcher__text--normal">
+                        Project<br>
+                        under<br>
+                        creation<br>
+                        404
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SVG para las líneas -->
+        <svg class="s__svg">
+            <path class="s__svg__circular-path" d=""></path>
+        </svg>
+    </section>
+
+    <!-- Botón volver -->
+    <button class="back-button" onclick="window.history.back()">
+        ← Volver
+    </button>
+
+    <script>
+        // JavaScript simplificado para el efecto básico
+        document.addEventListener('DOMContentLoaded', function() {
+            const section = document.querySelector('.s-my-way');
+            const objects = document.querySelectorAll('.a-object');
+            
+            // Configurar distorsión
+            const bounding = section.getBoundingClientRect();
+            const distortion = Math.hypot(bounding.width, bounding.height) * 0.14;
+            section.style.setProperty('--distortion', distortion);
+            
+            // Mostrar algunos objetos iniciales
+            const initialObjects = Array.from(objects).slice(0, 3);
+            initialObjects.forEach((obj, index) => {
+                setTimeout(() => {
+                    obj.style.setProperty('--s', '1');
+                    obj.style.setProperty('--x', `${Math.random() * window.innerWidth}px`);
+                    obj.style.setProperty('--y', `${Math.random() * window.innerHeight}px`);
+                    obj.style.setProperty('--z', `${Math.random() * -5000}px`);
+                    obj.style.setProperty('--rx', `${Math.random() * 360}`);
+                    obj.style.setProperty('--ry', `${Math.random() * 360}`);
+                }, index * 500);
+            });
+
+            // Animación continua simple
+            function animate() {
+                initialObjects.forEach(obj => {
+                    const currentZ = parseFloat(obj.style.getPropertyValue('--z')) || 0;
+                    const newZ = currentZ + 10;
+                    
+                    if (newZ > 1000) {
+                        obj.style.setProperty('--z', '-5000px');
+                        obj.style.setProperty('--x', `${Math.random() * window.innerWidth}px`);
+                        obj.style.setProperty('--y', `${Math.random() * window.innerHeight}px`);
+                    } else {
+                        obj.style.setProperty('--z', `${newZ}px`);
+                    }
+                });
+                
+                requestAnimationFrame(animate);
+            }
+            
+            animate();
+        });
+    </script>
+</body>
+</html>

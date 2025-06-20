@@ -33,11 +33,15 @@ const FinalImage = styled('div')(({ opacity }) => ({
   width: '100%',
   height: '100%',
   backgroundImage: `url("./images/blua_constelaciones_finales.jpg")`,
-  backgroundSize: 'cover',
+  backgroundSize: 'contain', // Cambiado de 'cover' a 'contain' para mantener proporciones
+  backgroundRepeat: 'no-repeat',
   backgroundPosition: 'center',
   opacity: opacity,
-  transition: 'opacity 0.8s ease-in-out',
+  transition: 'opacity 1.2s cubic-bezier(0.4, 0.0, 0.2, 1)', // Transición más suave y larga
   zIndex: 1, // Encima del video, debajo del botón de sonido
+  // Asegurar que no hay escalado adicional
+  transform: 'scale(1)',
+  transformOrigin: 'center center',
 }));
 
 // Enhanced sound control button with better visibility
@@ -118,7 +122,7 @@ function IntroVideo({ onIntroComplete }) {
         console.log("Timer de seguridad activado después de carga completa");
         triggerTransition();
       }
-    }, videoDuration * 1000 + 500); // Duración del video + pequeño margen
+    }, videoDuration * 1000 + 400); // Duración del video + pequeño margen
     
     return () => clearTimeout(safetyTimer);
   }, [videoDuration]);
@@ -154,11 +158,12 @@ function IntroVideo({ onIntroComplete }) {
       const currentTime = videoElement.currentTime;
       const duration = videoElement.duration || 6;
       
-      // Comenzar a mostrar la imagen en el último segundo
-      if (currentTime >= duration - 1) {
-        const fadeProgress = Math.min((currentTime - (duration - 1)) / 0.7, 1);
-        setImageOpacity(fadeProgress);
-
+      // Comenzar a mostrar la imagen en el último 1.5 segundos para una transición más suave
+      if (currentTime >= duration - 1.5) {
+        const fadeProgress = Math.min((currentTime - (duration - 1.5)) / 1.2, 1);
+        // Usar una curva de easing más suave
+        const easedProgress = fadeProgress * fadeProgress * (3 - 2 * fadeProgress); // smoothstep
+        setImageOpacity(easedProgress);
       }
     };
     
@@ -209,7 +214,7 @@ function IntroVideo({ onIntroComplete }) {
     callbackFiredRef.current = true;
     console.log("Ejecutando transición final");
     
-    // Asegurar que la imagen esté completamente visible
+    // Asegurar que la imagen esté completamente visible con transición suave
     setImageOpacity(1);
     
     // Pausar video para conservar recursos
@@ -226,7 +231,7 @@ function IntroVideo({ onIntroComplete }) {
     // DESPUÉS iniciar el desvanecimiento de este contenedor
     setTimeout(() => {
       if (containerRef.current) {
-        containerRef.current.style.transition = 'opacity 1s ease-in-out';
+        containerRef.current.style.transition = 'opacity 1.5s cubic-bezier(0.4, 0.0, 0.2, 1)';
         containerRef.current.style.opacity = '0';
       }
     }, 50); // Tiempo mínimo para que App reaccione
@@ -236,7 +241,7 @@ function IntroVideo({ onIntroComplete }) {
       if (containerRef.current) {
         containerRef.current.style.display = 'none';
       }
-    }, 1100); // Después de completar la transición
+    }, 1600); // Después de completar la transición más larga
   };
   
   // Manejar cambio de mute/unmute
@@ -271,7 +276,8 @@ function IntroVideo({ onIntroComplete }) {
         Tu navegador no soporta videos.
       </Video>
       
-
+      {/* Imagen final que se superpone al video */}
+      <FinalImage opacity={imageOpacity} />
       
       {/* Botón de sonido */}
       <SoundButton onClick={toggleMute} isMuted={isMuted}>

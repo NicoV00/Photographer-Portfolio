@@ -2,19 +2,19 @@
 
 // Importaciones necesarias
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { Box, CircularProgress, useMediaQuery } from '@mui/material';
+import { Box, useMediaQuery } from '@mui/material';
 import { styled, useTheme } from '@mui/material/styles';
-import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
+import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll';
 import { getGalleryColors } from '../utils/galleryColors';
 
 // Register GSAP plugins if needed
-if (typeof gsap.registerPlugin === 'function') {
+if (typeof window !== 'undefined' && typeof require === 'function') {
   try {
-    // Only try to import if in a browser environment
-    if (typeof window !== 'undefined') {
-      const { CSSPlugin } = require('gsap/CSSPlugin');
+    const { gsap } = require('gsap');
+    const { CSSPlugin } = require('gsap/CSSPlugin');
+    if (typeof gsap.registerPlugin === 'function') {
       gsap.registerPlugin(CSSPlugin);
     }
   } catch (e) {
@@ -37,25 +37,6 @@ const GlobalStyle = styled('style')({
   },
 });
 
-// PANTALLA DE CARGA
-// --------------------------------------
-const LoadingScreen = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
-  backgroundColor: galleryTheme.main, // Using theme main color
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 9999,
-  transition: 'opacity 0.5s ease-out',
-  overflow: 'hidden',
-  padding: '20px',
-}));
-
 // Barra de progreso de scroll
 const ScrollProgressBar = styled(Box)({
   position: 'fixed',
@@ -69,45 +50,6 @@ const ScrollProgressBar = styled(Box)({
   willChange: 'width',
   boxShadow: '0 0 3px rgba(0,0,0,0.2)',
 });
-
-// Componentes para pantalla de carga - FUENTE ACTUALIZADA A BOLD
-const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"Suisse Intl Bold", sans-serif',
-  fontSize: '45px',
-  fontWeight: 'bold',
-  color: galleryTheme.text,
-  letterSpacing: '2px',
-  position: 'relative',
-  transform: 'translateY(100px)',
-  opacity: 0,
-  textAlign: 'center',
-  width: '100%',
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '32px',
-    letterSpacing: '1.5px',
-  },
-}));
-
-const LoadingYear = styled(Box)(({ theme }) => ({
-  fontFamily: '"Suisse Intl Bold", sans-serif',
-  fontSize: '40px',
-  fontWeight: 'bold',
-  color: galleryTheme.text,
-  letterSpacing: '2px',
-  marginTop: '8px',
-  position: 'relative',
-  transform: 'translateY(100px)',
-  opacity: 0,
-  marginBottom: '40px',
-  textAlign: 'center',
-  width: '100%',
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '28px',
-    letterSpacing: '1.5px',
-    marginTop: '5px',
-    marginBottom: '30px',
-  },
-}));
 
 // CONTENEDOR PRINCIPAL DE LA GALERÍA
 // --------------------------------------
@@ -230,9 +172,6 @@ const MarcosGallery = ({ onBack }) => {
   const [visibleImages, setVisibleImages] = useState({});
 
   // Referencias
-  const titleRef = useRef(null);
-  const yearRef = useRef(null);
-  const loadingScreenRef = useRef(null);
   const progressBarRef = useRef(null);
   const containerRef = useRef(null);
   const imageRefs = useRef([]);
@@ -449,35 +388,7 @@ const MarcosGallery = ({ onBack }) => {
     colors: galleryTheme
   });
 
-  // Efecto para animar título en pantalla de carga
-  useEffect(() => {
-    if (!loading) return;
-    
-    if (titleRef.current && yearRef.current) {
-      gsap.to(titleRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.3,
-      });
-      
-      gsap.to(yearRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.5,
-      });
-    }
-    
-    return () => {
-      gsap.killTweensOf(titleRef.current);
-      gsap.killTweensOf(yearRef.current);
-    };
-  }, [loading]);
-
-  // Efecto para controlar animación de carga
+  // Loading progress animation effect
   useEffect(() => {
     let interval;
     
@@ -487,27 +398,6 @@ const MarcosGallery = ({ onBack }) => {
           const next = prev + (Math.random() * 15);
           if (next >= 100) {
             clearInterval(interval);
-            
-            if (titleRef.current && yearRef.current && loadingScreenRef.current) {
-              gsap.to([titleRef.current, yearRef.current], {
-                y: -100,
-                opacity: 0,
-                duration: 0.8,
-                ease: "power2.in",
-                stagger: 0.1,
-                onComplete: () => {
-                  gsap.to(loadingScreenRef.current, {
-                    opacity: 0,
-                    duration: 0.5,
-                    delay: 0.2,
-                    onComplete: () => setLoading(false)
-                  });
-                }
-              });
-            } else {
-              setTimeout(() => setLoading(false), 500);
-            }
-            
             return 100;
           }
           return next;
@@ -529,6 +419,11 @@ const MarcosGallery = ({ onBack }) => {
     
     return () => clearTimeout(timer);
   }, [loading]);
+
+  // Handle loading animation complete
+  const handleLoadingComplete = () => {
+    setLoading(false);
+  };
 
   // Optimizar rendimiento del navegador
   useEffect(() => {
@@ -653,29 +548,17 @@ const MarcosGallery = ({ onBack }) => {
     <>
       <GlobalStyle />
       
-      {/* Pantalla de carga con animación de texto y círculo de progreso */}
-      {loading && (
-        <LoadingScreen ref={loadingScreenRef}>
-          <LoadingTitle ref={titleRef}>
-            MARCOS
-          </LoadingTitle>
-          
-          <LoadingYear ref={yearRef}>
-            2024
-          </LoadingYear>
-          
-          <CircularProgress 
-            variant="determinate" 
-            value={loadProgress} 
-            size={70} 
-            thickness={3}
-            sx={{ 
-              color: galleryTheme.text,
-              marginTop: '10px',
-            }}
-          />
-        </LoadingScreen>
-      )}
+      {/* Loading screen component */}
+      <GalleryLoadingScreen 
+        title="MARCOS"
+        year="2024"
+        loading={loading}
+        loadProgress={loadProgress}
+        onAnimationComplete={handleLoadingComplete}
+        backgroundColor={galleryTheme.main}
+        textColor={galleryTheme.text}
+        progressColor={galleryTheme.text}
+      />
       
       {/* Barra de progreso de scroll */}
       <ScrollProgressBar 

@@ -3,17 +3,19 @@ import { OrbitControls } from "@react-three/drei";
 import AnimatedCarousel from "./AnimatedCarousel";
 
 // Componente simplificado sin retrasos
-const About1 = ({ 
-  setIndex, 
-  setShowCollection, 
-  setCollection, 
+const About1 = ({
+  setIndex,
+  setShowCollection,
+  setCollection,
   setActiveGalleryColor,
+  setSelectedProjectInfo, // NUEVA PROP para la información del proyecto
   initialTransition = false,
   initialImageUrl = null,
   onTransitionComplete = null,
-  onCarouselReady = null
+  onCarouselReady = null,
+  isUserInactive = false // NUEVA PROP: estado de inactividad del usuario
 }) => {
-  
+
   // Notificar INMEDIATAMENTE que el componente está listo
   useEffect(() => {
     // Llamar al callback inmediatamente
@@ -51,10 +53,13 @@ const About1 = ({
         setShowCollection={setShowCollection}
         setCollection={setCollection}
         setActiveGalleryColor={setActiveGalleryColor}
+        setSelectedProjectInfo={setSelectedProjectInfo} // PASAR LA NUEVA PROP
         // Pasar los props de transición
         initialTransition={initialTransition}
         initialImageUrl={initialImageUrl}
         onTransitionComplete={onTransitionComplete}
+        // NUEVA PROP: pasar estado de inactividad al carrusel
+        isUserInactive={isUserInactive}
       />
     </>
   );

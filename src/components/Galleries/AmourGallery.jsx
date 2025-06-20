@@ -2,19 +2,19 @@
 
 // Importaciones necesarias
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { Box, CircularProgress, useMediaQuery } from '@mui/material';
+import { Box, useMediaQuery } from '@mui/material';
 import { styled, useTheme } from '@mui/material/styles';
-import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
+import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll';
 import { getGalleryColors } from '../utils/galleryColors';
 
 // Register GSAP plugins if needed
-if (typeof gsap.registerPlugin === 'function') {
+if (typeof window !== 'undefined' && typeof require === 'function') {
   try {
-    // Only try to import if in a browser environment
-    if (typeof window !== 'undefined') {
-      const { CSSPlugin } = require('gsap/CSSPlugin');
+    const { gsap } = require('gsap');
+    const { CSSPlugin } = require('gsap/CSSPlugin');
+    if (typeof gsap.registerPlugin === 'function') {
       gsap.registerPlugin(CSSPlugin);
     }
   } catch (e) {
@@ -37,24 +37,6 @@ const GlobalStyle = styled('style')({
   },
 });
 
-// Loading screen
-const LoadingScreen = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
-  backgroundColor: galleryTheme.main, // Using theme main color
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 9999,
-  transition: 'opacity 0.5s ease-out',
-  overflow: 'hidden', // Prevent any overflow during animations
-  padding: '20px',
-}));
-
 // Optimized scroll progress bar with GPU acceleration
 const ScrollProgressBar = styled(Box)({
   position: 'fixed',
@@ -68,45 +50,6 @@ const ScrollProgressBar = styled(Box)({
   willChange: 'width',
   boxShadow: '0 0 3px rgba(0,0,0,0.2)', // Subtle shadow for better visibility
 });
-
-// Title component for loading screen - FUENTE ACTUALIZADA A BOLD
-const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"Suisse Intl Bold", sans-serif',
-  fontSize: '45px',
-  fontWeight: 'bold',
-  color: galleryTheme.text, // Using theme text color
-  letterSpacing: '2px',
-  position: 'relative', // For positioning relative to container
-  transform: 'translateY(100px)', // Start below viewport (for animation)
-  opacity: 0,
-  textAlign: 'center',
-  width: '100%',
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '32px',
-    letterSpacing: '1.5px',
-  },
-}));
-
-const LoadingYear = styled(Box)(({ theme }) => ({
-  fontFamily: '"Suisse Intl Bold", sans-serif',
-  fontSize: '40px',
-  fontWeight: 'bold',
-  color: galleryTheme.text, // Using theme text color
-  letterSpacing: '2px',
-  marginTop: '8px', // Space between the title and year
-  position: 'relative', // For positioning relative to container
-  transform: 'translateY(100px)', // Start below viewport (for animation)
-  opacity: 0,
-  marginBottom: '40px', // Space between text and loading circle
-  textAlign: 'center',
-  width: '100%',
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '28px',
-    letterSpacing: '1.5px',
-    marginTop: '5px',
-    marginBottom: '30px',
-  },
-}));
 
 // Main container with horizontal scroll - optimized
 const GalleryContainer = styled(Box, {
@@ -233,9 +176,6 @@ const AmourGallery = ({ onBack }) => {
   const [loadProgress, setLoadProgress] = useState(0);
 
   // References for animation elements
-  const titleRef = useRef(null);
-  const yearRef = useRef(null);
-  const loadingScreenRef = useRef(null);
   const progressBarRef = useRef(null);
   const containerRef = useRef(null);
   
@@ -426,35 +366,6 @@ const AmourGallery = ({ onBack }) => {
     colors: galleryTheme
   });
   
-  // Loading screen title and year animation effect
-  useEffect(() => {
-    if (!loading) return;
-    
-    if (titleRef.current && yearRef.current) {
-      const options = { 
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out"
-      };
-      
-      gsap.to(titleRef.current, {
-        ...options,
-        delay: 0.3,
-      });
-      
-      gsap.to(yearRef.current, {
-        ...options,
-        delay: 0.5,
-      });
-    }
-    
-    return () => {
-      gsap.killTweensOf(titleRef.current);
-      gsap.killTweensOf(yearRef.current);
-    };
-  }, [loading]);
-  
   // Loading progress animation effect
   useEffect(() => {
     let interval;
@@ -465,32 +376,6 @@ const AmourGallery = ({ onBack }) => {
           const next = prev + (Math.random() * 15);
           if (next >= 100) {
             clearInterval(interval);
-            
-            if (titleRef.current && yearRef.current && loadingScreenRef.current) {
-              const options = {
-                y: -100,
-                opacity: 0,
-                duration: 0.8,
-                ease: "power2.in"
-              };
-              
-              gsap.to(titleRef.current, options);
-              gsap.to(yearRef.current, {
-                ...options,
-                delay: 0.1,
-                onComplete: () => {
-                  gsap.to(loadingScreenRef.current, {
-                    opacity: 0,
-                    duration: 0.5,
-                    delay: 0.2,
-                    onComplete: () => setLoading(false)
-                  });
-                }
-              });
-            } else {
-              setTimeout(() => setLoading(false), 500);
-            }
-            
             return 100;
           }
           return next;
@@ -512,6 +397,11 @@ const AmourGallery = ({ onBack }) => {
     
     return () => clearTimeout(timer);
   }, [loading]);
+
+  // Handle loading animation complete
+  const handleLoadingComplete = () => {
+    setLoading(false);
+  };
 
   // Optimize browser performance
   useEffect(() => {
@@ -791,29 +681,17 @@ const AmourGallery = ({ onBack }) => {
     <>
       <GlobalStyle />
       
-      {/* Loading screen with title animation */}
-      {loading && (
-        <LoadingScreen ref={loadingScreenRef}>
-          <LoadingTitle ref={titleRef}>
-            AMOUR
-          </LoadingTitle>
-          
-          <LoadingYear ref={yearRef}>
-            2024
-          </LoadingYear>
-          
-          <CircularProgress 
-            variant="determinate" 
-            value={loadProgress} 
-            size={70} 
-            thickness={3}
-            sx={{ 
-              color: galleryTheme.text,
-              marginTop: '10px',
-            }}
-          />
-        </LoadingScreen>
-      )}
+      {/* Loading screen component */}
+      <GalleryLoadingScreen 
+        title="AMOUR"
+        year="2024"
+        loading={loading}
+        loadProgress={loadProgress}
+        onAnimationComplete={handleLoadingComplete}
+        backgroundColor={galleryTheme.main}
+        textColor={galleryTheme.text}
+        progressColor={galleryTheme.text}
+      />
       
       {/* Scroll progress bar */}
       <ScrollProgressBar 

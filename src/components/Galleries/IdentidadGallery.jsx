@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { Box, useTheme, useMediaQuery } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
+import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll';
 import { getGalleryColors } from '../utils/galleryColors';
 
@@ -34,34 +34,6 @@ const MyriadFontStyle = styled('style')({
   }
 });
 
-// Adding PPEditorialNew-Ultrabold font for titles
-const PPEditorialUltraboldStyle = styled('style')({
-  '@font-face': {
-    fontFamily: 'PPEditorialNew-Ultrabold',
-    src: 'url("/fonts/PPEditorialNew-Ultrabold.otf") format("opentype")',
-    fontWeight: 'normal',
-    fontStyle: 'normal',
-    fontDisplay: 'swap',
-  }
-});
-
-// Loading screen
-const LoadingScreen = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
-  backgroundColor: galleryTheme.main, // Fondo azul
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 9999,
-  transition: 'opacity 0.5s ease-out',
-  overflow: 'hidden',
-}));
-
 // Optimized scroll progress bar with GPU acceleration
 const ScrollProgressBar = styled(Box)({
   position: 'fixed',
@@ -75,57 +47,6 @@ const ScrollProgressBar = styled(Box)({
   willChange: 'width',
   boxShadow: '0 0 3px rgba(255,255,255,0.2)',
 });
-
-// Título con la fuente PPEditorialNew-Ultrabold
-const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"PPEditorialNew-Ultrabold", sans-serif',
-  fontSize: '80px',
-  fontWeight: 'normal',
-  color: galleryTheme.text, // Texto blanco para el azul
-  letterSpacing: '2px',
-  position: 'relative',
-  transform: 'translateY(100px)',
-  opacity: 0,
-  textTransform: 'uppercase',
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '60px',
-  },
-}));
-
-const LoadingYear = styled(Box)(({ theme }) => ({
-  fontFamily: '"MYRIADPRO-BOLD", sans-serif',
-  fontSize: '40px',
-  fontWeight: 'bold',
-  color: galleryTheme.text, // Texto blanco
-  letterSpacing: '2px',
-  marginTop: '8px',
-  position: 'relative',
-  transform: 'translateY(100px)',
-  opacity: 0,
-  marginBottom: '40px',
-}));
-
-// Barra de progreso minimalista
-const ProgressBarContainer = styled(Box)({
-  width: '300px',
-  height: '3px',
-  backgroundColor: 'rgba(255, 255, 255, 0.1)', // Fondo sutil blanco para la barra
-  borderRadius: '0',
-  overflow: 'hidden',
-  position: 'relative',
-  marginBottom: '20px',
-});
-
-const ProgressBarFill = styled(Box)(({ progress }) => ({
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  width: `${progress}%`,
-  height: '100%',
-  backgroundColor: '#ffffff', // Blanco para el relleno
-  borderRadius: '0',
-  transition: 'width 0.2s ease-out',
-}));
 
 // Contenedor principal con fondo azul
 const GalleryContainer = styled(Box)(({ theme }) => ({
@@ -204,9 +125,6 @@ const IdentidadGallery = ({ onBack }) => {
   const [loadProgress, setLoadProgress] = useState(0);
   
   // References for animation elements
-  const titleRef = useRef(null);
-  const yearRef = useRef(null);
-  const loadingScreenRef = useRef(null);
   const containerRef = useRef(null);
   const progressBarRef = useRef(null);
   
@@ -278,34 +196,6 @@ const IdentidadGallery = ({ onBack }) => {
     colors: galleryTheme
   });
 
-  // Loading screen title and year animation effect
-  useEffect(() => {
-    if (!loading) return;
-    
-    if (titleRef.current && yearRef.current) {
-      gsap.to(titleRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.3,
-      });
-      
-      gsap.to(yearRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.5,
-      });
-    }
-    
-    return () => {
-      gsap.killTweensOf(titleRef.current);
-      gsap.killTweensOf(yearRef.current);
-    };
-  }, [loading]);
-  
   // Loading progress animation effect
   useEffect(() => {
     let interval;
@@ -316,27 +206,6 @@ const IdentidadGallery = ({ onBack }) => {
           const next = prev + (Math.random() * 15);
           if (next >= 100) {
             clearInterval(interval);
-            
-            if (titleRef.current && yearRef.current && loadingScreenRef.current) {
-              gsap.to([titleRef.current, yearRef.current], {
-                y: -100,
-                opacity: 0,
-                duration: 0.8,
-                ease: "power2.in",
-                stagger: 0.1,
-                onComplete: () => {
-                  gsap.to(loadingScreenRef.current, {
-                    opacity: 0,
-                    duration: 0.5,
-                    delay: 0.2,
-                    onComplete: () => setLoading(false)
-                  });
-                }
-              });
-            } else {
-              setTimeout(() => setLoading(false), 500);
-            }
-            
             return 100;
           }
           return next;
@@ -357,6 +226,11 @@ const IdentidadGallery = ({ onBack }) => {
     
     return () => clearTimeout(timer);
   }, [loading]);
+
+  // Handle loading animation complete
+  const handleLoadingComplete = () => {
+    setLoading(false);
+  };
 
   // Optimize browser performance
   useEffect(() => {
@@ -517,25 +391,18 @@ const IdentidadGallery = ({ onBack }) => {
     <>
       <MediumFontStyle />
       <MyriadFontStyle />
-      <PPEditorialUltraboldStyle />
       
-      {/* Loading screen with title animation */}
-      {loading && (
-        <LoadingScreen ref={loadingScreenRef}>
-          <LoadingTitle ref={titleRef}>
-            IDENTIDAD
-          </LoadingTitle>
-          
-          <LoadingYear ref={yearRef}>
-            2024
-          </LoadingYear>
-          
-          {/* Barra de progreso minimalista */}
-          <ProgressBarContainer>
-            <ProgressBarFill progress={loadProgress} />
-          </ProgressBarContainer>
-        </LoadingScreen>
-      )}
+      {/* Loading screen component */}
+      <GalleryLoadingScreen 
+        title="IDENTIDAD"
+        year="2024"
+        loading={loading}
+        loadProgress={loadProgress}
+        onAnimationComplete={handleLoadingComplete}
+        backgroundColor={galleryTheme.main}
+        textColor={galleryTheme.text}
+        progressColor={galleryTheme.text}
+      />
       
       {/* Scroll progress bar */}
       <ScrollProgressBar 

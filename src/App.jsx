@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, lazy, Suspense } from 'react';
+import { useEffect, useRef, useState, lazy, Suspense, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import About1 from './components/About1';
 import Footer from './components/Footer';
@@ -7,10 +7,12 @@ import { CircularProgress, Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import IntroVideo from './components/IntroVideo';
 import CursorManager from './components/CursorManager';
+import ScreensaverBanner from './components/ScreensaverBanner';
 import { gsap } from 'gsap';
 import * as THREE from 'three';
+import MyWaySection from './components/MyWaySection';
 
-// Lazy loaded galleries - pero iniciar precarga inmediatamente
+// Lazy loaded galleries
 const AnaLivniGallery = lazy(() => import('./components/Galleries/AnaLivniGallery'));
 const BluaGallery = lazy(() => import('./components/Galleries/BluaGallery'));
 const MaisonGallery = lazy(() => import('./components/Galleries/MaisonGallery'));
@@ -22,52 +24,65 @@ const KaboaGallery = lazy(() => import('./components/Galleries/KaboaGallery'));
 const AmourGallery = lazy(() => import('./components/Galleries/AmourGallery'));
 const MarcosGallery = lazy(() => import('./components/Galleries/MarcosGallery'));
 const PasarelaGallery = lazy(() => import('./components/Galleries/PasarelaGallery'));
-const IdentidadGallery = lazy(() => import('./components/Galleries/IdentidadGallery')); // Añadir IdentidadGallery
+const IdentidadGallery = lazy(() => import('./components/Galleries/IdentidadGallery'));
 
-// Iniciar precarga de componentes clave inmediatamente
+// Precarga
 import('./components/Galleries/BluaGallery');
 
 // Font loading and global styles
 const GlobalStyle = styled('style')({
-  '@font-face': {
-    fontFamily: 'Medium',
-    src: 'url("/fonts/Medium.otf") format("opentype")',
-    fontWeight: 'normal',
-    fontStyle: 'normal',
-  }
+  '@font-face': [
+    {
+      fontFamily: 'Medium',
+      src: 'url("/fonts/Medium.otf") format("opentype")',
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+    },
+    {
+      fontFamily: 'Helvetica-Bold',
+      src: 'url("/fonts/Helvetica-Bold.ttf") format("truetype")',
+      fontWeight: 'bold',
+      fontStyle: 'normal',
+      fontDisplay: 'swap',
+    }
+  ]
 });
 
 // Hide default cursor
 const BodyStyle = styled('style')({
   'body': {
-    cursor: 'none !important', // Forzar el cursor oculto en todo momento
+    cursor: 'none !important',
     backgroundColor: '#000',
     transition: 'background-color 0.5s ease-out'
   }
 });
 
-// Container for the entire app - VISIBLE INMEDIATAMENTE
+// Container for the entire app
 const ContainerCloud = styled(Box)({
   position: 'relative',
   width: '100vw',
   height: '100vh',
-  opacity: 1, // Visible inmediatamente para evitar retrasos
+  opacity: 1,
 });
 
 // Photographer name with rotation and styling
 const PhotographerName = styled(Box)({
   position: 'absolute',
-  top: '160px', 
-  fontFamily: '"Medium", Helvetica, sans-serif',
-  fontSize: '35px',
+  top: '140px',
+  left: '0px',
+  fontFamily: 'Helvetica-Bold, "Helvetica Neue", Helvetica, Arial, sans-serif',
+  fontSize: '50px',
   fontWeight: 'bold',
   color: 'black',
   transform: 'rotate(-90deg)',
   transformOrigin: 'top left',
   zIndex: 10,
-  letterSpacing: '0px',
-  transition: 'letter-spacing 0.3s ease, opacity 0.5s ease',
-  opacity: 0, // Inicialmente invisible
+  letterSpacing: '-2px',
+  textTransform: 'lowercase',
+  transition: 'letter-spacing 0.3s ease, opacity 0.5s ease, color 0.2s ease',
+  opacity: 0,
+  cursor: 'pointer',
+  userSelect: 'none',
 });
 
 // Style for individual letters
@@ -75,6 +90,41 @@ const Letter = styled('span')({
   display: 'inline-block',
   transition: 'color 0.2s ease, text-shadow 0.3s ease',
   marginRight: '0.5px'
+});
+
+// Project info container
+const ProjectInfoContainer = styled(Box)(({ isVisible }) => ({
+  position: 'fixed',
+  bottom: '20px',
+  left: '50%',
+  textAlign: 'center',
+  zIndex: 1000,
+  pointerEvents: 'none',
+  color: '#000',
+  fontFamily: '"Helvetica", Helvetica, Arial, sans-serif',
+  fontSize: '16px',
+  fontWeight: 'bold',
+  letterSpacing: '0.5px',
+  lineHeight: '1.4',
+  textShadow: '0 0 10px rgba(255,255,255,0.8)',
+  opacity: isVisible ? 1 : 0,
+  transform: isVisible 
+    ? 'translateX(-50%) translateY(0)' 
+    : 'translateX(-50%) translateY(20px)',
+  transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+}));
+
+const ProjectName = styled(Box)({
+  marginBottom: '4px',
+  fontSize: '18px',
+  fontWeight: 'bold',
+  letterSpacing: '1px',
+});
+
+const ProjectYear = styled(Box)({
+  fontSize: '14px',
+  opacity: 0.7,
+  fontWeight: 'bold',
 });
 
 function App() {
@@ -99,6 +149,13 @@ function App() {
   const transitionInProgressRef = useRef(false);
   const [scene3DReady, setScene3DReady] = useState(false);
 
+  // Estado para la información del proyecto seleccionado
+  const [selectedProjectInfo, setSelectedProjectInfo] = useState(null);
+
+  // Estados del screensaver
+  const [screensaverActive, setScreensaverActive] = useState(true);
+  const [isUserInactive, setIsUserInactive] = useState(false);
+
   // Collection mapping
   const specialCollections = {
     "./images/CALDO/CALDO-1 (PORTADA).jpg": "caldo",
@@ -112,7 +169,7 @@ function App() {
     "./images/AMOUR/portada.jpg": "amour",
     "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg": "marcos",
     "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg": "pasarela",
-    "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": "identidad" // Añadir IDENTIDAD
+    "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": "identidad"
   };
 
   const handleOffCanvasState = (show) => {
@@ -120,7 +177,7 @@ function App() {
   };
 
   useEffect(() => {
-    const fallback = '#ffffff'; // white as fallback
+    const fallback = '#ffffff';
     const hex = bgColor?.main || fallback;
 
     console.log('||||| ---> bgColor RECIBIDO:', hex);
@@ -140,7 +197,7 @@ function App() {
   }, [bgColor]);
 
   const hexToRGB = (hex) => {
-    if (typeof hex !== 'string') return [0, 0, 0]; // fallback to black
+    if (typeof hex !== 'string') return [0, 0, 0];
 
     const cleanedHex = hex.replace('#', '');
 
@@ -152,23 +209,19 @@ function App() {
     ];
   };
 
-
   // Preparar escena 3D inmediatamente al cargar
   useEffect(() => {
     if (containerRef.current) {
-      // Todo visible desde el principio para evitar retrasos
       containerRef.current.style.display = 'block';
       document.body.style.backgroundColor = 'white';
     }
     
-    // Notificar que la escena 3D está lista
     setScene3DReady(true);
     
-    // IMPORTANTE: Forzar a que el cursor siempre sea 'none'
+    // Forzar cursor hidden
     const enforceHiddenCursor = () => {
       document.body.style.cursor = 'none';
       
-      // Aplicar a todos los elementos
       const allElements = document.querySelectorAll('*');
       allElements.forEach(el => {
         if (getComputedStyle(el).cursor !== 'none') {
@@ -177,10 +230,8 @@ function App() {
       });
     };
     
-    // Ejecutar inicialmente
     enforceHiddenCursor();
     
-    // Y también periódicamente para asegurar que los elementos dinámicos también lo reciban
     const cursorInterval = setInterval(enforceHiddenCursor, 2000);
     
     return () => clearInterval(cursorInterval);
@@ -188,17 +239,14 @@ function App() {
 
   // Handler optimizado para la transición sin retrasos
   const handleIntroComplete = (finalImageUrl) => {
-    // Evitar inicios múltiples
     if (transitionInProgressRef.current) return;
     transitionInProgressRef.current = true;
     
     console.log("Iniciando transición sin retrasos");
     
-    // Iniciar la animación inmediatamente
     setTransitionImageUrl(finalImageUrl);
     setInitialTransition(true);
     
-    // Ocultar el intro completamente después de un breve momento
     setTimeout(() => {
       setShowIntro(false);
     }, 300);
@@ -214,7 +262,6 @@ function App() {
     console.log("Transición completada");
     setInitialTransition(false);
     
-    // Mostrar elementos de UI
     if (photographerNameRef.current) {
       photographerNameRef.current.style.opacity = '1';
     }
@@ -222,9 +269,9 @@ function App() {
     transitionInProgressRef.current = false;
   };
 
-  // Glitch effect
+  // Glitch effect - solo letras y números para mantener tamaño consistente
   const glitchEffect = (element, text) => {
-    const characters = "we@#$asn!@dvcv0123456789#$%^&*";
+    const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
     let interval = setInterval(() => {
       const randomIndex = Math.floor(Math.random() * characters.length);
       element.innerText = characters[randomIndex];
@@ -252,7 +299,7 @@ function App() {
         glitchEffect(letter, photographerName[index]);
       });
       
-      nameContainer.style.letterSpacing = '1px';
+      nameContainer.style.letterSpacing = '-1px';
     };
 
     const handleMouseOut = () => {
@@ -262,7 +309,7 @@ function App() {
         letter.style.textShadow = 'none';
       });
       
-      nameContainer.style.letterSpacing = '0px';
+      nameContainer.style.letterSpacing = '-2px';
     };
 
     nameContainer.addEventListener('mouseover', handleMouseOver);
@@ -278,7 +325,24 @@ function App() {
   const handleBackToCarousel = () => {
     setShowGallery(false);
     setCollection("");
+    setSelectedProjectInfo(null);
   };
+
+  // Handlers memoizados para evitar re-renders
+  const handleProjectInfoChange = useCallback((projectInfo) => {
+    console.log("Project info changed:", projectInfo);
+    setSelectedProjectInfo(projectInfo);
+  }, []);
+
+  const handleUserInactivity = useCallback((inactive) => {
+    setIsUserInactive(inactive);
+    console.log(`🎯 Usuario ${inactive ? 'INACTIVO' : 'ACTIVO'} - Carrusel ${inactive ? 'PAUSADO' : 'ACTIVO'}`);
+  }, []);
+
+  const handleScreensaverDismiss = useCallback(() => {
+    console.log("Screensaver dismissed by user activity");
+    setIsUserInactive(false);
+  }, []);
 
   // Determine content to show
   const renderContent = () => {
@@ -300,11 +364,12 @@ function App() {
             setShowCollection={() => {setShowGallery(!showGallery)}} 
             setCollection={(index) => { setCollection(index);}}
             setActiveGalleryColor={setBgColor}
-            // Props para la transición
+            setSelectedProjectInfo={handleProjectInfoChange}
             initialTransition={initialTransition}
             initialImageUrl={transitionImageUrl}
             onTransitionComplete={handleTransitionComplete}
             onCarouselReady={handleCarouselReady}
+            isUserInactive={isUserInactive}
           />
         </Canvas>
       );
@@ -391,41 +456,18 @@ function App() {
             <PasarelaGallery onBack={handleBackToCarousel} />
           </Suspense>
         );
-      } else if (collectionType === "identidad") { // Añadir case para IDENTIDAD
+      } else if (collectionType === "identidad") {
         return (
           <Suspense fallback={loadingComponent}>
             <IdentidadGallery onBack={handleBackToCarousel} />
           </Suspense>
         );
       } else {
-        // Fallback
         return (
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            justifyContent: 'center', 
-            alignItems: 'center',
-            height: '100vh',
-            padding: '20px'
-          }}>
-            <h2>Proyecto en desarrollo</h2>
-            <p>Este proyecto aún no tiene una galería específica.</p>
-            <p>Ruta de imagen: {collection}</p>
-            <button 
-              onClick={handleBackToCarousel}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#000',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'none', // Asegurar cursor invisible incluso en botones
-                marginTop: '20px'
-              }}
-            >
-              Volver al carrusel
-            </button>
-          </Box>
+          <MyWaySection 
+            onBack={handleBackToCarousel}
+            collection={collection}
+          />
         );
       }
     }
@@ -437,15 +479,27 @@ function App() {
       <GlobalStyle />
       <BodyStyle />
       
-      {/* Componente de cursor global - siempre presente */}
+      {/* Componente de cursor global */}
       <CursorManager isOffCanvasOpen={isOffCanvasOpen} />
+      
+      {/* SCREENSAVER BANNER ULTRA SMOOTH - 20 SEGUNDOS */}
+      <ScreensaverBanner 
+        isActive={screensaverActive}
+        timeout={20000} // 20 SEGUNDOS exactos
+        onDismiss={handleScreensaverDismiss}
+        onInactivityChange={handleUserInactivity}
+        text={{
+          line1: "enzo cimillo",
+          line2: "fashion photographer"
+        }}
+      />
       
       {/* Mostrar IntroVideo solo mientras es necesario */}
       {showIntro && (
         <IntroVideo onIntroComplete={handleIntroComplete} />
       )}
       
-      {/* Contenedor principal - SIEMPRE VISIBLE */}
+      {/* Contenedor principal */}
       <ContainerCloud 
         className="containerCloud" 
         ref={containerRef}
@@ -469,6 +523,22 @@ function App() {
         )}
 
         {renderContent()}
+
+        {/* Información del proyecto */}
+        {!showGallery && (
+          <ProjectInfoContainer isVisible={!!selectedProjectInfo}>
+            {selectedProjectInfo && (
+              <>
+                <ProjectName>
+                  {selectedProjectInfo.name || 'UNTITLED'}
+                </ProjectName>
+                <ProjectYear>
+                  {selectedProjectInfo.year || '2024'}
+                </ProjectYear>
+              </>
+            )}
+          </ProjectInfoContainer>
+        )}
 
         <Footer 
           onShowChange={handleOffCanvasState} 
