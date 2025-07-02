@@ -12,9 +12,9 @@ const galleryColors = {
     highlight: "#000000" // Black highlight for consistency
   },
   "blua": {
-    main: "#e6e6e6",     // Plata, BLUA 2024 gradient start (light grey)
-    text: "#000000",     // Black text
-    highlight: "#000000" // Black highlight (gradient end)
+    main: "#5E5F70",     // Plata, BLUA 2024 gradient start (light grey)
+    text: "#FFFFFF",     // Black text
+    highlight: "#FFFFFF" // Black highlight (gradient end)
   },
   "maison": {
     main: "#1e1e1d",     // Maison 2024 color
@@ -58,8 +58,8 @@ const galleryColors = {
   },
   // Default colors for collections without specific mapping
   "default": {
-    main: "#dbdae5",     // Light gray
-    text: "#000000",     // Black text
+    main: "#8990A2",     // Light gray
+    text: "#FFFFFF",     // Black text
     highlight: "#666666" // Darker gray for highlights
   }
 };

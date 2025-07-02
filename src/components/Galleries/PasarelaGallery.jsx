@@ -515,7 +515,7 @@ const PasarelaGallery = ({ onBack }) => {
       
       {/* Loading screen component */}
       <GalleryLoadingScreen 
-        title="PASARELA"
+        title="Pasarela MUF"
         year="2024"
         loading={loading}
         loadProgress={loadProgress}

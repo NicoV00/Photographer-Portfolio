@@ -755,7 +755,7 @@ const MaisonGallery = ({ onBack }) => {
       
       {/* Loading screen component */}
       <GalleryLoadingScreen 
-        title="MAISON"
+        title="Maison de l'Est"
         year="2024"
         loading={loading}
         loadProgress={loadProgress}

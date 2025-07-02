@@ -29,6 +29,65 @@ const IdentidadGallery = lazy(() => import('./components/Galleries/IdentidadGall
 // Precarga
 import('./components/Galleries/BluaGallery');
 
+// Función para determinar si un color es oscuro
+const isColorDark = (hexColor) => {
+  if (!hexColor || typeof hexColor !== 'string') return false;
+  // Convertir hex a RGB
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Calcular luminancia relativa
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  
+  // Si la luminancia es menor a 0.5, el color es oscuro
+  return luminance < 0.5;
+};
+
+// Componente para el texto con efecto glitch
+const GlitchText = ({ text, isDark }) => {
+  const [displayText, setDisplayText] = useState(text);
+  const [isGlitching, setIsGlitching] = useState(false);
+  const prevTextRef = useRef(text);
+  
+  useEffect(() => {
+    // Activar glitch cuando cambia el texto
+    if (text !== prevTextRef.current) {
+      prevTextRef.current = text;
+      setIsGlitching(true);
+      const characters = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+      let iterations = 0;
+      
+      const interval = setInterval(() => {
+        setDisplayText(text
+          .split("")
+          .map((letter, index) => {
+            if (index < iterations) {
+              return text[index];
+            }
+            if (letter === ' ') return ' '; // Mantener espacios
+            return characters[Math.floor(Math.random() * characters.length)];
+          })
+          .join("")
+        );
+        
+        if (iterations >= text.length) {
+          clearInterval(interval);
+          setIsGlitching(false);
+          setDisplayText(text);
+        }
+        
+        iterations += 1;
+      }, 30);
+      
+      return () => clearInterval(interval);
+    }
+  }, [text]);
+  
+  return <span>{displayText}</span>;
+};
+
 // Font loading and global styles
 const GlobalStyle = styled('style')({
   '@font-face': [
@@ -37,6 +96,13 @@ const GlobalStyle = styled('style')({
       src: 'url("/fonts/Medium.otf") format("opentype")',
       fontWeight: 'normal',
       fontStyle: 'normal',
+    },
+    {
+      fontFamily: 'Helvetica-Regular',
+      src: 'url("/fonts/Helvetica.ttf") format("truetype")',
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      fontDisplay: 'swap',
     },
     {
       fontFamily: 'Helvetica-Bold',
@@ -92,26 +158,25 @@ const Letter = styled('span')({
   marginRight: '0.5px'
 });
 
-// Project info container
-const ProjectInfoContainer = styled(Box)(({ isVisible }) => ({
+// Project info container actualizado con detección de color
+const ProjectInfoContainer = styled(Box)(({ isVisible, isDarkBackground }) => ({
   position: 'fixed',
   bottom: '20px',
   left: '50%',
   textAlign: 'center',
   zIndex: 1000,
   pointerEvents: 'none',
-  color: '#000',
+  color: isDarkBackground ? '#ffffff' : '#000000', // Blanco en fondos oscuros, negro en claros
   fontFamily: '"Helvetica", Helvetica, Arial, sans-serif',
   fontSize: '16px',
   fontWeight: 'bold',
   letterSpacing: '0.5px',
   lineHeight: '1.4',
-  textShadow: '0 0 10px rgba(255,255,255,0.8)',
   opacity: isVisible ? 1 : 0,
   transform: isVisible 
     ? 'translateX(-50%) translateY(0)' 
     : 'translateX(-50%) translateY(20px)',
-  transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+  transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.3s ease',
 }));
 
 const ProjectName = styled(Box)({
@@ -156,6 +221,10 @@ function App() {
   const [screensaverActive, setScreensaverActive] = useState(true);
   const [isUserInactive, setIsUserInactive] = useState(false);
 
+  // NUEVOS ESTADOS para detección de color
+  const [currentBgColor, setCurrentBgColor] = useState('#ffffff');
+  const [isDarkBackground, setIsDarkBackground] = useState(false);
+
   // Collection mapping
   const specialCollections = {
     "./images/CALDO/CALDO-1 (PORTADA).jpg": "caldo",
@@ -178,7 +247,7 @@ function App() {
 
   useEffect(() => {
     const fallback = '#ffffff';
-    const hex = bgColor?.main || fallback;
+    const hex = bgColor?.main || bgColor || fallback;
 
     console.log('||||| ---> bgColor RECIBIDO:', hex);
 
@@ -194,6 +263,13 @@ function App() {
         }
       },
     });
+  }, [bgColor]);
+
+  // NUEVO useEffect para detectar cambios de color
+  useEffect(() => {
+    const color = bgColor?.main || bgColor || '#ffffff';
+    setCurrentBgColor(color);
+    setIsDarkBackground(isColorDark(color));
   }, [bgColor]);
 
   const hexToRGB = (hex) => {
@@ -524,16 +600,22 @@ function App() {
 
         {renderContent()}
 
-        {/* Información del proyecto */}
+        {/* Información del proyecto - ACTUALIZADA CON GLITCH Y DETECCIÓN DE COLOR */}
         {!showGallery && (
-          <ProjectInfoContainer isVisible={!!selectedProjectInfo}>
+          <ProjectInfoContainer isVisible={!!selectedProjectInfo} isDarkBackground={isDarkBackground}>
             {selectedProjectInfo && (
               <>
                 <ProjectName>
-                  {selectedProjectInfo.name || 'UNTITLED'}
+                  <GlitchText 
+                    text={selectedProjectInfo.name || 'UNTITLED'} 
+                    isDark={isDarkBackground}
+                  />
                 </ProjectName>
                 <ProjectYear>
-                  {selectedProjectInfo.year || '2024'}
+                  <GlitchText 
+                    text={selectedProjectInfo.year || '2024'} 
+                    isDark={isDarkBackground}
+                  />
                 </ProjectYear>
               </>
             )}

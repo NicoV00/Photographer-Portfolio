@@ -1,8 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Html } from '@react-three/drei';
 import { Box, Typography, Switch } from '@mui/material';
 
 const QualitySwitch = ({ isHighQuality, onChange }) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Detectar Shift + G
+      if (event.shiftKey && event.key === 'G') {
+        setIsVisible(prev => !prev); // Toggle visibility
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  // Si no está visible, no renderizar nada
+  if (!isVisible) return null;
+
   return (
     <Html>
       {/* Embedded font import */}

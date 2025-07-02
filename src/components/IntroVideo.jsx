@@ -23,7 +23,7 @@ const Video = styled('video')({
   position: 'absolute',
   top: 0,
   left: 0,
-  zIndex: 0, // Detrás de FinalImage y SoundButton
+  zIndex: 0, // Detrás de FinalImage
 });
 
 const FinalImage = styled('div')(({ opacity }) => ({
@@ -33,70 +33,16 @@ const FinalImage = styled('div')(({ opacity }) => ({
   width: '100%',
   height: '100%',
   backgroundImage: `url("./images/blua_constelaciones_finales.jpg")`,
-  backgroundSize: 'contain', // Cambiado de 'cover' a 'contain' para mantener proporciones
+  backgroundSize: 'cover', // IGUAL que el video para continuidad perfecta
   backgroundRepeat: 'no-repeat',
   backgroundPosition: 'center',
   opacity: opacity,
-  transition: 'opacity 1.2s cubic-bezier(0.4, 0.0, 0.2, 1)', // Transición más suave y larga
-  zIndex: 1, // Encima del video, debajo del botón de sonido
+  transition: 'opacity 0.3s ease-out', // Transición aún más rápida para entrada instantánea
+  zIndex: 1, // Encima del video
   // Asegurar que no hay escalado adicional
   transform: 'scale(1)',
   transformOrigin: 'center center',
 }));
-
-// Enhanced sound control button with better visibility
-const SoundButton = styled(Box)(({ isMuted }) => ({
-  position: 'absolute',
-  bottom: '30px',
-  right: '30px',
-  width: '50px',
-  height: '50px',
-  backgroundColor: isMuted ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.5)',
-  borderRadius: '50%',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  cursor: 'pointer',
-  zIndex: 2001, // Siempre encima
-  pointerEvents: 'auto', // Asegurar que sea clickeable
-  transition: 'all 0.3s ease',
-  border: '2px solid white',
-  boxShadow: isMuted ? 'none' : '0 0 15px rgba(255, 255, 255, 0.5)',
-  '&:hover': {
-    transform: 'scale(1.1)',
-    backgroundColor: isMuted ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.7)',
-  },
-  animation: isMuted ? 'pulse 2s infinite' : 'none',
-  '@keyframes pulse': {
-    '0%': {
-      boxShadow: '0 0 0 0 rgba(255, 255, 255, 0.4)'
-    },
-    '70%': {
-      boxShadow: '0 0 0 10px rgba(255, 255, 255, 0)'
-    },
-    '100%': {
-      boxShadow: '0 0 0 0 rgba(255, 255, 255, 0)'
-    }
-  }
-}));
-
-// Mute icon (speaker with X)
-const MuteIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-    <path d="M11 5L6 9H2V15H6L11 19V5Z" />
-    <path d="M23 9L17 15" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-    <path d="M17 9L23 15" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-  </svg>
-);
-
-// Unmute icon (speaker with waves)
-const UnmuteIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-    <path d="M11 5L6 9H2V15H6L11 19V5Z" />
-    <path d="M15.54 8.46C16.4774 9.39764 17.0039 10.6692 17.0039 11.995C17.0039 13.3208 16.4774 14.5924 15.54 15.53" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M19.07 5.93C20.9447 7.80528 21.9979 10.3447 21.9979 13C21.9979 15.6553 20.9447 18.1947 19.07 20.07" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
 
 function IntroVideo({ onIntroComplete }) {
   const videoRef = useRef(null);
@@ -104,11 +50,55 @@ function IntroVideo({ onIntroComplete }) {
   const callbackFiredRef = useRef(false);
   const finalImageUrl = "./images/blua_constelaciones_finales.jpg";
   const videoLoadedRef = useRef(false);
+  const videoEndedRef = useRef(false); // Nueva referencia para controlar el final
   
   // Estados
-  const [isMuted, setIsMuted] = useState(true);
   const [imageOpacity, setImageOpacity] = useState(0);
   const [videoDuration, setVideoDuration] = useState(6); // Duración predeterminada
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Detectar si es móvil
+  useEffect(() => {
+    const checkMobile = () => {
+      // Múltiples formas de detectar móvil para mayor precisión
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+      const isMobileUA = mobileRegex.test(userAgent.toLowerCase());
+      
+      // También verificar por tamaño de pantalla y orientación
+      const isMobileScreen = window.innerWidth <= 768 || 
+                           (window.innerHeight > window.innerWidth && window.innerWidth <= 1024);
+      
+      // Verificar si tiene capacidad táctil
+      const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      
+      // Determinar si es móvil basándose en múltiples factores
+      const mobile = (isMobileUA || isMobileScreen) && hasTouch;
+      
+      setIsMobile(mobile);
+      console.log(`📱 Dispositivo detectado: ${mobile ? 'MÓVIL' : 'DESKTOP'}`);
+      console.log(`📐 Dimensiones: ${window.innerWidth}x${window.innerHeight}`);
+    };
+    
+    checkMobile();
+    
+    // Escuchar cambios de orientación
+    window.addEventListener('resize', checkMobile);
+    window.addEventListener('orientationchange', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('orientationchange', checkMobile);
+    };
+  }, []);
+  
+  // Obtener la URL del video según el dispositivo
+  const getVideoUrl = () => {
+    if (isMobile) {
+      return "/videos/entradaweb_vertical.mp4"; // VIDEO VERTICAL PARA MÓVIL
+    }
+    return "/videos/ENTRADA_WEB2.2.mp4"; // VIDEO HORIZONTAL PARA DESKTOP
+  };
   
   // Precargar la imagen final inmediatamente
   useEffect(() => {
@@ -116,13 +106,14 @@ function IntroVideo({ onIntroComplete }) {
     img.src = finalImageUrl;
     img.importance = "high"; // Marcar como alta prioridad
     
-    // Timer de seguridad (solo como respaldo)
+    // Timer de seguridad - solo si el video NO terminó naturalmente
     const safetyTimer = setTimeout(() => {
-      if (!callbackFiredRef.current && videoLoadedRef.current) {
-        console.log("Timer de seguridad activado después de carga completa");
+      if (!callbackFiredRef.current && !videoEndedRef.current && videoLoadedRef.current) {
+        console.log("⚠️ Timer de seguridad: forzando finalización");
+        setImageOpacity(1);
         triggerTransition();
       }
-    }, videoDuration * 1000 + 400); // Duración del video + pequeño margen
+    }, (videoDuration + 5) * 1000); // Duración del video + 5 segundos para estar seguros
     
     return () => clearTimeout(safetyTimer);
   }, [videoDuration]);
@@ -132,53 +123,68 @@ function IntroVideo({ onIntroComplete }) {
     const videoElement = videoRef.current;
     if (!videoElement) return;
     
-    // Configuraciones iniciales
+    // Configuraciones iniciales - SIN SONIDO
     videoElement.muted = true;
     videoElement.preload = "auto";
     videoElement.playsInline = true;
     videoElement.setAttribute('playsinline', '');
     
+    // Importante para móviles: evitar controles nativos
+    videoElement.setAttribute('webkit-playsinline', 'true');
+    videoElement.setAttribute('x5-playsinline', 'true');
+    videoElement.setAttribute('x5-video-player-type', 'h5');
+    videoElement.setAttribute('x5-video-player-fullscreen', 'false');
+    
+    // Cambiar la fuente del video según el dispositivo
+    const videoUrl = getVideoUrl();
+    console.log(`🎬 Cargando video: ${videoUrl}`);
+    
     // Detectar cuando el video está listo
     const handleCanPlay = () => {
-      console.log("Video listo para reproducir");
+      console.log(`Video ${isMobile ? 'MÓVIL' : 'DESKTOP'} listo para reproducir`);
       videoLoadedRef.current = true;
     };
     
     // Actualizar duración real del video cuando esté disponible
     const handleLoadedMetadata = () => {
       if (videoElement.duration && videoElement.duration !== Infinity) {
-        console.log("Duración del video:", videoElement.duration);
+        console.log(`Duración del video ${isMobile ? 'MÓVIL' : 'DESKTOP'}:`, videoElement.duration);
         setVideoDuration(videoElement.duration);
       }
       videoLoadedRef.current = true;
     };
     
-    // Monitorear el tiempo para detectar el final y controlar la transición
+    // NO hacer nada durante la reproducción - dejar que se reproduzca completo
     const handleTimeUpdate = () => {
+      // Solo para debug, NO para mostrar imagen
       const currentTime = videoElement.currentTime;
       const duration = videoElement.duration || 6;
       
-      // Comenzar a mostrar la imagen en el último 1.5 segundos para una transición más suave
-      if (currentTime >= duration - 1.5) {
-        const fadeProgress = Math.min((currentTime - (duration - 1.5)) / 1.2, 1);
-        // Usar una curva de easing más suave
-        const easedProgress = fadeProgress * fadeProgress * (3 - 2 * fadeProgress); // smoothstep
-        setImageOpacity(easedProgress);
+      // Verificar que estamos cerca del final pero AÚN no mostrar imagen
+      if (currentTime >= duration - 0.1) {
+        console.log("Video cerca del final, esperando evento 'ended'");
       }
     };
     
-    // Detectar fin del video
+    // SOLO cuando el video termine COMPLETAMENTE
     const handleEnded = () => {
-      console.log("Video terminado");
+      console.log(`✅ VIDEO ${isMobile ? 'MÓVIL' : 'DESKTOP'} TERMINADO COMPLETAMENTE - Mostrando imagen`);
+      videoEndedRef.current = true;
+      
+      // INMEDIATAMENTE mostrar la imagen
+      setImageOpacity(1);
+      
       if (!callbackFiredRef.current) {
         triggerTransition();
       }
     };
     
-    // Manejar errores
+    // Manejar errores - solo si el video ya cargó y no terminó
     const handleError = (e) => {
-      console.error("Error en el video:", e);
-      if (videoLoadedRef.current && !callbackFiredRef.current) {
+      console.error(`Error en el video ${isMobile ? 'MÓVIL' : 'DESKTOP'}:`, e);
+      if (videoLoadedRef.current && !videoEndedRef.current && !callbackFiredRef.current) {
+        console.log("Error: activando transición de emergencia");
+        setImageOpacity(1);
         triggerTransition();
       }
     };
@@ -190,12 +196,39 @@ function IntroVideo({ onIntroComplete }) {
     videoElement.addEventListener('ended', handleEnded);
     videoElement.addEventListener('error', handleError);
     
-    // Iniciar reproducción con un pequeño retraso para asegurar carga
-    setTimeout(() => {
-      videoElement.play().catch(error => {
+    // Iniciar reproducción con manejo especial para móviles
+    const startPlayback = async () => {
+      try {
+        // En móviles, a veces necesitamos un pequeño delay
+        if (isMobile) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        await videoElement.play();
+        console.log(`✅ Video ${isMobile ? 'MÓVIL' : 'DESKTOP'} reproduciendo`);
+      } catch (error) {
         console.error("Error al iniciar reproducción:", error);
-      });
-    }, 100);
+        
+        // En móviles, intentar con interacción del usuario si falla
+        if (isMobile) {
+          const handleFirstTouch = async () => {
+            try {
+              await videoElement.play();
+              document.removeEventListener('touchstart', handleFirstTouch);
+              document.removeEventListener('click', handleFirstTouch);
+            } catch (e) {
+              console.error("Error al reproducir con touch:", e);
+            }
+          };
+          
+          document.addEventListener('touchstart', handleFirstTouch, { once: true });
+          document.addEventListener('click', handleFirstTouch, { once: true });
+        }
+      }
+    };
+    
+    // Pequeño delay antes de intentar reproducir
+    setTimeout(startPlayback, 100);
     
     // Limpiar eventos
     return () => {
@@ -205,16 +238,16 @@ function IntroVideo({ onIntroComplete }) {
       videoElement.removeEventListener('ended', handleEnded);
       videoElement.removeEventListener('error', handleError);
     };
-  }, []);
+  }, [isMobile]); // Re-ejecutar cuando cambie isMobile
   
   // Función para manejar la transición final
   const triggerTransition = () => {
     if (callbackFiredRef.current) return;
     
     callbackFiredRef.current = true;
-    console.log("Ejecutando transición final");
+    console.log(`Ejecutando transición final ${isMobile ? 'MÓVIL' : 'DESKTOP'}`);
     
-    // Asegurar que la imagen esté completamente visible con transición suave
+    // Solo asegurar opacidad si no se ha hecho ya
     setImageOpacity(1);
     
     // Pausar video para conservar recursos
@@ -244,45 +277,22 @@ function IntroVideo({ onIntroComplete }) {
     }, 1600); // Después de completar la transición más larga
   };
   
-  // Manejar cambio de mute/unmute
-  const toggleMute = (e) => {
-    e.stopPropagation();
-    
-    const newMutedState = !isMuted;
-    setIsMuted(newMutedState);
-    
-    if (videoRef.current) {
-      videoRef.current.muted = newMutedState;
-      
-      if (!newMutedState) {
-        videoRef.current.play().catch(err => {
-          console.error("Error al reproducir con audio:", err);
-          videoRef.current.muted = true;
-          setIsMuted(true);
-        });
-      }
-    }
-  };
-  
   return (
     <VideoContainer ref={containerRef}>
       <Video
         ref={videoRef}
         autoPlay
-        muted={isMuted}
+        muted={true}
         playsInline
+        webkit-playsinline="true"
+        x5-playsinline="true"
       >
-        <source src="/videos/ENTRADA_WEB2.2.mp4" type="video/mp4" />
+        <source src={getVideoUrl()} type="video/mp4" />
         Tu navegador no soporta videos.
       </Video>
       
       {/* Imagen final que se superpone al video */}
       <FinalImage opacity={imageOpacity} />
-      
-      {/* Botón de sonido */}
-      <SoundButton onClick={toggleMute} isMuted={isMuted}>
-        {isMuted ? <UnmuteIcon /> : <MuteIcon />}
-      </SoundButton>
     </VideoContainer>
   );
 }

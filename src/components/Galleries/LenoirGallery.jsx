@@ -3,17 +3,15 @@ import { Box, useMediaQuery } from '@mui/material';
 import { styled, useTheme } from '@mui/material/styles';
 import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
+import LoadingScreen from './LoadingScreen'; // Import the fixed reusable LoadingScreen component
 import useSmoothScroll from './useSmoothScroll';
 import { getGalleryColors } from '../utils/galleryColors';
 
-// Register GSAP plugins if needed
-if (typeof gsap.registerPlugin === 'function') {
+// Register GSAP plugins if needed - simplified approach
+if (typeof window !== 'undefined' && typeof gsap !== 'undefined') {
   try {
-    // Only try to import if in a browser environment
-    if (typeof window !== 'undefined') {
-      const { CSSPlugin } = require('gsap/CSSPlugin');
-      gsap.registerPlugin(CSSPlugin);
-    }
+    // GSAP CSSPlugin is included by default in modern versions
+    console.log('GSAP loaded successfully');
   } catch (e) {
     console.warn('GSAP plugin registration failed:', e);
   }
@@ -54,23 +52,6 @@ const PPEditorialUltraboldStyle = styled('style')({
   }
 });
 
-// Loading screen
-const LoadingScreen = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
-  backgroundColor: galleryTheme.main, // Using theme main color
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 9999,
-  transition: 'opacity 0.5s ease-out',
-  overflow: 'hidden',
-}));
-
 // Optimized scroll progress bar with GPU acceleration
 const ScrollProgressBar = styled(Box)({
   position: 'fixed',
@@ -84,57 +65,6 @@ const ScrollProgressBar = styled(Box)({
   willChange: 'width',
   boxShadow: '0 0 3px rgba(0,0,0,0.2)', // Subtle shadow for better visibility
 });
-
-// Title component with PPEditorialNew-Ultrabold font
-const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"PPEditorialNew-Ultrabold", sans-serif',
-  fontSize: '80px', // Increased from 45px to 80px
-  fontWeight: 'normal', // The Ultrabold font is already heavy enough
-  color: '#e6e6e6', // Using light color on dark background for LENOIR
-  letterSpacing: '2px',
-  position: 'relative',
-  transform: 'translateY(100px)',
-  opacity: 0,
-  textTransform: 'uppercase', // Ensures uppercase text
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '60px', // Slightly smaller on mobile but still large
-  },
-}));
-
-const LoadingYear = styled(Box)(({ theme }) => ({
-  fontFamily: '"MYRIADPRO-BOLD", sans-serif',
-  fontSize: '40px', // Maintained at 40px for contrast with title
-  fontWeight: 'bold',
-  color: '#e6e6e6', // Light color for LENOIR theme
-  letterSpacing: '2px',
-  marginTop: '8px',
-  position: 'relative',
-  transform: 'translateY(100px)',
-  opacity: 0,
-  marginBottom: '40px',
-}));
-
-// Minimalist progress bar
-const ProgressBarContainer = styled(Box)({
-  width: '300px', // Wider than the title
-  height: '3px', // Reduced height for minimalist look
-  backgroundColor: 'rgba(255, 255, 255, 0.1)', // Subtle light background for LENOIR
-  borderRadius: '0', // No rounded borders, more minimalist
-  overflow: 'hidden',
-  position: 'relative',
-  marginBottom: '20px',
-});
-
-const ProgressBarFill = styled(Box)(({ progress }) => ({
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  width: `${progress}%`,
-  height: '100%',
-  backgroundColor: '#e6e6e6', // Light color for fill on LENOIR's dark background
-  borderRadius: '0', // No rounded borders
-  transition: 'width 0.2s ease-out', // Faster transition for the bar
-}));
 
 // Main container with horizontal scroll and dynamic background color
 const GalleryContainer = styled(Box, {
@@ -255,9 +185,6 @@ const LenoirGallery = ({ onBack }) => {
   const [loadProgress, setLoadProgress] = useState(0);
 
   // References for animation elements
-  const titleRef = useRef(null);
-  const yearRef = useRef(null);
-  const loadingScreenRef = useRef(null);
   const progressBarRef = useRef(null);
   const containerRef = useRef(null);
   
@@ -329,34 +256,6 @@ const LenoirGallery = ({ onBack }) => {
     colors: galleryTheme
   });
   
-  // Loading screen title and year animation effect
-  useEffect(() => {
-    if (!loading) return;
-    
-    if (titleRef.current && yearRef.current) {
-      gsap.to(titleRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.3,
-      });
-      
-      gsap.to(yearRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.5,
-      });
-    }
-    
-    return () => {
-      gsap.killTweensOf(titleRef.current);
-      gsap.killTweensOf(yearRef.current);
-    };
-  }, [loading]);
-  
   // Loading progress animation effect
   useEffect(() => {
     let interval;
@@ -367,27 +266,6 @@ const LenoirGallery = ({ onBack }) => {
           const next = prev + (Math.random() * 15);
           if (next >= 100) {
             clearInterval(interval);
-            
-            if (titleRef.current && yearRef.current && loadingScreenRef.current) {
-              gsap.to([titleRef.current, yearRef.current], {
-                y: -100,
-                opacity: 0,
-                duration: 0.8,
-                ease: "power2.in",
-                stagger: 0.1,
-                onComplete: () => {
-                  gsap.to(loadingScreenRef.current, {
-                    opacity: 0,
-                    duration: 0.5,
-                    delay: 0.2,
-                    onComplete: () => setLoading(false)
-                  });
-                }
-              });
-            } else {
-              setTimeout(() => setLoading(false), 500);
-            }
-            
             return 100;
           }
           return next;
@@ -397,6 +275,11 @@ const LenoirGallery = ({ onBack }) => {
     
     return () => clearInterval(interval);
   }, [loading]);
+
+  // Handle loading completion from LoadingScreen component
+  const handleLoadingComplete = () => {
+    setLoading(false);
+  };
 
   // Force loading to complete after a timeout
   useEffect(() => {
@@ -451,22 +334,19 @@ const LenoirGallery = ({ onBack }) => {
       <MyriadFontStyle />
       <PPEditorialUltraboldStyle />
       
-      {/* Loading screen with title animation */}
+      {/* Using the reusable LoadingScreen component */}
       {loading && (
-        <LoadingScreen ref={loadingScreenRef}>
-          <LoadingTitle ref={titleRef}>
-            LENOIR
-          </LoadingTitle>
-          
-          <LoadingYear ref={yearRef}>
-            2024
-          </LoadingYear>
-          
-          {/* Minimalist progress bar instead of CircularProgress */}
-          <ProgressBarContainer>
-            <ProgressBarFill progress={loadProgress} />
-          </ProgressBarContainer>
-        </LoadingScreen>
+        <LoadingScreen
+          title="LENOIR"
+          year="2024"
+          progress={loadProgress}
+          onComplete={handleLoadingComplete}
+          backgroundColor={galleryTheme.main} // Using LENOIR theme color
+          titleColor="#e6e6e6" // Light color for dark background
+          yearColor="#e6e6e6" // Light color for dark background
+          progressColor="#e6e6e6" // Light color for dark background
+          fontFamily='"PPEditorialNew-Ultrabold", sans-serif' // Using PPEditorial font for consistency
+        />
       )}
       
       {/* Scroll progress bar */}

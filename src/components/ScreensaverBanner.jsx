@@ -1,195 +1,250 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { styled } from '@mui/material/styles';
-import { Box } from '@mui/material';
+"use client"
 
-// Main container with minimal glass effect
+import { useEffect, useState, useRef } from "react"
+import { styled } from "@mui/material/styles"
+import { Box } from "@mui/material"
+
+const GlobalStyle = styled('style')({
+  '@font-face': [
+    {
+      fontFamily: 'Medium',
+      src: 'url("/fonts/Medium.otf") format("opentype")',
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+    },
+    {
+      fontFamily: 'Helvetica-Bold',
+      src: 'url("/fonts/Helvetica-Bold.ttf") format("truetype")',
+      fontWeight: 'bold',
+      fontStyle: 'normal',
+      fontDisplay: 'swap',
+    },
+    {
+      fontFamily: 'HelveticaNeueMedium',
+      src: 'url("/fonts/HelveticaNeueMedium.otf") format("opentype")',
+      fontWeight: 'bold',
+      fontStyle: 'normal',
+      fontDisplay: 'swap',
+    },
+    {
+      fontFamily: 'Helvetica-Regular',  // Cambio aquí
+      src: 'url("/fonts/Helvetica.ttf") format("truetype")',
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      fontDisplay: 'swap',
+    }
+  ]
+});
+
+// Main container with subtle glassmorphism
 const ScreensaverContainer = styled(Box)(({ isActive }) => ({
-  position: 'fixed',
+  position: "fixed",
   top: 0,
   left: 0,
-  width: '100vw',
-  height: '100vh',
+  width: "100vw",
+  height: "100vh",
   zIndex: 9999,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flexDirection: 'column',
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flexDirection: "column",
   opacity: isActive ? 1 : 0,
-  visibility: isActive ? 'visible' : 'hidden',
-  transition: 'opacity 0.4s ease, visibility 0.4s',
-  pointerEvents: isActive ? 'all' : 'none',
-  cursor: 'none',
-  overflow: 'hidden',
-  backdropFilter: 'blur(2px)',
-  WebkitBackdropFilter: 'blur(2px)',
-}));
+  visibility: isActive ? "visible" : "hidden",
+  transition: "opacity 0.4s ease, visibility 0.4s",
+  pointerEvents: isActive ? "all" : "none",
+  cursor: "none",
+  overflow: "hidden",
+  backgroundColor: "rgba(255, 255, 255, 0.01)", // Muy sutil
+  backdropFilter: "blur(3px)", // Blur mínimo
+  WebkitBackdropFilter: "blur(3px)", // Safari support
+}))
 
-// Text line container with infinite animation
-const TextLineContainer = styled(Box)(({ direction, lineIndex }) => ({
-  width: '100%',
-  height: 'auto',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  position: 'absolute',
-  top: lineIndex === 0 ? '45%' : '55%', // Adjusted positioning
-  left: 0,
-  transform: 'translateY(-50%)', // Center vertically
+// Wrapper for each text line
+const TextWrapper = styled(Box)({
+  width: "100%",
+  position: "absolute",
+  overflow: "hidden",
+  display: "flex",
+  alignItems: "center",
+})
+
+// Inner container for the scrolling text
+const ScrollingText = styled(Box)(({ direction }) => ({
+  display: "flex",
+  whiteSpace: "nowrap",
+  animation: `${direction === "left" ? "scrollLeft" : "scrollRight"} 40s linear infinite`,
   
-  '&::before, &::after': {
-    content: lineIndex === 0 ? '"enzo                    "' : '"fashion photographer                    "',
-    position: 'absolute',
-    top: 0,
-    fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-    fontSize: 'clamp(80px, 20vw, 300px)',
-    fontWeight: 'bold',
-    lineHeight: '0.8',
-    letterSpacing: '-0.05em',
-    whiteSpace: 'nowrap',
-    color: '#000000',
-    mixBlendMode: 'difference',
-    WebkitTextStroke: '0.5px rgba(255,255,255,0.3)',
-    userSelect: 'none',
+  "@keyframes scrollLeft": {
+    "0%": { transform: "translateX(0)" },
+    "100%": { transform: "translateX(-50%)" },
   },
   
-  '&::before': {
-    left: '0%',
-    animation: `${direction === 'left' ? 'slideLeftInfinite' : 'slideRightInfinite'} 20s linear infinite`,
+  "@keyframes scrollRight": {
+    "0%": { transform: "translateX(-50%)" },
+    "100%": { transform: "translateX(0)" },
+  },
+}))
+
+// Individual text span
+const TextSpan = styled('span')({
+  fontFamily: 'Helvetica',
+  fontSize: "clamp(100px, 18vw, 280px)", // Ajustado para mejor responsividad
+  lineHeight: "1.2", // Cambiado de 0.8 a 1 para evitar cortes
+  letterSpacing: "-0.05em",
+  color: "#000000",
+  marginRight: "80px", // Espacio entre repeticiones
+  userSelect: "none",
+  display: "inline-block", // Agregado para mejor control del espacio
+  
+  "@media (max-width: 768px)": {
+    fontSize: "clamp(50px, 15vw, 180px)", // Más pequeño en tablets
+    marginRight: "40px",
+    lineHeight: "1.1", // Un poco más de espacio en móviles
   },
   
-  '&::after': {
-    left: direction === 'left' ? '100%' : '-100%',
-    animation: `${direction === 'left' ? 'slideLeftInfinite' : 'slideRightInfinite'} 20s linear infinite`,
+  "@media (max-width: 480px)": {
+    fontSize: "clamp(45px, 22vw, 150px)", // Aún más pequeño en móviles
+    marginRight: "30px",
+    lineHeight: "1.1", // Un poco más de espacio en móviles
   },
-  
-  '@keyframes slideLeftInfinite': {
-    '0%': { transform: 'translateX(100%)' },
-    '100%': { transform: 'translateX(-100%)' },
-  },
-  
-  '@keyframes slideRightInfinite': {
-    '0%': { transform: 'translateX(-100%)' },
-    '100%': { transform: 'translateX(100%)' },
-  },
-  
-  '@media (max-width: 768px)': {
-    top: lineIndex === 0 ? '40%' : '60%',
-    '&::before, &::after': {
-      fontSize: 'clamp(60px, 18vw, 200px)',
-      content: lineIndex === 0 ? '"enzo              "' : '"fashion photographer              "',
-    },
-  },
-}));
+})
 
 // Activity indicator
 const ActivityIndicator = styled(Box)({
-  position: 'absolute',
-  bottom: '80px',
-  left: '50%',
-  transform: 'translateX(-50%)',
-  fontFamily: 'Helvetica, Arial, sans-serif',
-  fontSize: '12px',
-  fontWeight: 'normal',
-  color: 'rgba(0, 0, 0, 0.4)',
-  mixBlendMode: 'difference',
-  letterSpacing: '4px',
-  textTransform: 'uppercase',
-  animation: 'pulse 4s ease-in-out infinite',
+  position: "absolute",
+  bottom: "60px",
+  left: "50%",
+  transform: "translateX(-50%)",
+  fontFamily: 'Helvetica',
+  fontSize: "12px",
+  color: "#000000",
+  letterSpacing: "4px",
+  textTransform: "uppercase",
+  animation: "pulse 4s ease-in-out infinite",
   
-  '@keyframes pulse': {
-    '0%, 100%': { opacity: 0.6 },
-    '50%': { opacity: 0.3 },
+  "@keyframes pulse": {
+    "0%, 100%": { opacity: 0.8 },
+    "50%": { opacity: 0.4 },
   },
-});
+  
+  "@media (max-width: 768px)": {
+    bottom: "40px",
+    fontSize: "10px",
+    letterSpacing: "2px",
+  },
+})
 
-const ScreensaverBanner = ({ 
-  isActive = false, 
-  onDismiss = null,
-  onInactivityChange = null, 
-  timeout = 20000
-}) => {
-  const [show, setShow] = useState(false);
+const ScreensaverBanner = ({ isActive = false, onDismiss = null, onInactivityChange = null, timeout = 20000 }) => {
+  const [show, setShow] = useState(false)
   const stateRef = useRef({
     timer: null,
     inactivityTimer: null,
     lastActivity: Date.now(),
     isInactive: false,
     callbacks: { onDismiss, onInactivityChange },
-    mouseThreshold: { x: 0, y: 0, threshold: 30 }
-  });
+    mouseThreshold: { x: 0, y: 0, threshold: 30 },
+  })
 
   useEffect(() => {
-    stateRef.current.callbacks = { onDismiss, onInactivityChange };
-  }, [onDismiss, onInactivityChange]);
+    stateRef.current.callbacks = { onDismiss, onInactivityChange }
+  }, [onDismiss, onInactivityChange])
 
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive) return
 
     const handleActivity = (e) => {
-      stateRef.current.lastActivity = Date.now();
+      stateRef.current.lastActivity = Date.now()
       if (show) {
-        setShow(false);
-        stateRef.current.callbacks.onDismiss?.();
+        setShow(false)
+        stateRef.current.callbacks.onDismiss?.()
       }
-      resetTimers();
-    };
+      resetTimers()
+    }
 
     const handleMouseMove = (e) => {
-      if (show) return handleActivity(e);
-      const { x, y, threshold } = stateRef.current.mouseThreshold;
+      if (show) return handleActivity(e)
+      const { x, y, threshold } = stateRef.current.mouseThreshold
       if (Math.abs(e.clientX - x) > threshold || Math.abs(e.clientY - y) > threshold) {
-        stateRef.current.mouseThreshold = { ...stateRef.current.mouseThreshold, x: e.clientX, y: e.clientY };
-        handleActivity(e);
+        stateRef.current.mouseThreshold = { ...stateRef.current.mouseThreshold, x: e.clientX, y: e.clientY }
+        handleActivity(e)
       }
-    };
+    }
 
     const resetTimers = () => {
-      clearTimeout(stateRef.current.timer);
-      clearTimeout(stateRef.current.inactivityTimer);
-      stateRef.current.isInactive = false;
-      stateRef.current.callbacks.onInactivityChange?.(false);
+      clearTimeout(stateRef.current.timer)
+      clearTimeout(stateRef.current.inactivityTimer)
+      stateRef.current.isInactive = false
+      stateRef.current.callbacks.onInactivityChange?.(false)
 
       stateRef.current.inactivityTimer = setTimeout(() => {
-        stateRef.current.isInactive = true;
-        stateRef.current.callbacks.onInactivityChange?.(true);
-        stateRef.current.timer = setTimeout(() => setShow(true), 3000);
-      }, timeout - 3000);
-    };
+        stateRef.current.isInactive = true
+        stateRef.current.callbacks.onInactivityChange?.(true)
+        stateRef.current.timer = setTimeout(() => setShow(true), 3000)
+      }, timeout - 3000)
+    }
 
     const events = [
-      { name: 'mousedown', handler: handleActivity },
-      { name: 'mousemove', handler: handleMouseMove },
-      { name: 'click', handler: handleActivity },
-      { name: 'keydown', handler: handleActivity },
-      { name: 'wheel', handler: handleActivity },
-      { name: 'touchstart', handler: handleActivity }
-    ];
+      { name: "mousedown", handler: handleActivity },
+      { name: "mousemove", handler: handleMouseMove },
+      { name: "click", handler: handleActivity },
+      { name: "keydown", handler: handleActivity },
+      { name: "wheel", handler: handleActivity },
+      { name: "touchstart", handler: handleActivity },
+    ]
 
-    events.forEach(e => document.addEventListener(e.name, e.handler, { passive: true }));
-    resetTimers();
+    events.forEach((e) => document.addEventListener(e.name, e.handler, { passive: true }))
+    resetTimers()
 
     return () => {
-      events.forEach(e => document.removeEventListener(e.name, e.handler));
-      clearTimeout(stateRef.current.timer);
-      clearTimeout(stateRef.current.inactivityTimer);
-    };
-  }, [isActive, timeout, show]);
+      events.forEach((e) => document.removeEventListener(e.name, e.handler))
+      clearTimeout(stateRef.current.timer)
+      clearTimeout(stateRef.current.inactivityTimer)
+    }
+  }, [isActive, timeout, show])
 
-  if (!isActive) return null;
+  if (!isActive) return null
+
+  // Crear array de repeticiones para el efecto continuo
+  const createRepeatedText = (text, count = 10) => {
+    return Array(count).fill(text)
+  }
+
+  const topLineText = "enzo cimillo"
+  const bottomLineText = "fashion photographer"
 
   return (
     <ScreensaverContainer isActive={show}>
-      {/* Top line - "enzo" moving right to left */}
-      <TextLineContainer direction="left" lineIndex={0} />
-      
-      {/* Bottom line - "fashion photographer" moving left to right */}
-      <TextLineContainer direction="right" lineIndex={1} />
-      
-      <ActivityIndicator>
-        move to continue
-      </ActivityIndicator>
-    </ScreensaverContainer>
-  );
-};
+      {/* Línea superior - moviendo de derecha a izquierda */}
+      <TextWrapper sx={{ 
+        top: "10%", // Subido más arriba
+        "@media (max-width: 768px)": {
+          top: "25%",
+        }
+      }}>
+        <ScrollingText direction="left">
+          {createRepeatedText(topLineText).map((text, index) => (
+            <TextSpan key={`top-${index}`}>{text}</TextSpan>
+          ))}
+        </ScrollingText>
+      </TextWrapper>
 
-export default ScreensaverBanner;
+      {/* Línea inferior - moviendo de izquierda a derecha */}
+      <TextWrapper sx={{ 
+        bottom: "10%", // Usando bottom en lugar de top para evitar cortes
+        "@media (max-width: 768px)": {
+          bottom: "30%",
+        }
+      }}>
+        <ScrollingText direction="right">
+          {createRepeatedText(bottomLineText).map((text, index) => (
+            <TextSpan key={`bottom-${index}`}>{text}</TextSpan>
+          ))}
+        </ScrollingText>
+      </TextWrapper>
+
+      <ActivityIndicator>move to continue</ActivityIndicator>
+    </ScreensaverContainer>
+  )
+}
+
+export default ScreensaverBanner

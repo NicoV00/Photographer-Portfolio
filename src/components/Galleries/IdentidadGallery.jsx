@@ -394,7 +394,7 @@ const IdentidadGallery = ({ onBack }) => {
       
       {/* Loading screen component */}
       <GalleryLoadingScreen 
-        title="IDENTIDAD"
+        title="Montevideo Under Fashion"
         year="2024"
         loading={loading}
         loadProgress={loadProgress}

@@ -33,7 +33,7 @@ const LoadingScreen = styled(Box)(({ theme }) => ({
 // Título con la fuente Helvetica-Bold - SIN UPPERCASE
 const LoadingTitle = styled(Box)(({ theme }) => ({
   fontFamily: '"Helvetica-Bold", "Arial Black", sans-serif',
-  fontSize: '45px', // Reducido de 60px a 45px
+  fontSize: '30px', // Reducido de 60px a 45px
   fontWeight: 'bold',
   letterSpacing: '2px',
   position: 'relative',
@@ -50,7 +50,7 @@ const LoadingTitle = styled(Box)(({ theme }) => ({
 // Year con la misma fuente Helvetica-Bold pero más pequeño
 const LoadingYear = styled(Box)(({ theme }) => ({
   fontFamily: '"Helvetica-Bold", "Arial Black", sans-serif',
-  fontSize: '32px', // Reducido de 40px a 32px
+  fontSize: '20px', // Reducido de 40px a 32px
   fontWeight: 'bold',
   letterSpacing: '2px',
   marginTop: '8px',
@@ -67,8 +67,8 @@ const LoadingYear = styled(Box)(({ theme }) => ({
 
 // Barra de progreso minimalista
 const ProgressBarContainer = styled(Box)({
-  width: '300px',
-  height: '3px',
+  width: '150px',
+  height: '2px',
   backgroundColor: 'rgba(128, 128, 128, 0.3)', // Color más neutro para el fondo
   borderRadius: '0',
   overflow: 'hidden',

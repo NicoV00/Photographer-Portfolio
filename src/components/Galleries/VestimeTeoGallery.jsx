@@ -415,7 +415,7 @@ const VestimeTeoGallery = ({ onBack }) => {
       
       {/* Loading screen component */}
       <GalleryLoadingScreen 
-        title="VESTIMETEO"
+        title="La Notte, Vestimeteo"
         year="2024"
         loading={loading}
         loadProgress={loadProgress}
