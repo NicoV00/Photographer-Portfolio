@@ -210,7 +210,7 @@ const ScreensaverBanner = ({ isActive = false, onDismiss = null, onInactivityCha
   }
 
   const topLineText = "enzo cimillo"
-  const bottomLineText = "fashion photographer"
+  const bottomLineText = "fashion photographer."
 
   return (
     <ScreensaverContainer isActive={show}>
