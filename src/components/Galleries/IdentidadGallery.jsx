@@ -1,6 +1,8 @@
-import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, useTheme, useMediaQuery } from '@mui/material';
-import { styled } from '@mui/material/styles';
+'use client';
+
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { Box, useMediaQuery } from '@mui/material';
+import { styled, useTheme } from '@mui/material/styles';
 import NavigationArrow from './NavigationArrow';
 import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll';
@@ -8,30 +10,21 @@ import { getGalleryColors } from '../utils/galleryColors';
 
 // Get the color theme for this gallery
 const galleryTheme = {
-  main: '#0d2aa8', // Fondo azul como se ve en la imagen
+  main: '#0d2aa8',
   highlight: '#ffffff',
-  text: '#ffffff' // Texto blanco para contraste
+  text: '#ffffff'
 };
 
-// Custom font loading - separating each font declaration into its own component
-const MediumFontStyle = styled('style')({
+// Custom font loading
+const GlobalStyle = styled('style')({
   '@font-face': {
     fontFamily: 'Medium OTF',
     src: 'url("/fonts/Medium.otf") format("opentype")',
     fontWeight: 'normal',
     fontStyle: 'normal',
     fontDisplay: 'swap',
-  }
-});
+  },
 
-const MyriadFontStyle = styled('style')({
-  '@font-face': {
-    fontFamily: 'MYRIADPRO-BOLD',
-    src: 'url("/fonts/MYRIADPRO-BOLD.OTF") format("opentype")',
-    fontWeight: 'bold',
-    fontStyle: 'normal',
-    fontDisplay: 'swap',
-  }
 });
 
 // Optimized scroll progress bar with GPU acceleration
@@ -41,15 +34,16 @@ const ScrollProgressBar = styled(Box)({
   left: 0,
   height: '3px',
   width: '0%',
-  backgroundColor: galleryTheme.highlight, // Barra blanca sobre fondo azul
+  backgroundColor: galleryTheme.highlight,
   zIndex: 9999,
-  transform: 'translateZ(0)',  // Force GPU acceleration
+  transform: 'translateZ(0)',
   willChange: 'width',
   boxShadow: '0 0 3px rgba(255,255,255,0.2)',
 });
 
-// Contenedor principal con fondo azul
+// Main container with horizontal scroll
 const GalleryContainer = styled(Box)(({ theme }) => ({
+  backgroundColor: galleryTheme.main,
   width: '100vw',
   height: '100vh',
   position: 'relative',
@@ -59,43 +53,45 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
   perspective: '1000px',
   backfaceVisibility: 'hidden',
   willChange: 'scroll-position',
-  WebkitOverflowScrolling: 'touch',
+  '-webkit-overflow-scrolling': 'touch',
   '&::-webkit-scrollbar': {
     display: 'none',
   },
   scrollbarWidth: 'none',
   msOverflowStyle: 'none',
-  backgroundColor: galleryTheme.main, // Fondo azul constante
   [theme.breakpoints.down('sm')]: {
     overflowX: 'auto',
     overflowY: 'hidden',
     height: '100vh',
+    minHeight: '100vh',
   },
 }));
 
-// Contenedor de contenido
+// Content container with GPU acceleration
 const GalleryContent = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  width: '6000px', // Ancho suficiente para todas las imágenes
   height: '100%',
   padding: '40px',
   paddingRight: '300px',
   position: 'relative',
   transform: 'translateZ(0)',
+  width: '6000px',
   [theme.breakpoints.down('sm')]: {
     width: '4000px',
     flexDirection: 'row',
     height: '100%',
-    padding: '20px',
-    paddingRight: '150px',
+    padding: '40px 300px 40px 40px',
   },
 }));
 
-// ImageItem con GPU acceleration
+// Image item - optimized with GPU acceleration
 const ImageItem = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'isMobile' && prop !== 'top' && prop !== 'left' && prop !== 'isVisible'
-})(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true }) => ({
+  shouldForwardProp: (prop) => 
+    prop !== 'isVisible' && 
+    prop !== 'isMobile' && 
+    prop !== 'isPhoto'
+})(({ theme, top, left, width, height, zIndex = 1, isVisible = true, isPhoto = true }) => ({
   position: 'absolute',
   top: top,
   left: left,
@@ -112,7 +108,7 @@ const ImageItem = styled(Box, {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
-    borderRadius: '2px',
+    borderRadius: isPhoto ? '2px' : '0',
     boxShadow: 'none',
     backfaceVisibility: 'hidden',
     transform: 'translateZ(0)',
@@ -123,30 +119,131 @@ const IdentidadGallery = ({ onBack }) => {
   // Loading screen state
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
-  
+
   // References for animation elements
-  const containerRef = useRef(null);
   const progressBarRef = useRef(null);
+  const containerRef = useRef(null);
   
   // Image visibility state and references
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
 
-  // Images for IDENTIDAD - usando las imágenes numeradas como se ve en la imagen 1
+  // Get theme for media queries
+  const theme = useTheme();
+  const isXs = useMediaQuery(theme.breakpoints.down('xs'));
+  const isSm = useMediaQuery(theme.breakpoints.between('xs', 'sm'));
+  const isMd = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  const isLg = useMediaQuery(theme.breakpoints.between('md', 'lg'));
+  const isXl = useMediaQuery(theme.breakpoints.up('lg'));
+
+  // Estado de breakpoints activos
+  const activeBreakpoints = { isXs, isSm, isMd, isLg, isXl };
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // Images for IDENTIDAD gallery
   const images = useMemo(() => [
     '/images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg',
     '/images/IDENTIDAD/IDENTIDAD MUF-2.jpg',
     '/images/IDENTIDAD/IDENTIDAD MUF-3.jpg',
-    '/images/IDENTIDAD/IDENTIDAD MUF-4.jpg',
+    '/images/IDENTIDAD/IDENTIDAD MUF-4.png',
     '/images/IDENTIDAD/IDENTIDAD MUF-5.jpg',
     '/images/IDENTIDAD/IDENTIDAD MUF-6.jpg',
     '/images/IDENTIDAD/IDENTIDAD MUF-7.jpg',
   ], []);
-  
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  
-  // Visibility checking - optimized
+
+  // Configuración de estilos responsivos para imágenes
+  const imageConfigurations = {
+    // =========== IMAGEN 1 (PORTADA) ===========
+    IDENTIDAD1: { 
+      // Desktop
+      xl: { top: "50%", left: "400px", height: "70vh", zIndex: 3 },
+      lg: { top: "50%", left: "400px", height: "70vh", innerMaxWidth: "550px", zIndex: 3 },
+      md: { top: "50%", left: "400px", height: "70vh", innerMaxWidth: "500px", zIndex: 3 },
+      // Mobile
+      sm: { top: "50%", left: "200px", height: "60vh", innerMaxWidth: "350px", zIndex: 3 },
+      xs: { top: "50%", left: "150px", height: "55vh", innerMaxWidth: "80vw", zIndex: 3 },
+    },
+    
+    // =========== IMAGEN 2 ===========
+    IDENTIDAD2: { 
+      // Desktop
+      xl: { top: "50%", left: "1100px", height: "70vh", innerMaxWidth: "auto", zIndex: 2 },
+      lg: { top: "50%", left: "1100px", height: "70vh", innerMaxWidth: "480px", zIndex: 2 },
+      md: { top: "50%", left: "1100px", height: "70vh", innerMaxWidth: "450px", zIndex: 2 },
+      // Mobile
+      sm: { top: "50%", left: "700px", height: "60vh", innerMaxWidth: "300px", zIndex: 2 },
+      xs: { top: "50%", left: "600px", height: "55vh", innerMaxWidth: "70vw", zIndex: 2 },
+    },
+    
+    // =========== IMAGEN 3 ===========
+    IDENTIDAD3: { 
+      // Desktop
+      xl: { top: "50%", left: "1800px", height: "70vh", innerMaxWidth: "auto", zIndex: 2 },
+      lg: { top: "50%", left: "1800px", height: "70vh", innerMaxWidth: "480px", zIndex: 2 },
+      md: { top: "50%", left: "1800px", height: "70vh", innerMaxWidth: "450px", zIndex: 2 },
+      // Mobile
+      sm: { top: "50%", left: "1200px", height: "60vh", innerMaxWidth: "300px", zIndex: 2 },
+      xs: { top: "50%", left: "1100px", height: "55vh", innerMaxWidth: "70vw", zIndex: 2 },
+    },
+    
+    // =========== IMAGEN 4 ===========
+    IDENTIDAD4: { 
+      // Desktop
+      xl: { top: "50%", left: "2600px", height: "100vh", innerMaxWidth: "auto", zIndex: 2 },
+      lg: { top: "50%", left: "2600px", height: "95vh", innerMaxWidth: "750px", zIndex: 2 },
+      md: { top: "50%", left: "2600px", height: "90vh", innerMaxWidth: "700px", zIndex: 2 },
+      // Mobile
+      sm: { top: "50%", left: "1700px", height: "90vh", innerMaxWidth: "600px", zIndex: 2 },
+      xs: { top: "50%", left: "1600px", height: "85vh", innerMaxWidth: "90vw", zIndex: 2 },
+    },
+    
+    // =========== IMAGEN 5 ===========
+    IDENTIDAD5: { 
+      // Desktop
+      xl: { top: "50%", left: "3600px", height: "70vh", innerMaxWidth: "auto", zIndex: 2 },
+      lg: { top: "50%", left: "3600px", height: "70vh", innerMaxWidth: "480px", zIndex: 2 },
+      md: { top: "50%", left: "3600px", height: "70vh", innerMaxWidth: "450px", zIndex: 2 },
+      // Mobile
+      sm: { top: "50%", left: "2400px", height: "60vh", innerMaxWidth: "300px", zIndex: 2 },
+      xs: { top: "50%", left: "2300px", height: "55vh", innerMaxWidth: "70vw", zIndex: 2 },
+    },
+    
+    // =========== IMAGEN 6 ===========
+    IDENTIDAD6: { 
+      // Desktop
+      xl: { top: "50%", left: "4300px", height: "70vh", innerMaxWidth: "auto", zIndex: 2 },
+      lg: { top: "50%", left: "4300px", height: "70vh", innerMaxWidth: "480px", zIndex: 2 },
+      md: { top: "50%", left: "4300px", height: "70vh", innerMaxWidth: "450px", zIndex: 2 },
+      // Mobile
+      sm: { top: "50%", left: "2900px", height: "60vh", innerMaxWidth: "300px", zIndex: 2 },
+      xs: { top: "50%", left: "2800px", height: "55vh", innerMaxWidth: "70vw", zIndex: 2 },
+    },
+    
+    // =========== IMAGEN 7 ===========
+    IDENTIDAD7: { 
+      // Desktop
+      xl: { top: "50%", left: "5000px", height: "70vh", innerMaxWidth: "auto", zIndex: 2 },
+      lg: { top: "50%", left: "5000px", height: "70vh", innerMaxWidth: "480px", zIndex: 2 },
+      md: { top: "50%", left: "5000px", height: "70vh", innerMaxWidth: "450px", zIndex: 2 },
+      // Mobile
+      sm: { top: "50%", left: "3400px", height: "60vh", innerMaxWidth: "300px", zIndex: 2 },
+      xs: { top: "50%", left: "3300px", height: "55vh", innerMaxWidth: "70vw", zIndex: 2 },
+    },
+  };
+
+  // Función para obtener estilos según breakpoint
+  const getCurrentStyles = (imageKey, breakpoints) => {
+    const config = imageConfigurations[imageKey];
+    if (!config) return {};
+    if (breakpoints.isXs) return config.xs || config.sm;
+    if (breakpoints.isSm) return config.sm;
+    if (breakpoints.isMd) return config.md;
+    if (breakpoints.isLg) return config.lg;
+    if (breakpoints.isXl) return config.xl;
+    return config.xl;
+  };
+
+  // Updated visibility check
   const checkVisibility = useCallback(() => {
     if (!containerRef.current) return;
     
@@ -154,7 +251,6 @@ const IdentidadGallery = ({ onBack }) => {
     const containerRect = container.getBoundingClientRect();
     const containerWidth = containerRect.width;
     
-    // Increased preload margin for smoother experience
     const preloadMargin = containerWidth * 1.2;
     
     const newVisibility = {};
@@ -163,7 +259,6 @@ const IdentidadGallery = ({ onBack }) => {
       if (ref && ref.current) {
         const imageRect = ref.current.getBoundingClientRect();
         
-        // Check horizontal visibility
         const isVisible = (
           imageRect.left < containerRect.right + preloadMargin &&
           imageRect.right > containerRect.left - preloadMargin
@@ -173,7 +268,6 @@ const IdentidadGallery = ({ onBack }) => {
       }
     });
     
-    // Only update state if visibility has changed
     setVisibleImages(prev => {
       if (JSON.stringify(prev) !== JSON.stringify(newVisibility)) {
         return newVisibility;
@@ -182,8 +276,8 @@ const IdentidadGallery = ({ onBack }) => {
     });
   }, []);
 
-  // Use the optimized smooth scroll hook
-  const { scrollLeft, scrollProgress, lenis } = useSmoothScroll({
+  // Use the smooth scroll hook
+  const { scrollLeft, scrollProgress } = useSmoothScroll({
     containerRef,
     isMobile,
     isLoading: loading,
@@ -195,7 +289,7 @@ const IdentidadGallery = ({ onBack }) => {
     lerp: 0.04,
     colors: galleryTheme
   });
-
+  
   // Loading progress animation effect
   useEffect(() => {
     let interval;
@@ -235,17 +329,38 @@ const IdentidadGallery = ({ onBack }) => {
   // Optimize browser performance
   useEffect(() => {
     if (!loading) {
-      document.body.style.willChange = 'scroll-position';
       document.body.style.overscrollBehavior = 'none';
       document.documentElement.style.scrollBehavior = 'smooth';
     }
     
     return () => {
-      document.body.style.willChange = '';
       document.body.style.overscrollBehavior = '';
       document.documentElement.style.scrollBehavior = '';
     };
   }, [loading]);
+
+  // Ajustes específicos para iOS
+  useEffect(() => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    if (isIOS) {
+      document.documentElement.style.height = '100%';
+      document.body.style.height = '100%';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.overflowY = 'hidden';
+    }
+    
+    return () => {
+      if (isIOS) {
+        document.documentElement.style.height = '';
+        document.body.style.height = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.overflowY = '';
+      }
+    };
+  }, []);
 
   // Set up IntersectionObserver for visibility detection
   useEffect(() => {
@@ -256,7 +371,7 @@ const IdentidadGallery = ({ onBack }) => {
     if ('IntersectionObserver' in window) {
       const options = {
         root: containerRef.current,
-        rootMargin: '300px',
+        rootMargin: '200px',
         threshold: 0.1
       };
       
@@ -288,109 +403,182 @@ const IdentidadGallery = ({ onBack }) => {
     }
   }, [loading, checkVisibility]);
 
-  // Configuración de posicionamiento según la imagen 2 (distribución horizontal de imágenes)
+  // Render gallery content
   const renderGalleryContent = () => (
     <>
-      {/* Imagen central (PORTADA) */}
+      {/* Image 1 (PORTADA) */}
       <ImageItem 
         ref={el => imageRefs.current[0] = el}
-        top="50%" 
-        left="400px"
-        height="70vh" 
+        top={getCurrentStyles('IDENTIDAD1', activeBreakpoints).top}
+        left={getCurrentStyles('IDENTIDAD1', activeBreakpoints).left}
+        height={getCurrentStyles('IDENTIDAD1', activeBreakpoints).height}
         width="auto"
-        zIndex={3}
+        zIndex={getCurrentStyles('IDENTIDAD1', activeBreakpoints).zIndex}
         isVisible={visibleImages[0] !== false}
-        isMobile={isMobile}
       >
-        <Box component="img" src={images[0]} alt="IDENTIDAD 1 PORTADA" loading="eager" />
+        <Box 
+          component="img" 
+          src={images[0]} 
+          alt="IDENTIDAD 1 PORTADA" 
+          loading="eager"
+          sx={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            maxWidth: getCurrentStyles('IDENTIDAD1', activeBreakpoints).innerMaxWidth,
+          }}
+        />
       </ImageItem>
       
-      {/* Imágenes a la izquierda de la portada */}
+      {/* Image 2 */}
       <ImageItem 
         ref={el => imageRefs.current[1] = el}
-        top="50%" 
-        left="200px"
-        height="40vh"
-        width="auto" 
-        zIndex={2}
+        top={getCurrentStyles('IDENTIDAD2', activeBreakpoints).top}
+        left={getCurrentStyles('IDENTIDAD2', activeBreakpoints).left}
+        height={getCurrentStyles('IDENTIDAD2', activeBreakpoints).height}
+        width="auto"
+        zIndex={getCurrentStyles('IDENTIDAD2', activeBreakpoints).zIndex}
         isVisible={visibleImages[1] !== false}
-        isMobile={isMobile}
       >
-        <Box component="img" src={images[1]} alt="IDENTIDAD 2" loading="eager" />
+        <Box 
+          component="img" 
+          src={images[1]} 
+          alt="IDENTIDAD 2" 
+          loading="eager"
+          sx={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            maxWidth: getCurrentStyles('IDENTIDAD2', activeBreakpoints).innerMaxWidth,
+          }}
+        />
       </ImageItem>
       
+      {/* Image 3 */}
       <ImageItem 
         ref={el => imageRefs.current[2] = el}
-        top="50%" 
-        left="800px"
-        height="40vh" 
+        top={getCurrentStyles('IDENTIDAD3', activeBreakpoints).top}
+        left={getCurrentStyles('IDENTIDAD3', activeBreakpoints).left}
+        height={getCurrentStyles('IDENTIDAD3', activeBreakpoints).height}
         width="auto"
-        zIndex={2}
+        zIndex={getCurrentStyles('IDENTIDAD3', activeBreakpoints).zIndex}
         isVisible={visibleImages[2] !== false}
-        isMobile={isMobile}
       >
-        <Box component="img" src={images[2]} alt="IDENTIDAD 3" loading="lazy" />
+        <Box 
+          component="img" 
+          src={images[2]} 
+          alt="IDENTIDAD 3" 
+          loading="lazy"
+          sx={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            maxWidth: getCurrentStyles('IDENTIDAD3', activeBreakpoints).innerMaxWidth,
+          }}
+        />
       </ImageItem>
       
-      {/* Imágenes a la derecha de la portada */}
+      {/* Image 4 */}
       <ImageItem 
         ref={el => imageRefs.current[3] = el}
-        top="50%" 
-        left="1200px"
-        height="40vh" 
+        top={getCurrentStyles('IDENTIDAD4', activeBreakpoints).top}
+        left={getCurrentStyles('IDENTIDAD4', activeBreakpoints).left}
+        height={getCurrentStyles('IDENTIDAD4', activeBreakpoints).height}
         width="auto"
-        zIndex={2}
+        zIndex={getCurrentStyles('IDENTIDAD4', activeBreakpoints).zIndex}
         isVisible={visibleImages[3] !== false}
-        isMobile={isMobile}
       >
-        <Box component="img" src={images[3]} alt="IDENTIDAD 4" loading="lazy" />
+        <Box 
+          component="img" 
+          src={images[3]} 
+          alt="IDENTIDAD 4" 
+          loading="lazy"
+          sx={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            maxWidth: getCurrentStyles('IDENTIDAD4', activeBreakpoints).innerMaxWidth,
+          }}
+        />
       </ImageItem>
       
+      {/* Image 5 */}
       <ImageItem 
         ref={el => imageRefs.current[4] = el}
-        top="50%" 
-        left="1600px"
-        height="40vh" 
+        top={getCurrentStyles('IDENTIDAD5', activeBreakpoints).top}
+        left={getCurrentStyles('IDENTIDAD5', activeBreakpoints).left}
+        height={getCurrentStyles('IDENTIDAD5', activeBreakpoints).height}
         width="auto"
-        zIndex={2}
+        zIndex={getCurrentStyles('IDENTIDAD5', activeBreakpoints).zIndex}
         isVisible={visibleImages[4] !== false}
-        isMobile={isMobile}
       >
-        <Box component="img" src={images[4]} alt="IDENTIDAD 5" loading="lazy" />
+        <Box 
+          component="img" 
+          src={images[4]} 
+          alt="IDENTIDAD 5" 
+          loading="lazy"
+          sx={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            maxWidth: getCurrentStyles('IDENTIDAD5', activeBreakpoints).innerMaxWidth,
+          }}
+        />
       </ImageItem>
       
+      {/* Image 6 */}
       <ImageItem 
         ref={el => imageRefs.current[5] = el}
-        top="50%" 
-        left="2000px"
-        height="40vh" 
+        top={getCurrentStyles('IDENTIDAD6', activeBreakpoints).top}
+        left={getCurrentStyles('IDENTIDAD6', activeBreakpoints).left}
+        height={getCurrentStyles('IDENTIDAD6', activeBreakpoints).height}
         width="auto"
-        zIndex={2}
+        zIndex={getCurrentStyles('IDENTIDAD6', activeBreakpoints).zIndex}
         isVisible={visibleImages[5] !== false}
-        isMobile={isMobile}
       >
-        <Box component="img" src={images[5]} alt="IDENTIDAD 6" loading="lazy" />
+        <Box 
+          component="img" 
+          src={images[5]} 
+          alt="IDENTIDAD 6" 
+          loading="lazy"
+          sx={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            maxWidth: getCurrentStyles('IDENTIDAD6', activeBreakpoints).innerMaxWidth,
+          }}
+        />
       </ImageItem>
       
+      {/* Image 7 */}
       <ImageItem 
         ref={el => imageRefs.current[6] = el}
-        top="50%" 
-        left="2400px"
-        height="40vh" 
+        top={getCurrentStyles('IDENTIDAD7', activeBreakpoints).top}
+        left={getCurrentStyles('IDENTIDAD7', activeBreakpoints).left}
+        height={getCurrentStyles('IDENTIDAD7', activeBreakpoints).height}
         width="auto"
-        zIndex={2}
+        zIndex={getCurrentStyles('IDENTIDAD7', activeBreakpoints).zIndex}
         isVisible={visibleImages[6] !== false}
-        isMobile={isMobile}
       >
-        <Box component="img" src={images[6]} alt="IDENTIDAD 7" loading="lazy" />
+        <Box 
+          component="img" 
+          src={images[6]} 
+          alt="IDENTIDAD 7" 
+          loading="lazy"
+          sx={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            maxWidth: getCurrentStyles('IDENTIDAD7', activeBreakpoints).innerMaxWidth,
+          }}
+        />
       </ImageItem>
     </>
   );
 
   return (
     <>
-      <MediumFontStyle />
-      <MyriadFontStyle />
+      <GlobalStyle />
       
       {/* Loading screen component */}
       <GalleryLoadingScreen 
@@ -421,7 +609,10 @@ const IdentidadGallery = ({ onBack }) => {
         isLoading={loading}
       />
       
-      <GalleryContainer ref={containerRef}>
+      <GalleryContainer 
+        ref={containerRef} 
+        style={{ cursor: 'grab' }}
+      >
         <GalleryContent>
           {renderGalleryContent()}
         </GalleryContent>

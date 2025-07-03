@@ -8,20 +8,6 @@ import {
   useTheme
 } from '@mui/material';
 
-// Importar la fuente Suisse Intl Medium
-import { createGlobalStyle } from 'styled-components';
-
-// Componente para importar la fuente globalmente
-const GlobalFontStyle = createGlobalStyle`
-  @font-face {
-    font-family: 'Suisse Intl Medium';
-    src: url('fonnts.com-Suisse_Intl_Medium.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
-  }
-`;
-
 // Import components
 import SequentialGlitchText from './SequentialGlitchText';
 import { 
@@ -240,16 +226,13 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
   // Calculate responsive dimensions
   const drawerWidth = isMobile ? '100%' : isTablet ? '90%' : '800px';
   
-  // Estilo común para todos los textos que NO son "ENZO CIMILLO"
-  const suisseTextStyle = {
-    fontFamily: "'Suisse Intl Medium', sans-serif"
+  // Estilo común para todos los textos usando Helvetica
+  const helveticaTextStyle = {
+    fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif'
   };
   
   return (
     <>
-      {/* Importar la fuente globalmente */}
-      <GlobalFontStyle />
-      
       <InfoButton
         onClick={handleOpen}
         onMouseEnter={() => setIsHovered(true)}
@@ -258,7 +241,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
           backgroundColor: isHovered ? 'white' : 'black',
           color: isHovered ? 'black' : 'white',
           boxShadow: isHovered ? '0 0 8px rgba(255,255,255,0.8)' : 'none',
-          fontFamily: "'Suisse Intl Medium', sans-serif" // Aplicar fuente al botón de info
+          fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif'
         }}
       >
         i
@@ -288,7 +271,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               cursor: 'none', // Hide default cursor in the drawer
               '& *': { 
                 cursor: 'none !important', // Force cursor:none on all child elements
-                fontFamily: "'Suisse Intl Medium', sans-serif" // Aplicar fuente globalmente
+                fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif' // Aplicar Helvetica globalmente
               }
             }}
           >
@@ -357,7 +340,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                   fontWeight="bold" 
                   fontSize={{ xs: '0.8rem', sm: '0.95rem' }}
                   initialGlitch={canvasReady}
-                  style={suisseTextStyle}
+                  style={helveticaTextStyle}
                 />
               </Box>
               <Box sx={{ 
@@ -374,7 +357,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                   lineHeight={{ xs: '1.25rem', sm: '1.35rem' }}
                   fontWeight="500"
                   style={{ 
-                    ...suisseTextStyle, 
+                    ...helveticaTextStyle, 
                     marginBottom: '1.2rem',
                     // Asegurar que las palabras no se corten
                     wordWrap: 'break-word',
@@ -407,7 +390,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                   fontWeight="bold" 
                   fontSize={{ xs: '0.8rem', sm: '0.95rem' }}
                   initialGlitch={canvasReady}
-                  style={suisseTextStyle}
+                  style={helveticaTextStyle}
                 />
               </Box>
               <Box sx={{ flex: 1 }}>
@@ -418,7 +401,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                     lineHeight={{ xs: '1.25rem', sm: '1.45rem' }}
                     fontWeight="500"
                     initialGlitch={canvasReady}
-                    style={suisseTextStyle}
+                    style={helveticaTextStyle}
                   />
                 </Box>
                 <Box sx={{ marginBottom: '0.7rem' }}>
@@ -428,7 +411,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                     lineHeight={{ xs: '1.25rem', sm: '1.45rem' }}
                     fontWeight="500"
                     initialGlitch={canvasReady}
-                    style={suisseTextStyle}
+                    style={helveticaTextStyle}
                   />
                 </Box>
                 <Box sx={{ marginBottom: '0.7rem' }}>
@@ -438,7 +421,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                     lineHeight={{ xs: '1.25rem', sm: '1.45rem' }}
                     fontWeight="500"
                     initialGlitch={canvasReady}
-                    style={suisseTextStyle}
+                    style={helveticaTextStyle}
                   />
                 </Box>
                 <Box sx={{ marginBottom: '0.7rem' }}>
@@ -448,7 +431,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                     lineHeight={{ xs: '1.25rem', sm: '1.45rem' }}
                     fontWeight="500"
                     initialGlitch={canvasReady}
-                    style={suisseTextStyle}
+                    style={helveticaTextStyle}
                   />
                 </Box>
               </Box>
@@ -477,7 +460,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                   fontSize={{ xs: '0.8rem', sm: '0.95rem' }}
                   initialGlitch={canvasReady}
                   isNeonGreen={true}
-                  style={suisseTextStyle}
+                  style={helveticaTextStyle}
                 />
               </Box>
               <Box sx={{ 
@@ -494,7 +477,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                   lineHeight={{ xs: '1.25rem', sm: '1.45rem' }}
                   fontWeight="500"
                   style={{ 
-                    ...suisseTextStyle, 
+                    ...helveticaTextStyle, 
                     marginBottom: '1.2rem',
                     wordWrap: 'break-word',
                     overflowWrap: 'break-word',
@@ -531,7 +514,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                         textDecoration: 'underline', 
                         color: '#00ff00', 
                         fontWeight: '500',
-                        fontFamily: "'Suisse Intl Medium', sans-serif",
+                        fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif',
                         textShadow: '0 0 2px #00ff00, 0 0 4px #00ff00, 0 0 6px #00ff00',
                         transition: 'text-shadow 0.3s ease, color 0.3s ease',
                         '&:hover': {
@@ -581,7 +564,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                         textDecoration: 'underline', 
                         color: '#00ff00', 
                         fontWeight: '500',
-                        fontFamily: "'Suisse Intl Medium', sans-serif",
+                        fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif',
                         textShadow: '0 0 2px #00ff00, 0 0 4px #00ff00, 0 0 6px #00ff00',
                         transition: 'text-shadow 0.3s ease, color 0.3s ease',
                         '&:hover': {
@@ -631,13 +614,13 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                   fontWeight="bold" 
                   fontSize={{ xs: '0.8rem', sm: '0.95rem' }}
                   initialGlitch={canvasReady}
-                  style={suisseTextStyle}
+                  style={helveticaTextStyle}
                 />
               </Box>
               <Box sx={{ flex: 1 }}>
                 {/* Componente UruguayTime con dos puntos parpadeantes */}
                 <UruguayTime 
-                  fontFamily="'Suisse Intl Medium', sans-serif" 
+                  fontFamily="Helvetica-Regular, Helvetica, Arial, sans-serif" 
                   fontSize={{ xs: '0.95rem', sm: '1.1rem' }} 
                 />
               </Box>
@@ -662,7 +645,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               alignItems: 'center',
               fontSize: '24px',
               fontWeight: 'bold',
-              fontFamily: "'Suisse Intl Medium', sans-serif",
+              fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif',
               backgroundColor: 'black',
               color: 'white',
               border: '2px solid white',
@@ -712,7 +695,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                 color: 'white',
                 fontSize: '12px',
                 fontWeight: 'bold',
-                fontFamily: "'Suisse Intl Medium', sans-serif",
+                fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif',
                 pointerEvents: 'none',
                 zIndex: 10001,
                 padding: '2px 4px',

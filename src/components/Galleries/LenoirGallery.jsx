@@ -3,7 +3,7 @@ import { Box, useMediaQuery } from '@mui/material';
 import { styled, useTheme } from '@mui/material/styles';
 import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
-import LoadingScreen from './LoadingScreen'; // Import the fixed reusable LoadingScreen component
+import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll';
 import { getGalleryColors } from '../utils/galleryColors';
 
@@ -208,6 +208,12 @@ const LenoirGallery = ({ onBack }) => {
     "./images/LENOIR/LENOIR-8.jpg",
   ], []);
   
+  // Handle loading complete
+  const handleLoadingComplete = useCallback(() => {
+    setLoading(false);
+    // Additional initialization can go here
+  }, []);
+
   // Updated visibility check to always use horizontal scrolling logic
   const checkVisibility = useCallback(() => {
     if (!containerRef.current) return;
@@ -266,6 +272,7 @@ const LenoirGallery = ({ onBack }) => {
           const next = prev + (Math.random() * 15);
           if (next >= 100) {
             clearInterval(interval);
+            handleLoadingComplete(); // Call the completion handler when loading is done
             return 100;
           }
           return next;
@@ -274,23 +281,7 @@ const LenoirGallery = ({ onBack }) => {
     }
     
     return () => clearInterval(interval);
-  }, [loading]);
-
-  // Handle loading completion from LoadingScreen component
-  const handleLoadingComplete = () => {
-    setLoading(false);
-  };
-
-  // Force loading to complete after a timeout
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (loading) {
-        setLoading(false);
-      }
-    }, 5000);
-    
-    return () => clearTimeout(timer);
-  }, [loading]);
+  }, [loading, handleLoadingComplete]);
 
   // Optimize browser performance
   useEffect(() => {
@@ -334,20 +325,17 @@ const LenoirGallery = ({ onBack }) => {
       <MyriadFontStyle />
       <PPEditorialUltraboldStyle />
       
-      {/* Using the reusable LoadingScreen component */}
-      {loading && (
-        <LoadingScreen
-          title="LENOIR"
-          year="2024"
-          progress={loadProgress}
-          onComplete={handleLoadingComplete}
-          backgroundColor={galleryTheme.main} // Using LENOIR theme color
-          titleColor="#e6e6e6" // Light color for dark background
-          yearColor="#e6e6e6" // Light color for dark background
-          progressColor="#e6e6e6" // Light color for dark background
-          fontFamily='"PPEditorialNew-Ultrabold", sans-serif' // Using PPEditorial font for consistency
-        />
-      )}
+      {/* Loading screen component */}
+      <GalleryLoadingScreen 
+        title="Lenoir"
+        year="2024"
+        loading={loading}
+        loadProgress={loadProgress}
+        onAnimationComplete={handleLoadingComplete}
+        backgroundColor={galleryTheme.main}
+        textColor={galleryTheme.text}
+        progressColor={galleryTheme.text}
+      />
       
       {/* Scroll progress bar */}
       <ScrollProgressBar 
@@ -375,7 +363,7 @@ const LenoirGallery = ({ onBack }) => {
         <GalleryContent>
           {/* Image 1 */}
           <ImageItem 
-            ref={el => imageRefs.current[0] = el}
+            ref={el => imageRefs.current[0] = { current: el }}
             top="50%"
             left="450px"
             height="80vh"
@@ -389,7 +377,7 @@ const LenoirGallery = ({ onBack }) => {
           
           {/* Image 2 */}
           <ImageItem 
-            ref={el => imageRefs.current[1] = el}
+            ref={el => imageRefs.current[1] = { current: el }}
             top="50%"
             left="1200px"
             height="80vh"
@@ -403,7 +391,7 @@ const LenoirGallery = ({ onBack }) => {
           
           {/* Image 3 */}
           <ImageItem 
-            ref={el => imageRefs.current[2] = el}
+            ref={el => imageRefs.current[2] = { current: el }}
             top="50%"
             left="1950px"
             height="80vh"
@@ -417,7 +405,7 @@ const LenoirGallery = ({ onBack }) => {
           
           {/* Image 4 */}
           <ImageItem 
-            ref={el => imageRefs.current[3] = el}
+            ref={el => imageRefs.current[3] = { current: el }}
             top="50%"
             left="2700px"
             height="80vh"
@@ -431,7 +419,7 @@ const LenoirGallery = ({ onBack }) => {
           
           {/* Image 5 - Transition starts around here */}
           <ImageItem 
-            ref={el => imageRefs.current[4] = el}
+            ref={el => imageRefs.current[4] = { current: el }}
             top="50%"
             left="3900px"
             height="80vh"
@@ -445,7 +433,7 @@ const LenoirGallery = ({ onBack }) => {
           
           {/* Image 6 - Transition completes around here */}
           <ImageItem 
-            ref={el => imageRefs.current[5] = el}
+            ref={el => imageRefs.current[5] = { current: el }}
             top="50%"
             left="5000px"
             height="80vh"
@@ -459,7 +447,7 @@ const LenoirGallery = ({ onBack }) => {
           
           {/* Image 7 */}
           <ImageItem 
-            ref={el => imageRefs.current[6] = el}
+            ref={el => imageRefs.current[6] = { current: el }}
             top="50%"
             left="5700px"
             height="80vh"
@@ -473,7 +461,7 @@ const LenoirGallery = ({ onBack }) => {
           
           {/* Image 8 */}
           <ImageItem 
-            ref={el => imageRefs.current[7] = el}
+            ref={el => imageRefs.current[7] = { current: el }}
             top="50%"
             left="6900px"
             height="100vh"

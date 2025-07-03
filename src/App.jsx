@@ -11,6 +11,7 @@ import ScreensaverBanner from './components/ScreensaverBanner';
 import { gsap } from 'gsap';
 import * as THREE from 'three';
 import MyWaySection from './components/MyWaySection';
+import { Analytics } from '@vercel/analytics/react';
 
 // Lazy loaded galleries
 const AnaLivniGallery = lazy(() => import('./components/Galleries/AnaLivniGallery'));
@@ -627,6 +628,9 @@ function App() {
           onGalleryToggle={null}
         />
       </ContainerCloud>
+      
+      {/* Vercel Analytics */}
+      <Analytics />
     </>
   );
 }
