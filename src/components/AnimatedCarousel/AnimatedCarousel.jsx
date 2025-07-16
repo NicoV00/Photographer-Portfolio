@@ -72,6 +72,7 @@ const AnimatedCarousel = ({
 
   const refs = Array.from({ length: textures.length }, () => useRef());
 
+  {/*
   const originalPositions = useMemo(() => {
     const areaWidth = 25;
     const areaHeight = 25;
@@ -107,7 +108,82 @@ const AnimatedCarousel = ({
         z + indexVariation * 0.5
       ];
     });
-  }, [imageUrls]);
+  }, [imageUrls]); */}
+
+  const originalPositions = [
+      [
+          -6.418005035183037,
+          -8.62188314302218,
+          -6.612209595009772
+      ],
+      [
+          0,
+          3,
+          15
+      ],
+      [
+          -17.61793851086727,
+          -3.8138306427652657,
+          -5.919263913408628
+      ],
+      [
+          -8.511089911097022,
+          -0.9537707141231313,
+          -9.436203014782443
+      ],
+      [
+          8.591017177880213,
+          -8.030554596194724,
+          -5.585713856272906
+      ],
+      [
+          2.6837467360863996,
+          4.923051629617078,
+          4.644026799658478
+      ],
+      [
+          -8.916998621954766,
+          -0.4181485517764092,
+          -3.5265668506157546
+      ],
+      [
+          0.6411259077741982,
+          11.17604167402351,
+          -14.881182126076647
+      ],
+      [
+          20.37425777069738,
+          10.569615643421319,
+          -4.613222392627543
+      ],
+      [
+          10.502233245744465,
+          1.4463808172287993,
+          0.5401172082099932
+      ],
+      [
+          1.0203091097665982,
+          13.406360369538085,
+          -3.941275208908048
+      ],
+      [
+          9.175381979140141,
+          11.517819064379868,
+          -14.523692321194236
+      ],
+      [
+          -4.56837547403469,
+          2.221306305005752,
+          5.426043600991404
+      ],
+      [
+          -9.911278924653724,
+          6.9198589659060055,
+          13.974916679921279
+      ]
+  ]
+  
+  console.log("#######DEBUG####### -> originalPositions", originalPositions);
 
   const groupRef = useRef();
   const [selectedImage, setSelectedImage] = useState([]);
@@ -315,18 +391,6 @@ const AnimatedCarousel = ({
     // Crear nuevo timeline coordinado para toda la animación
     timelineRef.current = gsap.timeline({
       onComplete: () => {
-        // CLAVE: Establecer posiciones finales exactas para eliminar cualquier movimiento residual
-        const targetRef = refs[index]?.current;
-        if (targetRef) {
-          gsap.set(targetRef.position, {
-            x: 0,
-            y: 0,
-            z: 0,
-            overwrite: true,
-            force3D: true
-          });
-        }
-
         // Finalizar animación
         animationInProgressRef.current = false;
       }
@@ -348,7 +412,28 @@ const AnimatedCarousel = ({
     const originalPosition = selectedRef.position.clone();
 
     // 3. Colocar cámara en posición ideal para la vista de cerca
-    const idealCameraPosition = new THREE.Vector3(3, 3, 3);
+    const direction = new THREE.Vector3();
+    camera.getWorldDirection(direction);
+
+    // Clone and scale the direction to zoom in (e.g., 5 units forward)
+    const cameraDistanceToOrigin = camera.position.length();
+
+    console.log(`Camera distance to origin: ${cameraDistanceToOrigin}`);
+    // Choose a ratio — e.g., zoom 20% of that distance
+
+    var zoomRatio = 0.87;
+    if (cameraDistanceToOrigin > 80) {
+      zoomRatio = 0.94;
+    } else if (cameraDistanceToOrigin > 150) {
+      zoomRatio = 1.1;
+    }
+
+    const zoomDistance = cameraDistanceToOrigin * zoomRatio;
+
+    // Compute target zoom position
+    const targetPosition = camera.position.clone().add(direction.multiplyScalar(zoomDistance));
+
+    //const idealCameraPosition = new THREE.Vector3(3, 3, 3);
 
     // 4. Animación ultra suave para la imagen seleccionada
     timelineRef.current.to(selectedRef.position, {
@@ -367,9 +452,9 @@ const AnimatedCarousel = ({
 
     // 5. Mover la cámara coordinadamente con la imagen
     timelineRef.current.to(camera.position, {
-      x: idealCameraPosition.x,
-      y: idealCameraPosition.y,
-      z: idealCameraPosition.z,
+      x: targetPosition.x,
+      y: targetPosition.y,
+      z: targetPosition.z,
       duration: 1.4,
       ease: "power3.inOut",
       force3D: true
