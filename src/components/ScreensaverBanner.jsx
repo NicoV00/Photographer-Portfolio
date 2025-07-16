@@ -242,7 +242,6 @@ const ScreensaverBanner = ({ isActive = false, onDismiss = null, onInactivityCha
         </ScrollingText>
       </TextWrapper>
 
-      <ActivityIndicator>move to continue</ActivityIndicator>
     </ScreensaverContainer>
   )
 }
