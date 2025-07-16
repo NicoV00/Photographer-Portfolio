@@ -683,7 +683,7 @@ const AmourGallery = ({ onBack }) => {
       
       {/* Loading screen component */}
       <GalleryLoadingScreen 
-        title="AMOUR"
+        title="A del Amour"
         year="2024"
         loading={loading}
         loadProgress={loadProgress}

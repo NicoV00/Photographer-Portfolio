@@ -550,7 +550,7 @@ const MarcosGallery = ({ onBack }) => {
       
       {/* Loading screen component */}
       <GalleryLoadingScreen 
-        title="MARCOS"
+        title="Catalogo MUF"
         year="2024"
         loading={loading}
         loadProgress={loadProgress}

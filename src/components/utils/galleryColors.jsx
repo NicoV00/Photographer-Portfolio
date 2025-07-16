@@ -12,7 +12,7 @@ const galleryColors = {
     highlight: "#000000" // Black highlight for consistency
   },
   "blua": {
-    main: "#5E5F70",     // Plata, BLUA 2024 gradient start (light grey)
+    main: "70#5E5F",     // Plata, BLUA 2024 gradient start (light grey)
     text: "#FFFFFF",     // Black text
     highlight: "#FFFFFF" // Black highlight (gradient end)
   },
@@ -58,7 +58,7 @@ const galleryColors = {
   },
   // Default colors for collections without specific mapping
   "default": {
-    main: "#8990A2",     // Light gray
+    main: "#FFFFFF",     // Light gray
     text: "#FFFFFF",     // Black text
     highlight: "#666666" // Darker gray for highlights
   }

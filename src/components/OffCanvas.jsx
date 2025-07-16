@@ -1,5 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
+// OPTIMIZACIÓN 1: Lazy load de GSAP
+let gsap = null;
+const loadGSAP = async () => {
+  if (!gsap) {
+    const module = await import('gsap');
+    gsap = module.gsap;
+  }
+  return gsap;
+};
+
 import { 
   Box, 
   Link,
@@ -16,8 +25,8 @@ import {
   CloseButton 
 } from './StyledComponents';
 
-// Componente UruguayTime modificado con dos puntos parpadeantes
-const UruguayTime = ({ fontFamily, fontSize }) => {
+// OPTIMIZACIÓN 2: Memoizar el componente de tiempo para evitar re-renders del padre
+const UruguayTime = memo(({ fontFamily, fontSize }) => {
   const [time, setTime] = useState('');
   const [showColon, setShowColon] = useState(true);
   
@@ -34,11 +43,9 @@ const UruguayTime = ({ fontFamily, fontSize }) => {
       setTime(uruguayTime);
     };
 
-    // Actualizar tiempo cada segundo
     updateTime();
     const timeInterval = setInterval(updateTime, 1000);
 
-    // Parpadear los dos puntos cada 500ms
     const blinkInterval = setInterval(() => {
       setShowColon(prev => !prev);
     }, 500);
@@ -67,7 +74,7 @@ const UruguayTime = ({ fontFamily, fontSize }) => {
   };
 
   return formatTimeWithBlinkingColons(time);
-};
+});
 
 const OffCanvas = ({ name, onShowChange, ...props }) => {
   const theme = useTheme();
@@ -89,73 +96,101 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
   const [isClicking, setIsClicking] = useState(false);
   const [cursorText, setCursorText] = useState('');
 
-  const handleOpen = () => {
+  // OPTIMIZACIÓN 3: Precargar imagen solo cuando se abre por primera vez
+  const [imagePreloaded, setImagePreloaded] = useState(false);
+  
+  const handleOpen = useCallback(() => {
     setOpen(true);
     if (onShowChange) onShowChange(true);
-  };
+    
+    // Precargar imagen solo la primera vez
+    if (!imagePreloaded) {
+      const img = new Image();
+      img.src = '/images/image3.png';
+      img.onload = () => setImagePreloaded(true);
+    }
+  }, [onShowChange, imagePreloaded]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setOpen(false);
     if (onShowChange) onShowChange(false);
-    // Reset state for next opening
     setTimeout(() => setCanvasReady(false), 500);
-  };
+  }, [onShowChange]);
 
-  const handleOverlayClick = (e) => {
+  const handleOverlayClick = useCallback((e) => {
     if (drawerRef.current && !drawerRef.current.contains(e.target)) {
       handleClose();
     }
-  };
+  }, [handleClose]);
 
-  // GSAP effect for custom drawer animation
+  // OPTIMIZACIÓN 4: GSAP effect con lazy loading
   useEffect(() => {
     if (!drawerRef.current) return;
 
-    if (open) {
-      // Important: set canvasReady to true immediately on desktop
-      // to ensure title displays correctly
-      if (!isMobile) {
-        setCanvasReady(true);
-      }
+    const animateDrawer = async () => {
+      const gsapLib = await loadGSAP();
       
-      gsap.to(drawerRef.current, { 
-        x: 0, 
-        duration: 0.5, 
-        ease: 'power2.out',
-        onComplete: () => {
-          // On mobile, set canvasReady after animation
-          if (isMobile) {
-            setCanvasReady(true);
-          }
+      if (open) {
+        if (!isMobile) {
+          setCanvasReady(true);
         }
-      });
-      if (overlayRef.current) {
-        gsap.to(overlayRef.current, { opacity: 1, visibility: 'visible', duration: 0.5 });
-      }
-    } else {
-      gsap.to(drawerRef.current, { 
-        x: '100%', 
-        duration: 0.5, 
-        ease: 'power2.in', 
-        onComplete: () => {
-          if (overlayRef.current) {
-            gsap.set(overlayRef.current, { visibility: 'hidden' });
+        
+        gsapLib.to(drawerRef.current, { 
+          x: 0, 
+          duration: 0.5, 
+          ease: 'power2.out',
+          onComplete: () => {
+            if (isMobile) {
+              setCanvasReady(true);
+            }
           }
+        });
+        if (overlayRef.current) {
+          gsapLib.to(overlayRef.current, { opacity: 1, visibility: 'visible', duration: 0.5 });
         }
-      });
-      if (overlayRef.current) {
-        gsap.to(overlayRef.current, { opacity: 0, duration: 0.5 });
+      } else {
+        gsapLib.to(drawerRef.current, { 
+          x: '100%', 
+          duration: 0.5, 
+          ease: 'power2.in', 
+          onComplete: () => {
+            if (overlayRef.current) {
+              gsapLib.set(overlayRef.current, { visibility: 'hidden' });
+            }
+          }
+        });
+        if (overlayRef.current) {
+          gsapLib.to(overlayRef.current, { opacity: 0, duration: 0.5 });
+        }
       }
-    }
+    };
+
+    animateDrawer();
   }, [open, isMobile]);
 
-  // Efecto para manejar el cursor personalizado
+  // OPTIMIZACIÓN 5: Throttle del cursor movement
+  const throttledUpdatePosition = useCallback(() => {
+    let rafId = null;
+    let lastX = 0;
+    let lastY = 0;
+
+    return (e) => {
+      lastX = e.clientX;
+      lastY = e.clientY;
+
+      if (!rafId) {
+        rafId = requestAnimationFrame(() => {
+          setPosition({ x: lastX, y: lastY });
+          rafId = null;
+        });
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (isMobile || isTablet || !open) return;
 
-    const updatePosition = (e) => {
-      setPosition({ x: e.clientX, y: e.clientY });
-    };
+    const updatePositionThrottled = throttledUpdatePosition();
 
     const handleMouseDown = () => setIsClicking(true);
     const handleMouseUp = () => setIsClicking(false);
@@ -174,17 +209,14 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
       setCursorText('');
     };
 
-    // Add event listeners to all interactive elements
-    const interactiveElements = document.querySelectorAll(
-      'a, button, [data-cursor-hover], [data-cursor-text]'
-    );
+    // Usar event delegation en lugar de agregar listeners a cada elemento
+    const container = drawerRef.current;
+    if (container) {
+      container.addEventListener('mouseenter', handleMouseEnter, true);
+      container.addEventListener('mouseleave', handleMouseLeave, true);
+    }
 
-    interactiveElements.forEach((element) => {
-      element.addEventListener('mouseenter', handleMouseEnter);
-      element.addEventListener('mouseleave', handleMouseLeave);
-    });
-
-    document.addEventListener('mousemove', updatePosition);
+    document.addEventListener('mousemove', updatePositionThrottled);
     document.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('mouseup', handleMouseUp);
     
@@ -199,37 +231,52 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
     document.body.style.cursor = 'none';
     
     return () => {
-      interactiveElements.forEach((element) => {
-        element.removeEventListener('mouseenter', handleMouseEnter);
-        element.removeEventListener('mouseleave', handleMouseLeave);
-      });
+      if (container) {
+        container.removeEventListener('mouseenter', handleMouseEnter, true);
+        container.removeEventListener('mouseleave', handleMouseLeave, true);
+      }
       
-      document.removeEventListener('mousemove', updatePosition);
+      document.removeEventListener('mousemove', updatePositionThrottled);
       document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mouseup', handleMouseUp);
       document.body.style.cursor = 'auto';
     };
-  }, [isMobile, isTablet, open]);
+  }, [isMobile, isTablet, open, throttledUpdatePosition]);
 
-  const handleMouseEnterCanvas = () => {
+  const handleMouseEnterCanvas = useCallback(() => {
     setMouseInsideCanvas(true);
-  };
+  }, []);
   
-  const handleMouseLeaveCanvas = () => {
+  const handleMouseLeaveCanvas = useCallback(() => {
     setMouseInsideCanvas(false);
-  };
+  }, []);
   
-  const handleCursorClick = () => {
+  const handleCursorClick = useCallback(() => {
     if (!mouseInsideCanvas) handleClose();
-  };
+  }, [mouseInsideCanvas, handleClose]);
   
-  // Calculate responsive dimensions
   const drawerWidth = isMobile ? '100%' : isTablet ? '90%' : '800px';
   
-  // Estilo común para todos los textos usando Helvetica
   const helveticaTextStyle = {
     fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif'
   };
+  
+  // OPTIMIZACIÓN 6: Lazy load de links con GSAP
+  const handleLinkHover = useCallback(async (underlineId) => {
+    const el = document.getElementById(underlineId);
+    if (el) {
+      const gsapLib = await loadGSAP();
+      gsapLib.killTweensOf(el);
+      gsapLib.fromTo(el, 
+        { width: "0%", left: "0%", right: "auto" }, 
+        { width: "100%", duration: 0.35, ease: "power2.inOut" }
+      ).then(() => {
+        gsapLib.to(el, 
+          { left: "auto", right: "0%", width: "0%", duration: 0.35, delay: 0.1, ease: "power2.inOut" }
+        );
+      });
+    }
+  }, []);
   
   return (
     <>
@@ -266,12 +313,12 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               flexDirection: 'column',
               position: 'relative',
               transform: 'translateX(100%)',
-              overflowY: 'auto', // Allow scrolling on small screens
+              overflowY: 'auto',
               overflowX: 'hidden',
-              cursor: 'none', // Hide default cursor in the drawer
+              cursor: 'none',
               '& *': { 
-                cursor: 'none !important', // Force cursor:none on all child elements
-                fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif' // Aplicar Helvetica globalmente
+                cursor: 'none !important',
+                fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif'
               }
             }}
           >
@@ -283,44 +330,39 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
             )}
             
             <Box sx={{ 
-              position: 'relative', // Changed from absolute to relative for better mobile layout
+              position: 'relative',
               width: '100%', 
               display: 'flex', 
               justifyContent: 'center', 
-              pt: { xs: '12px', sm: '16px', md: '8px' }, // menos espacio arriba
-              pb: { xs: '12px', sm: '12px', md: '12px' }, // mantengo bottom
+              pt: { xs: '12px', sm: '16px', md: '8px' },
+              pb: { xs: '12px', sm: '12px', md: '12px' },
               marginBottom: isMobile ? '2.5rem' : '0.5rem'
             }}>
               <Box
                 component="img"
                 src="/images/image3.png"
                 alt="enzo cimillo"
+                loading="lazy" // OPTIMIZACIÓN: Native lazy loading
                 sx={{
-                  // Ajustar tamaño según el dispositivo
                   width: { 
-                    xs: '80%',   // Móvil
-                    sm: '70%',   // Tablet
-                    md: '100%'    // Desktop
+                    xs: '80%',
+                    sm: '70%',
+                    md: '100%'
                   },
                   maxWidth: '1050px',
-                  
-                  // Invertir colores de la imagen para que coincida con el tema oscuro
                   filter: 'invert(1)',
-                  
-                  // Asegurar que la imagen se carga con transición suave
                   opacity: canvasReady ? 1 : 0,
                   transition: 'opacity 0.5s ease',
-                  
-                  // Mantener proporciones de la imagen
                   objectFit: 'contain',
                 }}
               />
             </Box>
             
+            {/* Todo el contenido sigue igual pero con los callbacks optimizados */}
             {/* Content sections with improved responsiveness - BAJADAS MÁS */}
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
-              top: { md: '22rem' }, // CAMBIADO: de 18rem a 22rem para más separación
+              top: { md: '22rem' },
               left: '12px', 
               right: '12px', 
               display: 'flex',
@@ -345,11 +387,10 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               </Box>
               <Box sx={{ 
                 flex: 1,
-                // Mejorar text wrapping para evitar cortes de palabras
                 wordWrap: 'break-word',
                 overflowWrap: 'break-word',
                 hyphens: 'auto',
-                wordBreak: 'keep-all' // CAMBIADO: mantener palabras completas
+                wordBreak: 'keep-all'
               }}>
                 <SequentialGlitchText 
                   text="I'm a young photographer and videographer with a strong inclination towards fashion production."
@@ -359,7 +400,6 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                   style={{ 
                     ...helveticaTextStyle, 
                     marginBottom: '1.2rem',
-                    // Asegurar que las palabras no se corten
                     wordWrap: 'break-word',
                     overflowWrap: 'break-word',
                     hyphens: 'auto'
@@ -371,7 +411,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
             
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
-              top: { md: '30rem' }, // CAMBIADO: de 26rem a 30rem para más separación
+              top: { md: '30rem' },
               left: '12px', 
               right: '12px', 
               display: 'flex',
@@ -465,7 +505,6 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               </Box>
               <Box sx={{ 
                 flex: 1,
-                // Mejorar text wrapping
                 wordWrap: 'break-word',
                 overflowWrap: 'break-word',
                 hyphens: 'auto',
@@ -495,20 +534,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                   <Box position="relative" display="inline-block">
                     <Link 
                       href="mailto:cimillo.enzo@gmail.com" 
-                      onMouseEnter={() => {
-                        const el = document.getElementById('email-underline');
-                        if (el) {
-                          gsap.killTweensOf(el);
-                          gsap.fromTo(el, 
-                            { width: "0%", left: "0%", right: "auto" }, 
-                            { width: "100%", duration: 0.35, ease: "power2.inOut" }
-                          ).then(() => {
-                            gsap.to(el, 
-                              { left: "auto", right: "0%", width: "0%", duration: 0.35, delay: 0.1, ease: "power2.inOut" }
-                            );
-                          });
-                        }
-                      }}
+                      onMouseEnter={() => handleLinkHover('email-underline')}
                       sx={{ 
                         fontSize: { xs: '0.95rem', sm: '1.1rem' }, 
                         textDecoration: 'underline', 
@@ -545,20 +571,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                       href="https://www.instagram.com/enzocimillo" 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      onMouseEnter={() => {
-                        const el = document.getElementById('instagram-underline');
-                        if (el) {
-                          gsap.killTweensOf(el);
-                          gsap.fromTo(el, 
-                            { width: "0%", left: "0%", right: "auto" }, 
-                            { width: "100%", duration: 0.35, ease: "power2.inOut" }
-                          ).then(() => {
-                            gsap.to(el, 
-                              { left: "auto", right: "0%", width: "0%", duration: 0.35, delay: 0.1, ease: "power2.inOut" }
-                            );
-                          });
-                        }
-                      }}
+                      onMouseEnter={() => handleLinkHover('instagram-underline')}
                       sx={{ 
                         fontSize: { xs: '0.95rem', sm: '1.1rem' }, 
                         textDecoration: 'underline', 
@@ -618,7 +631,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                 />
               </Box>
               <Box sx={{ flex: 1 }}>
-                {/* Componente UruguayTime con dos puntos parpadeantes */}
+                {/* Componente UruguayTime optimizado con memo */}
                 <UruguayTime 
                   fontFamily="Helvetica-Regular, Helvetica, Arial, sans-serif" 
                   fontSize={{ xs: '0.95rem', sm: '1.1rem' }} 
