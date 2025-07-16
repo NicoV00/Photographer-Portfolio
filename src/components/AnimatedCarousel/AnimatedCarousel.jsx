@@ -11,11 +11,11 @@ const AnimatedCarousel = ({
   setCollection,
   setIndex,
   setActiveGalleryColor,
-  setSelectedProjectInfo,
+  setSelectedProjectInfo, // NUEVA PROP para la información del proyecto
   initialTransition = false,
   initialImageUrl = null,
   onTransitionComplete = null,
-  isUserInactive = false
+  isUserInactive = false // NUEVA PROP: pausar animaciones cuando el usuario está inactivo
 }) => {
   const [isHighQuality, setIsHighQuality] = useState(true);
   const [isInitializing, setIsInitializing] = useState(initialTransition);
@@ -38,6 +38,7 @@ const AnimatedCarousel = ({
     "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg",
   ], []);
 
+  // MAPEO DE INFORMACIÓN DE PROYECTOS - Aquí defines nombres y años
   const projectInfo = useMemo(() => ({
     "./images/CALDO/CALDO-1 (PORTADA).jpg": { name: "Caldo Bastardo", year: "2024" },
     "./images/blua_constelaciones_finales.jpg": { name: "Constelacion, Blua", year: "2024" },
@@ -55,6 +56,7 @@ const AnimatedCarousel = ({
     "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": { name: "Montevideo Under Fashion", year: "2024" }
   }), []);
 
+  // Encontrar el índice de la imagen inicial
   const initialImageIndex = useMemo(() => {
     if (!initialImageUrl) return -1;
     return imageUrls.findIndex(url => url === initialImageUrl);
@@ -70,37 +72,41 @@ const AnimatedCarousel = ({
 
   const refs = Array.from({ length: textures.length }, () => useRef());
 
-  // POSICIONES REORGANIZADAS - Distribución más orgánica y natural
   const originalPositions = useMemo(() => {
-    const positions = {
-      // IMAGEN HERO - Mantener posición especial
-      "./images/blua_constelaciones_finales.jpg": [0, 3, 15],
-      
-      // GRUPO FRONTAL IZQUIERDO (más cerca, más visible)
-      "./images/CALDO/CALDO-1 (PORTADA).jpg": [-12, -2, 18],
-      "./images/S-1.jpg": [-8, 5, 12],
-      
-      // GRUPO FRONTAL DERECHO
-      "./images/PLATA/PLATA-2.jpg": [10, 1, 16],
-      "./images/MDLST/MDLST-1.png": [7, -5, 14],
-      
-      // PLANO MEDIO SUPERIOR
-      "./images/NWB&W-09.jpg": [-5, 8, 5],
-      "./images/AMOUR/portada.jpg": [4, 9, 3],
-      "./images/TEO/V1.jpg": [0, 11, -2],
-      
-      // PLANO MEDIO LATERAL
-      "./images/CAT-17.jpg": [-15, 2, 0],
-      "./images/LENOIR/LENOIR-1.jpg": [14, -1, 2],
-      
-      // FONDO DISTRIBUIDO
-      "./images/KABOA/KABOA-1.jpg": [-10, -8, -10],
-      "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg": [8, 6, -12],
-      "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg": [-3, -6, -15],
-      "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": [12, -9, -8]
-    };
+    const areaWidth = 25;
+    const areaHeight = 25;
+    const areaDepth = 20;
 
-    return imageUrls.map((url) => positions[url] || [0, 0, 0]);
+    return imageUrls.map((url, index) => {
+      // Si es la imagen especial, darle una posición fija prominente
+      if (url === "./images/blua_constelaciones_finales.jpg") {
+        return [0, 3, 15]; // Posición central, ligeramente elevada y más adelante
+      }
+
+      // Para el resto de imágenes, usar el posicionamiento estándar
+      const cluster = Math.floor(index / 4);
+      const intraClusterIndex = index % 4;
+
+      let baseX = (cluster % 3 - 1) * (areaWidth / 2);
+      let baseZ = Math.floor(cluster / 3) * (areaDepth / 2) - areaDepth / 4;
+
+      const angleInCluster = (intraClusterIndex / 4) * Math.PI * 2;
+      const clusterRadius = 8;
+
+      const randomOffset = () => (Math.random() - 0.5) * 5;
+
+      const x = baseX + Math.cos(angleInCluster) * clusterRadius + randomOffset();
+      const y = (Math.random() - 0.5) * areaHeight;
+      const z = baseZ + Math.sin(angleInCluster) * clusterRadius + randomOffset();
+
+      const indexVariation = Math.sin(index * 0.5) * 3;
+
+      return [
+        x + indexVariation,
+        y + Math.cos(index * 0.7) * 2,
+        z + indexVariation * 0.5
+      ];
+    });
   }, [imageUrls]);
 
   const groupRef = useRef();
@@ -113,6 +119,7 @@ const AnimatedCarousel = ({
   const animationInProgressRef = useRef(false);
   const timelineRef = useRef(null);
 
+  // Create a ref for scene background color transition
   const backgroundRef = useRef(new THREE.Color('white'));
 
   useEffect(() => {
@@ -121,6 +128,7 @@ const AnimatedCarousel = ({
     });
   }, [textures]);
 
+  // Gestionar la transición inicial desde la foto del video
   useEffect(() => {
     if (initialTransition && initialImageIndex !== -1 && refs[initialImageIndex]?.current
         && !hasStartedTransitionRef.current && !animationInProgressRef.current) {
@@ -152,6 +160,7 @@ const AnimatedCarousel = ({
 
         const timeline = gsap.timeline({
           onComplete: () => {
+            // IMPORTANTE: Eliminar cualquier movimiento residual estableciendo posiciones exactas
             gsap.set(targetRef.position, {
               x: finalPosition[0],
               y: finalPosition[1],
@@ -187,7 +196,7 @@ const AnimatedCarousel = ({
           y: finalPosition[1],
           z: finalPosition[2],
           duration: 1.8,
-          ease: "power3.inOut",
+          ease: "power3.inOut", // Cambio a un easing más suave
           onUpdate: () => {
             if (targetRef) {
               targetRef.lookAt(camera.position);
@@ -262,14 +271,18 @@ const AnimatedCarousel = ({
         return updatedList;
       });
 
+      // Get the gallery color based on the selected image URL
       const galleryImageUrl = imageUrls[index];
       const galleryColors = getGalleryColors(galleryImageUrl);
 
+      // Pass the gallery colors to parent component
       if (setActiveGalleryColor) {
         setActiveGalleryColor(galleryColors);
       }
 
+      // Apply gallery background color to scene
       if (galleryColors && galleryColors.main) {
+        // Convert hex color to THREE.Color
         const newColor = new THREE.Color("white");
         backgroundRef.current = newColor;
       }
@@ -278,25 +291,31 @@ const AnimatedCarousel = ({
     }
   };
 
+  // PERFECTA: Animación ultra suave al seleccionar una imagen
   const animateImageToFront = (index) => {
+    // Evitar animaciones simultáneas
     if (animationInProgressRef.current) return;
     animationInProgressRef.current = true;
 
+    // Cancelar cualquier animación previa si existe
     if (timelineRef.current) {
       timelineRef.current.kill();
     }
 
     setIsImageUpFront(true);
 
+    // *** ENVIAR INFORMACIÓN DEL PROYECTO AL COMPONENTE PADRE ***
     if (setSelectedProjectInfo) {
       const imageUrl = imageUrls[index];
       const info = projectInfo[imageUrl];
-      console.log("Enviando información del proyecto:", info);
+      console.log("Enviando información del proyecto:", info); // Para debug
       setSelectedProjectInfo(info);
     }
 
+    // Crear nuevo timeline coordinado para toda la animación
     timelineRef.current = gsap.timeline({
       onComplete: () => {
+        // CLAVE: Establecer posiciones finales exactas para eliminar cualquier movimiento residual
         const targetRef = refs[index]?.current;
         if (targetRef) {
           gsap.set(targetRef.position, {
@@ -308,10 +327,12 @@ const AnimatedCarousel = ({
           });
         }
 
+        // Finalizar animación
         animationInProgressRef.current = false;
       }
     });
 
+    // Referencia a la imagen seleccionada y cámara
     const selectedRef = refs[index]?.current;
     const camera = cameraRef.current;
 
@@ -320,19 +341,23 @@ const AnimatedCarousel = ({
       return;
     }
 
+    // 1. Notificar el índice seleccionado
     setIndex(index);
 
+    // 2. Guardar posición original de la imagen seleccionada
     const originalPosition = selectedRef.position.clone();
 
+    // 3. Colocar cámara en posición ideal para la vista de cerca
     const idealCameraPosition = new THREE.Vector3(3, 3, 3);
 
+    // 4. Animación ultra suave para la imagen seleccionada
     timelineRef.current.to(selectedRef.position, {
       x: 0,
       y: 0,
       z: 0,
       duration: 1.2,
-      ease: "power3.inOut",
-      force3D: true,
+      ease: "power3.inOut", // Easing más suave
+      force3D: true, // Mejora la precisión
       onUpdate: () => {
         if (selectedRef) {
           selectedRef.lookAt(camera.position);
@@ -340,6 +365,7 @@ const AnimatedCarousel = ({
       }
     }, 0);
 
+    // 5. Mover la cámara coordinadamente con la imagen
     timelineRef.current.to(camera.position, {
       x: idealCameraPosition.x,
       y: idealCameraPosition.y,
@@ -349,20 +375,24 @@ const AnimatedCarousel = ({
       force3D: true
     }, 0);
 
+    // 6. Animar las demás imágenes hacia afuera con movimiento orgánico
     refs.forEach((ref, i) => {
-      if (i === index) return;
+      if (i === index) return; // Saltar imagen seleccionada
 
       const mesh = ref.current;
       if (!mesh) return;
 
+      // Calcular vector de dirección desde imagen seleccionada
       const direction = new THREE.Vector3(
         mesh.position.x - originalPosition.x,
         mesh.position.y - originalPosition.y,
         mesh.position.z - originalPosition.z
       ).normalize();
 
+      // Distancia variable para movimiento más natural
       const distance = 500 + Math.random() * 200;
 
+      // Animar cada imagen con timing ligeramente diferente
       timelineRef.current.to(mesh.position, {
         x: originalPositions[i][0] + direction.x * distance,
         y: originalPositions[i][1] + direction.y * distance,
@@ -376,6 +406,7 @@ const AnimatedCarousel = ({
       }, 0);
     });
 
+    // Iniciar la animación
     timelineRef.current.play();
   };
 
@@ -399,9 +430,11 @@ const AnimatedCarousel = ({
     return closestIndex;
   };
 
+  // *** USEFRAME MODIFICADO: PAUSAR ANIMACIONES DURANTE INACTIVIDAD ***
   useFrame(({ camera, scene }) => {
     cameraRef.current = camera;
 
+    // Hacer que las imágenes miren a la cámara (solo si no están en animación activa)
     if (!animationInProgressRef.current) {
       refs.forEach(ref => {
         if (ref.current) {
@@ -410,37 +443,45 @@ const AnimatedCarousel = ({
       });
     }
 
+    // Transición suave de color de fondo
     if (isImageUpFront && scene.background) {
       scene.background.lerp(backgroundRef.current, 0.05);
     } else if (scene.background) {
       scene.background.lerp(new THREE.Color('white'), 0.05);
     }
 
+    // *** ROTACIÓN PAUSADA DURANTE INACTIVIDAD - SOLUCIÓN CLAVE ***
     if (groupRef.current && 
         !isImageUpFront && 
         !isInitializing && 
         !animationInProgressRef.current && 
-        !isUserInactive) {
+        !isUserInactive) { // NUEVA CONDICIÓN: No rotar si el usuario está inactivo
       groupRef.current.rotation.y += 0.0003;
     }
   });
 
+  // Reset de posiciones con movimiento perfecto
   const resetImagePositions = () => {
+    // Evitar múltiples resets
     if (animationInProgressRef.current) return;
     animationInProgressRef.current = true;
 
+    // Cancelar cualquier animación previa
     if (timelineRef.current) {
       timelineRef.current.kill();
     }
 
     const camera = cameraRef.current;
 
+    // *** LIMPIAR INFORMACIÓN DEL PROYECTO ***
     if (setSelectedProjectInfo) {
       setSelectedProjectInfo(null);
     }
 
+    // Crear nuevo timeline para reset coordinado
     timelineRef.current = gsap.timeline({
       onComplete: () => {
+        // CLAVE: Garantizar posiciones finales exactas
         refs.forEach((ref, index) => {
           if (ref.current) {
             const targetPos = originalPositions[index];
@@ -465,6 +506,7 @@ const AnimatedCarousel = ({
       }
     });
 
+    // 1. Primero mover la cámara a posición general
     timelineRef.current.to(camera.position, {
       x: 0,
       y: 0,
@@ -474,10 +516,13 @@ const AnimatedCarousel = ({
       force3D: true
     }, 0);
 
+    // 2. Restaurar posición de cada imagen con movimiento armonioso
     refs.forEach((ref, index) => {
       if (ref.current) {
+        // Hacer visible inmediatamente sin parpadeo
         ref.current.visible = true;
 
+        // Calcular distancia para timing proporcional (más lejos = más tiempo)
         const currentPos = ref.current.position;
         const targetPos = originalPositions[index];
         const distance = Math.sqrt(
@@ -486,8 +531,10 @@ const AnimatedCarousel = ({
           Math.pow(currentPos.z - targetPos[2], 2)
         );
 
+        // Ajustar duración basada en distancia (más suave para objetos lejanos)
         const duration = Math.min(1.2, 0.6 + (distance / 500));
 
+        // Animar cada imagen a su posición original
         timelineRef.current.to(ref.current.position, {
           x: targetPos[0],
           y: targetPos[1],
@@ -496,14 +543,16 @@ const AnimatedCarousel = ({
           ease: "power3.inOut",
           force3D: true,
           onUpdate: () => {
+            // Mantener la imagen orientada hacia la cámara
             if (ref.current) {
               ref.current.lookAt(camera.position);
             }
           }
-        }, 0.1 + Math.random() * 0.1);
+        }, 0.1 + Math.random() * 0.1); // Pequeño retraso escalonado
       }
     });
 
+    // Iniciar reset
     timelineRef.current.play();
   };
 
@@ -535,6 +584,7 @@ const AnimatedCarousel = ({
     };
   }, [refs, isInitializing]);
 
+  // *** EFECTO DE DEBUG: mostrar estado de inactividad ***
   useEffect(() => {
     if (isUserInactive) {
       console.log("🔄 Carrusel PAUSADO - animaciones detenidas para screensaver");
@@ -543,6 +593,7 @@ const AnimatedCarousel = ({
     }
   }, [isUserInactive]);
 
+  // IMPORTANTE: Solo devolvemos elementos de Three.js, NUNCA HTML
   return (
     <group ref={groupRef}>
       <QualitySwitch isHighQuality={isHighQuality} onChange={handleQualityChange} />
