@@ -13,7 +13,7 @@ import { gsap } from 'gsap';
 import * as THREE from 'three';
 import MyWaySection from './components/MyWaySection';
 import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SpeedInsights } from '@vercel/speed-insights';
 
 // Lazy loaded galleries
 const AnaLivniGallery = lazy(() => import('./components/Galleries/AnaLivniGallery'));
