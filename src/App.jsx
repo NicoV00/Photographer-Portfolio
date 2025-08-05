@@ -1,3 +1,4 @@
+import React from 'react';
 import { useEffect, useRef, useState, lazy, Suspense, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import About1 from './components/About1';
@@ -428,8 +429,8 @@ function App() {
       return (
         <Canvas
           camera={{
-            fov: 64,
-            position: [0, 0, 45],
+            fov: 65,
+            position: [0, 0, 40],
           }}
           onCreated={({ gl }) => {
             gl.setClearColor("white");

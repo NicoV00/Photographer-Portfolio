@@ -20,6 +20,7 @@ const AnimatedCarousel = ({
   const [isHighQuality, setIsHighQuality] = useState(true);
   const [isInitializing, setIsInitializing] = useState(initialTransition);
   const hasStartedTransitionRef = useRef(false);
+  const [isManuallyPaused, setIsManuallyPaused] = useState(false); // NUEVO: Control manual de pausa
 
   const imageUrls = useMemo(() => [
     "./images/CALDO/CALDO-1 (PORTADA).jpg",
@@ -110,78 +111,50 @@ const AnimatedCarousel = ({
     });
   }, [imageUrls]); */}
 
+  // POSICIONES AJUSTADAS basándome en las imágenes de referencia
   const originalPositions = [
-      [
-          -6.418005035183037,
-          -8.62188314302218,
-          -6.612209595009772
-      ],
-      [
-          0,
-          3,
-          15
-      ],
-      [
-          -17.61793851086727,
-          -3.8138306427652657,
-          -5.919263913408628
-      ],
-      [
-          -8.511089911097022,
-          -0.9537707141231313,
-          -9.436203014782443
-      ],
-      [
-          8.591017177880213,
-          -8.030554596194724,
-          -5.585713856272906
-      ],
-      [
-          2.6837467360863996,
-          4.923051629617078,
-          4.644026799658478
-      ],
-      [
-          -8.916998621954766,
-          -0.4181485517764092,
-          -3.5265668506157546
-      ],
-      [
-          0.6411259077741982,
-          11.17604167402351,
-          -14.881182126076647
-      ],
-      [
-          20.37425777069738,
-          10.569615643421319,
-          -4.613222392627543
-      ],
-      [
-          10.502233245744465,
-          1.4463808172287993,
-          0.5401172082099932
-      ],
-      [
-          1.0203091097665982,
-          13.406360369538085,
-          -3.941275208908048
-      ],
-      [
-          9.175381979140141,
-          11.517819064379868,
-          -14.523692321194236
-      ],
-      [
-          -4.56837547403469,
-          2.221306305005752,
-          5.426043600991404
-      ],
-      [
-          -9.911278924653724,
-          6.9198589659060055,
-          13.974916679921279
-      ]
-  ]
+    // 0. CALDO BASTARDO - centro abajo (debajo de blua izquierda)
+    [-4.5, -4.5, 4],
+    
+    // 1. blua_constelaciones_finales - centro prominente (PERFECTA)
+    [0, 2, 14],
+    
+    // 2. PLATA - derecha más atrás
+    [14, 4, -18],
+    
+    // 3. CAT (Catatumbo) - centro detras de blua
+    [1, 3, -13],
+    
+    // 4. NWB&W guitarra (B&W) - derecha abajo
+    [17, 3, 1],
+    
+    // 5. S-1 (Ana Livni) - extremo izquierda
+    [-14, 0, 9],
+    
+    // 6. MDLST (Maison) - extremo derecha abajo
+    [13, -3, 6],
+    
+    // 7. TEO (Vestimeteo) - izquierda media (entre Ana y centro)
+    [-7.5, 0, 6],
+    
+    // 8. LENOIR (amarilla) - centro-izquierda arriba más al fondo
+    [-0.5, 13, -12],
+    
+    // 9. KABOA - izquierda más atrás que el grupo frontal
+    [-7.5, 8, -10],
+    
+    // 10. AMOUR (A del Amour) - centro-derecha abajo
+    [7, -2.5, -3],
+    
+    // 11. MARCOS (Catálogo MUF) - derecha arriba
+    [9.5, 5.5, 7],
+    
+    // 12. PASARELA MUF - izquierda centro (después de Ana)
+    [-13, 7, 0],
+    
+    // 13. IDENTIDAD MUF - centro arriba
+    [8, 9.5, -8]
+  ];
   
   console.log("#######DEBUG####### -> originalPositions", originalPositions);
 
@@ -535,12 +508,13 @@ const AnimatedCarousel = ({
       scene.background.lerp(new THREE.Color('white'), 0.05);
     }
 
-    // *** ROTACIÓN PAUSADA DURANTE INACTIVIDAD - SOLUCIÓN CLAVE ***
+    // *** ROTACIÓN PAUSADA DURANTE INACTIVIDAD O PAUSA MANUAL - SOLUCIÓN CLAVE ***
     if (groupRef.current && 
         !isImageUpFront && 
         !isInitializing && 
         !animationInProgressRef.current && 
-        !isUserInactive) { // NUEVA CONDICIÓN: No rotar si el usuario está inactivo
+        !isUserInactive &&
+        !isManuallyPaused) { // NUEVA CONDICIÓN: No rotar si está pausado manualmente
       groupRef.current.rotation.y += 0.0003;
     }
   });
@@ -678,10 +652,59 @@ const AnimatedCarousel = ({
     }
   }, [isUserInactive]);
 
+  // *** NUEVO: Control de pausa manual con Shift + P ***
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      // Detectar Shift + P
+      if (event.shiftKey && event.key === 'P') {
+        event.preventDefault();
+        setIsManuallyPaused(prev => {
+          const newState = !prev;
+          console.log(newState ? "⏸️ PAUSA MANUAL ACTIVADA" : "▶️ PAUSA MANUAL DESACTIVADA");
+          
+          // Si se activa la pausa, mostrar las posiciones actuales para debug
+          if (newState) {
+            console.log("=== POSICIONES ACTUALES DE LAS IMÁGENES ===");
+            refs.forEach((ref, index) => {
+              if (ref.current) {
+                const pos = ref.current.position;
+                console.log(`Imagen ${index}: [${pos.x.toFixed(2)}, ${pos.y.toFixed(2)}, ${pos.z.toFixed(2)}]`);
+              }
+            });
+            console.log("==========================================");
+            console.log("Presiona Shift+P nuevamente para reanudar el movimiento");
+          }
+          
+          return newState;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [refs]);
+
   // IMPORTANTE: Solo devolvemos elementos de Three.js, NUNCA HTML
   return (
     <group ref={groupRef}>
       <QualitySwitch isHighQuality={isHighQuality} onChange={handleQualityChange} />
+      
+      {/* Indicador visual de pausa manual - aparece en la esquina superior */}
+      {isManuallyPaused && (
+        <group position={[-15, 15, 10]}>
+          <mesh>
+            <boxGeometry args={[8, 3, 0.1]} />
+            <meshBasicMaterial color="#ff0000" opacity={0.9} transparent />
+          </mesh>
+          <mesh position={[0, 0, 0.2]}>
+            <planeGeometry args={[7, 2]} />
+            <meshBasicMaterial color="#ffffff" opacity={1} transparent />
+          </mesh>
+        </group>
+      )}
+      
       {imageUrls.map((texture, index) => (
         <ImageMesh
           key={index}
