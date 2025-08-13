@@ -186,7 +186,7 @@ const PasarelaGallery = ({ onBack }) => {
     '/images/PASARELA/PASARELA MUF-3.jpg',
     '/images/PASARELA/PASARELA MUF-4.jpg',
     '/images/PASARELA/PASARELA MUF-5.jpg',
-    '/images/PASARELA/PASARELA MUF-6.jpg',
+    '/images/PASARELA/PASARELA MUF-6.png',
     '/images/PASARELA/PASARELA MUF-7.jpg',
     '/images/PASARELA/PASARELA MUF-8.jpg',
     '/images/PASARELA/PASARELA MUF-9.jpg',

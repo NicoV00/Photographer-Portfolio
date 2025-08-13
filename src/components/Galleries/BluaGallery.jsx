@@ -111,9 +111,9 @@ const ImageItem = styled(Box, {
   zIndex: zIndex,
   marginBottom: '0', // Remove margin 
   opacity: isVisible ? 1 : 0,
-  transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)', // Pequeña animación de escala + aceleración hardware
-  transition: 'opacity 0.5s ease, transform 0.5s ease',
-  willChange: 'transform, opacity', // Optimización para animaciones
+  transform: 'translateZ(0)', // Solo GPU acceleration, sin animación de escala
+  transition: 'opacity 0.5s ease', // Solo transición de opacidad
+  willChange: 'opacity', // Solo opacidad cambiará
   backfaceVisibility: 'hidden', // GPU optimization
   '& img': {
     width: '100%',
@@ -127,7 +127,7 @@ const ImageItem = styled(Box, {
   }
 }));
 
-// Spotify Container with custom minimal styling - Updated for consistent positioning
+// Spotify Container with CLEAN GLASS EFFECT - Minimal and simple
 const SpotifyContainer = styled(Box, {
   shouldForwardProp: (prop) => 
     !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileWidth'].includes(prop)
@@ -156,29 +156,25 @@ const SpotifyContainer = styled(Box, {
   overflow: 'hidden',
   borderRadius: '12px',
   opacity: isVisible ? 1 : 0,
-  transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
-  transition: 'opacity 0.5s ease, transform 0.5s ease',
-  marginBottom: '0', // Remove margin
-  backfaceVisibility: 'hidden', // GPU optimization
-  backgroundColor: 'transparent',
+  transform: 'translateZ(0)', // NO animation, just GPU acceleration
+  transition: 'opacity 0.5s ease', // Only opacity transition, no transform
+  marginBottom: '0',
+  backfaceVisibility: 'hidden',
+  
+  // Simple glass effect - clean and minimal
+  background: 'rgba(255, 255, 255, 0.05)', // Very subtle white overlay
+  backdropFilter: 'blur(1px)', // Minimal blur
+  WebkitBackdropFilter: 'blur(1px)', // Safari support
+  border: '1px solid rgba(0, 0, 0, 0.1)', // Black border instead of white
+  
   '& iframe': {
     border: 'none',
     width: '100%',
     height: '80px',
     backgroundColor: 'transparent',
     borderRadius: '12px',
-    filter: 'grayscale(100%)', // Makes the player monochrome
-  },
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    pointerEvents: 'none', // Allows clicks to pass through to the iframe
-    borderRadius: '12px',
-    boxShadow: 'none', // Remove shadow
+    filter: 'grayscale(100%) brightness(0.9) contrast(1.2)', // Darker for black text
+    opacity: 0.9,
   }
 }));
 
@@ -422,7 +418,7 @@ const ConstelacionGallery = ({ onBack }) => {
         />
       </ImageItem>
 
-      {/* Spotify embed */}
+      {/* Spotify embed with Clean Glass Effect */}
       <SpotifyContainer 
         ref={el => imageRefs.current[1] = el}
         top="50%"
@@ -432,10 +428,7 @@ const ConstelacionGallery = ({ onBack }) => {
         isVisible={visibleImages[1] !== false}
         isMobile={isMobile}
         sx={{ 
-          transform: 'translateY(-50%) translateZ(0)',
-          '& iframe': {
-            opacity: 0.9
-          }
+          transform: 'translateY(-50%) translateZ(0)'
         }}
         // Ajustes específicos para móvil
         mobileTop="50%" 
@@ -489,7 +482,7 @@ const ConstelacionGallery = ({ onBack }) => {
       
       {/* Loading screen component */}
       <GalleryLoadingScreen 
-        title="Cosntelación, Blua"
+        title="Constelación, Blua"
         year="2024"
         loading={loading}
         loadProgress={loadProgress}

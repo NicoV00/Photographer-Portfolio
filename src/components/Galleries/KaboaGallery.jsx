@@ -124,7 +124,7 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   height: '100%',
   position: 'relative', // Keep relative for absolute children positioning
   transform: 'translateZ(0)', // GPU acceleration
-  width: '8000px', // Desktop width
+  width: '8295px', // Desktop width
   padding: theme.spacing(5), // 40px desktop padding
   paddingRight: theme.spacing(37.5), // 300px desktop padding right
   
@@ -570,7 +570,7 @@ const KaboaGallery = ({ onBack }) => {
       {/* Image 9 */}
       <ImageItem 
         ref={el => imageRefs.current[8] = el}
-        top="35%" left="6900px" height="75vh" width="auto" zIndex={2} 
+        top="50%" left="7100px" height="80vh" width="auto" zIndex={2} 
         isVisible={visibleImages[8] !== false}
         mobileTop="35%" mobileLeft="4140px" mobileHeight="67vh" mobileWidth="180vw"
       >

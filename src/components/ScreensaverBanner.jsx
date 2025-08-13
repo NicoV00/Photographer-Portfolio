@@ -27,7 +27,7 @@ const GlobalStyle = styled('style')({
       fontDisplay: 'swap',
     },
     {
-      fontFamily: 'Helvetica-Regular',  // Cambio aquí
+      fontFamily: 'Helvetica-Regular',
       src: 'url("/fonts/Helvetica.ttf") format("truetype")',
       fontWeight: 'normal',
       fontStyle: 'normal',
@@ -54,9 +54,9 @@ const ScreensaverContainer = styled(Box)(({ isActive }) => ({
   pointerEvents: isActive ? "all" : "none",
   cursor: "none",
   overflow: "hidden",
-  backgroundColor: "rgba(255, 255, 255, 0.01)", // Muy sutil
-  backdropFilter: "blur(3px)", // Blur mínimo
-  WebkitBackdropFilter: "blur(3px)", // Safari support
+  backgroundColor: "rgba(255, 255, 255, 0.01)",
+  backdropFilter: "blur(3px)",
+  WebkitBackdropFilter: "blur(3px)",
 }))
 
 // Wrapper for each text line
@@ -68,48 +68,56 @@ const TextWrapper = styled(Box)({
   alignItems: "center",
 })
 
+// VELOCIDAD VISUAL UNIFORME: Duraciones ajustadas proporcionalmente a la longitud del texto
+// Para que ambas líneas se vean moviéndose a la misma velocidad visual,
+// la línea más larga necesita más tiempo para completar su ciclo
+// "enzo cimillo" = 12 caracteres → 30s
+// "fashion photographer." = 21 caracteres → 52s (proporción 1.75x)
+const TOP_LINE_DURATION = "45s";    // Línea superior (texto más corto)
+const BOTTOM_LINE_DURATION = "75s"; // Línea inferior (texto más largo)
+
 // Inner container for the scrolling text
-const ScrollingText = styled(Box)(({ direction }) => ({
+const ScrollingText = styled(Box)(({ direction, duration }) => ({
   display: "flex",
   whiteSpace: "nowrap",
-  animation: `${direction === "left" ? "scrollLeft" : "scrollRight"} 40s linear infinite`,
+  animation: `${direction === "left" ? "scrollLeft" : "scrollRight"} ${duration} linear infinite`,
   
   "@keyframes scrollLeft": {
-    "0%": { transform: "translateX(0)" },
-    "100%": { transform: "translateX(-50%)" },
+    "0%": { transform: "translateX(0%)" },
+    "100%": { transform: "translateX(-50%)" }, // Mueve exactamente la mitad del contenido
   },
   
   "@keyframes scrollRight": {
-    "0%": { transform: "translateX(-50%)" },
-    "100%": { transform: "translateX(0)" },
+    "0%": { transform: "translateX(-50%)" }, // Empieza desde -50%
+    "100%": { transform: "translateX(0%)" },  // Termina en 0%
   },
 }))
 
 // Individual text span
 const TextSpan = styled('span')({
   fontFamily: 'Helvetica',
-  fontSize: "clamp(100px, 18vw, 280px)", // Ajustado para mejor responsividad
-  lineHeight: "1.2", // Cambiado de 0.8 a 1 para evitar cortes
+  fontSize: "clamp(100px, 18vw, 280px)",
+  lineHeight: "1.2",
   letterSpacing: "-0.05em",
   color: "#000000",
-  marginRight: "80px", // Espacio entre repeticiones
+  marginRight: "80px",
   userSelect: "none",
-  display: "inline-block", // Agregado para mejor control del espacio
+  display: "inline-block",
   
   "@media (max-width: 768px)": {
-    fontSize: "clamp(50px, 15vw, 180px)", // Más pequeño en tablets
+    fontSize: "clamp(50px, 15vw, 180px)",
     marginRight: "40px",
-    lineHeight: "1.1", // Un poco más de espacio en móviles
+    lineHeight: "1.1",
   },
   
   "@media (max-width: 480px)": {
-    fontSize: "clamp(45px, 22vw, 150px)", // Aún más pequeño en móviles
+    fontSize: "clamp(45px, 22vw, 150px)",
     marginRight: "30px",
-    lineHeight: "1.1", // Un poco más de espacio en móviles
+    lineHeight: "1.1",
   },
 })
 
-// Activity indicator
+// Activity indicator (removido para limpieza visual)
 const ActivityIndicator = styled(Box)({
   position: "absolute",
   bottom: "60px",
@@ -204,8 +212,8 @@ const ScreensaverBanner = ({ isActive = false, onDismiss = null, onInactivityCha
 
   if (!isActive) return null
 
-  // Crear array de repeticiones para el efecto continuo
-  const createRepeatedText = (text, count = 10) => {
+  // Crear arrays con exactamente el mismo número de repeticiones
+  const createRepeatedText = (text, count = 12) => {
     return Array(count).fill(text)
   }
 
@@ -214,30 +222,40 @@ const ScreensaverBanner = ({ isActive = false, onDismiss = null, onInactivityCha
 
   return (
     <ScreensaverContainer isActive={show}>
+      <GlobalStyle />
+      
       {/* Línea superior - moviendo de derecha a izquierda */}
       <TextWrapper sx={{ 
-        top: "10%", // Subido más arriba
+        top: "10%",
         "@media (max-width: 768px)": {
           top: "25%",
         }
       }}>
-        <ScrollingText direction="left">
+        <ScrollingText direction="left" duration={TOP_LINE_DURATION}>
           {createRepeatedText(topLineText).map((text, index) => (
             <TextSpan key={`top-${index}`}>{text}</TextSpan>
+          ))}
+          {/* Duplicar para efecto continuo sin saltos */}
+          {createRepeatedText(topLineText).map((text, index) => (
+            <TextSpan key={`top-dup-${index}`}>{text}</TextSpan>
           ))}
         </ScrollingText>
       </TextWrapper>
 
       {/* Línea inferior - moviendo de izquierda a derecha */}
       <TextWrapper sx={{ 
-        bottom: "10%", // Usando bottom en lugar de top para evitar cortes
+        bottom: "10%",
         "@media (max-width: 768px)": {
           bottom: "30%",
         }
       }}>
-        <ScrollingText direction="right">
+        <ScrollingText direction="right" duration={BOTTOM_LINE_DURATION}>
           {createRepeatedText(bottomLineText).map((text, index) => (
             <TextSpan key={`bottom-${index}`}>{text}</TextSpan>
+          ))}
+          {/* Duplicar para efecto continuo sin saltos */}
+          {createRepeatedText(bottomLineText).map((text, index) => (
+            <TextSpan key={`bottom-dup-${index}`}>{text}</TextSpan>
           ))}
         </ScrollingText>
       </TextWrapper>

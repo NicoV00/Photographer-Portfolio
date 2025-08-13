@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, useTheme, useMediaQuery } from '@mui/material';
+import { Box, useTheme, useMediaQuery, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import NavigationArrow from './NavigationArrow';
 import GalleryLoadingScreen from './GalleryLoadingScreen';
@@ -204,38 +204,31 @@ const VideoContainer = styled(Box, {
   },
 }));
 
+// Logo container with text below - Modified to include red text
+const LogoContainer = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '20px',
+}));
+
 // Logo item - Responsive version with adaptive sizing for mobile with new hover effect
 const LogoItem = styled(Box, {
-  shouldForwardProp: (prop) => !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileWidth', 'mobileHeight', 'isInteractive', 'isPlaying'].includes(prop)
+  shouldForwardProp: (prop) => !['isMobile', 'isVisible', 'isInteractive', 'isPlaying'].includes(prop)
 })(({ 
   theme, 
-  top, 
-  left, 
-  width, 
-  height, 
-  zIndex = 1, 
   isMobile = false, 
   isVisible = true,
-  // Props especiales para móvil
-  mobileTop,
-  mobileLeft,
-  mobileWidth,
-  mobileHeight,
-  // New props for interactivity
   isInteractive = false,
   isPlaying = false
 }) => ({
-  position: 'absolute',
-  top: top,
-  left: left,
-  width: width,
-  height: height,
-  zIndex: zIndex,
+  width: '100%',
   opacity: isVisible ? 1 : 0,
   transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
   willChange: 'transform, opacity',
-  backfaceVisibility: 'hidden', // GPU optimization
+  backfaceVisibility: 'hidden',
   cursor: isInteractive ? 'pointer' : 'default',
   '& img': {
     width: '100%',
@@ -244,23 +237,50 @@ const LogoItem = styled(Box, {
     borderRadius: '0',
     boxShadow: 'none',
     backfaceVisibility: 'hidden',
-    transform: 'translateZ(0)', // Force GPU acceleration
-    transition: 'transform 0.3s ease-in-out', // Smooth transition for hover effect
+    transform: 'translateZ(0)',
+    transition: 'transform 0.3s ease-in-out',
     ...(isInteractive && {
       '&:hover': {
-        transform: 'translateZ(0) scale(1.08)', // Scale up on hover
+        transform: 'translateZ(0) scale(1.08)',
       },
       ...(isPlaying && {
-        transform: 'translateZ(0) scale(1.05)', // Slightly scaled when playing
-        filter: 'brightness(1.1)', // Slightly brighter when playing
+        transform: 'translateZ(0) scale(1.05)',
+        filter: 'brightness(1.1)',
       }),
     }),
   },
-  [theme.breakpoints.down('sm')]: {
-    top: mobileTop || top,
-    left: mobileLeft || (left ? `${parseInt(left) * 0.6}px` : left), // Aumentado de 0.5 a 0.6
-    width: mobileWidth || (width === 'auto' ? 'auto' : `${parseInt(width) * 0.7}px`), // Aumentado de 0.5 a 0.7
-    height: mobileHeight || height, // Mantener altura si es 'auto', sino reducir
+}));
+
+// Text container that uses theme colors dynamically
+const TextContainer = styled(Box)(({ theme, isVisible, textColor }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '5px',
+  opacity: isVisible ? 1 : 0,
+  transform: isVisible ? 'translateY(0)' : 'translateY(-20px)',
+  transition: 'all 0.5s ease',
+  '& .title': {
+    color: textColor, // Dynamic color from theme
+    fontSize: '32px',
+    fontWeight: 'bold',
+    fontFamily: 'Medium OTF, Arial, sans-serif',
+    letterSpacing: '2px',
+    margin: 0,
+    [theme.breakpoints.down('sm')]: {
+      fontSize: '24px',
+    },
+  },
+  '& .year': {
+    color: textColor, // Dynamic color from theme
+    fontSize: '24px',
+    fontWeight: 'normal',
+    fontFamily: 'Medium OTF, Arial, sans-serif',
+    letterSpacing: '1px',
+    margin: 0,
+    [theme.breakpoints.down('sm')]: {
+      fontSize: '18px',
+    },
   },
 }));
 
@@ -271,6 +291,7 @@ const CaldoGallery = ({ onBack }) => {
   
   // New audio state
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showText, setShowText] = useState(false); // State for showing red text
   const audioRef = useRef(null);
 
   // References for animation elements
@@ -298,17 +319,19 @@ const CaldoGallery = ({ onBack }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
-  // Handle audio playback toggle
+  // Handle audio playback toggle and show text
   const toggleAudio = useCallback(() => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
+        setShowText(false); // Hide text when audio stops
       } else {
         audioRef.current.play().catch(e => {
           console.error('Error playing audio:', e);
           // Fallback for browsers that require user interaction
           alert('Click again to play audio');
         });
+        setShowText(true); // Show text when audio plays
       }
       setIsPlaying(!isPlaying);
     }
@@ -464,6 +487,7 @@ const CaldoGallery = ({ onBack }) => {
     if (audioRef.current) {
       audioRef.current.addEventListener('ended', () => {
         setIsPlaying(false);
+        setShowText(false); // Hide text when audio ends
       });
       
       // Optional: preload audio
@@ -476,6 +500,7 @@ const CaldoGallery = ({ onBack }) => {
         audioRef.current.pause();
         audioRef.current.removeEventListener('ended', () => {
           setIsPlaying(false);
+          setShowText(false);
         });
       }
     };
@@ -490,7 +515,10 @@ const CaldoGallery = ({ onBack }) => {
         ref={audioRef} 
         src={content.AUDIO} 
         sx={{ display: 'none' }} 
-        onEnded={() => setIsPlaying(false)}
+        onEnded={() => {
+          setIsPlaying(false);
+          setShowText(false);
+        }}
       />
       
       {/* Imagen de portada - izquierda */}
@@ -649,39 +677,43 @@ const CaldoGallery = ({ onBack }) => {
         />
       </VideoContainer>
       
-      {/* Logo CALDO BASTARDO - CALDO-6.png - centro - WITH AUDIO INTERACTION */}
-      <LogoItem 
+      {/* Logo CALDO BASTARDO with theme-colored text below */}
+      <LogoContainer
         ref={el => imageRefs.current[5] = el}
-        top="45%"
-        left="4270px"
-        width="670px"
-        height="auto"
-        zIndex={3}
-        isVisible={visibleImages[5] !== false}
-        isMobile={isMobile}
-        isInteractive={true} // New prop for hover effect
-        isPlaying={isPlaying} // New prop to track audio state
-        onClick={toggleAudio} // Click handler to play/pause audio
-        sx={{ 
+        sx={{
+          top: '45%',
+          left: '4270px',
+          width: '670px',
+          zIndex: 3,
           transform: 'translateY(-50%) translateZ(0)',
-          cursor: 'pointer', // Show pointer on hover
+          [theme.breakpoints.down('sm')]: {
+            top: '45%',
+            left: '2550px',
+            width: '450px',
+          }
         }}
-        // Ajustes específicos para móvil
-        mobileTop="45%"
-        mobileLeft="2550px"
-        mobileWidth="450px"
       >
-        <Box 
-          component="img" 
-          src={content.C6} 
-          alt="CALDO BASTARDO" 
-          loading="eager"
-          sx={{ 
-            // Visual indicator when audio is playing
-            filter: isPlaying ? 'brightness(1.1)' : 'brightness(1)',
-          }}
-        />
-      </LogoItem>
+        <LogoItem
+          isVisible={visibleImages[5] !== false}
+          isMobile={isMobile}
+          isInteractive={true}
+          isPlaying={isPlaying}
+          onClick={toggleAudio}
+        >
+          <Box 
+            component="img" 
+            src={content.C6} 
+            alt="CALDO BASTARDO" 
+            loading="eager"
+          />
+        </LogoItem>
+        
+        {/* Text that appears when clicked - uses theme color */}
+        <TextContainer isVisible={showText} textColor={galleryTheme.text}>
+          <Typography className="title">Caldo Bastardo</Typography>
+          <Typography className="year">2024</Typography>
+        </TextContainer>
+      </LogoContainer>
       
       {/* Video 5 - CALDO-7.mp4 en marco */}
       <VideoContainer 
@@ -726,17 +758,21 @@ const CaldoGallery = ({ onBack }) => {
       {/* Logo GRDN - CALDO-8.png - extremo derecho */}
       <LogoItem 
         ref={el => imageRefs.current[7] = el}
-        top="10%"
-        left="6100px"
-        width="250px"
-        height="auto"
-        zIndex={3}
+        sx={{
+          position: 'absolute',
+          top: '10%',
+          left: '6100px',
+          width: '250px',
+          height: 'auto',
+          zIndex: 3,
+          [theme.breakpoints.down('sm')]: {
+            top: '10%',
+            left: '3670px',
+            width: '175px',
+          }
+        }}
         isVisible={visibleImages[7] !== false}
         isMobile={isMobile}
-        // Ajustes específicos para móvil
-        mobileTop="10%"
-        mobileLeft="3670px"
-        mobileWidth="175px"
       >
         <Box component="img" src={content.C8} alt="GRDN" loading="lazy" />
       </LogoItem>

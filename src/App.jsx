@@ -31,24 +31,8 @@ const IdentidadGallery = lazy(() => import('./components/Galleries/IdentidadGall
 // Precarga
 import('./components/Galleries/BluaGallery');
 
-// Función para determinar si un color es oscuro
-const isColorDark = (hexColor) => {
-  if (!hexColor || typeof hexColor !== 'string') return false;
-  // Convertir hex a RGB
-  const hex = hexColor.replace('#', '');
-  const r = parseInt(hex.substr(0, 2), 16);
-  const g = parseInt(hex.substr(2, 2), 16);
-  const b = parseInt(hex.substr(4, 2), 16);
-  
-  // Calcular luminancia relativa
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  
-  // Si la luminancia es menor a 0.5, el color es oscuro
-  return luminance < 0.5;
-};
-
 // Componente para el texto con efecto glitch
-const GlitchText = ({ text, isDark }) => {
+const GlitchText = ({ text }) => {
   const [displayText, setDisplayText] = useState(text);
   const [isGlitching, setIsGlitching] = useState(false);
   const prevTextRef = useRef(text);
@@ -116,15 +100,6 @@ const GlobalStyle = styled('style')({
   ]
 });
 
-// Hide default cursor
-const BodyStyle = styled('style')({
-  'body': {
-    cursor: 'none !important',
-    backgroundColor: '#000',
-    transition: 'background-color 0.5s ease-out'
-  }
-});
-
 // Container for the entire app
 const ContainerCloud = styled(Box)({
   position: 'relative',
@@ -160,15 +135,15 @@ const Letter = styled('span')({
   marginRight: '0.5px'
 });
 
-// Project info container actualizado con detección de color
-const ProjectInfoContainer = styled(Box)(({ isVisible, isDarkBackground }) => ({
+// Project info container actualizado para usar colores del tema directamente
+const ProjectInfoContainer = styled(Box)(({ isVisible, textColor }) => ({
   position: 'fixed',
   bottom: '20px',
   left: '50%',
   textAlign: 'center',
   zIndex: 1000,
   pointerEvents: 'none',
-  color: isDarkBackground ? '#ffffff' : '#000000', // Blanco en fondos oscuros, negro en claros
+  color: textColor || '#000000', // Usar el color del tema directamente
   fontFamily: '"Helvetica", Helvetica, Arial, sans-serif',
   fontSize: '16px',
   fontWeight: 'bold',
@@ -178,7 +153,7 @@ const ProjectInfoContainer = styled(Box)(({ isVisible, isDarkBackground }) => ({
   transform: isVisible 
     ? 'translateX(-50%) translateY(0)' 
     : 'translateX(-50%) translateY(20px)',
-  transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.3s ease',
+  transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
 }));
 
 const ProjectName = styled(Box)({
@@ -223,9 +198,8 @@ function App() {
   const [screensaverActive, setScreensaverActive] = useState(true);
   const [isUserInactive, setIsUserInactive] = useState(false);
 
-  // NUEVOS ESTADOS para detección de color
-  const [currentBgColor, setCurrentBgColor] = useState('#ffffff');
-  const [isDarkBackground, setIsDarkBackground] = useState(false);
+  // NUEVO ESTADO para almacenar los colores del tema actual
+  const [themeColors, setThemeColors] = useState(null);
 
   // Collection mapping
   const specialCollections = {
@@ -247,31 +221,72 @@ function App() {
     setIsOffCanvasOpen(show);
   };
 
+  // FIX: Manejo correcto del reset de color a blanco
   useEffect(() => {
     const fallback = '#ffffff';
-    const hex = bgColor?.main || bgColor || fallback;
+    
+    // Si bgColor es null, undefined, o se está reseteando, volver a blanco
+    if (!bgColor) {
+      setThemeColors(null);
+      
+      console.log('||||| ---> Reseteando color a BLANCO');
+      
+      const whiteColor = new THREE.Color('#ffffff');
+      gsap.to(clearColor.current, {
+        r: whiteColor.r,
+        g: whiteColor.g,
+        b: whiteColor.b,
+        duration: 1,
+        onUpdate: () => {
+          if (glRef.current) {
+            glRef.current.setClearColor(clearColor.current);
+          }
+        },
+      });
+      return;
+    }
+    
+    // Si bgColor es un objeto con la estructura del tema
+    if (typeof bgColor === 'object' && bgColor.main) {
+      setThemeColors(bgColor); // Guardar todo el objeto de colores
+      const hex = bgColor.main || fallback;
+      
+      console.log('||||| ---> Tema COMPLETO recibido:', bgColor);
+      console.log('||||| ---> Color de fondo:', bgColor.main);
+      console.log('||||| ---> Color de texto:', bgColor.text);
 
-    console.log('||||| ---> bgColor RECIBIDO:', hex);
+      const newColor = new THREE.Color(hex);
+      gsap.to(clearColor.current, {
+        r: newColor.r,
+        g: newColor.g,
+        b: newColor.b,
+        duration: 1,
+        onUpdate: () => {
+          if (glRef.current) {
+            glRef.current.setClearColor(clearColor.current);
+          }
+        },
+      });
+    } else if (typeof bgColor === 'string') {
+      // Si bgColor es solo un string de color
+      const hex = bgColor;
+      setThemeColors(null);
+      
+      console.log('||||| ---> Color simple recibido:', hex);
 
-    const newColor = new THREE.Color(hex);
-    gsap.to(clearColor.current, {
-      r: newColor.r,
-      g: newColor.g,
-      b: newColor.b,
-      duration: 1,
-      onUpdate: () => {
-        if (glRef.current) {
-          glRef.current.setClearColor(clearColor.current);
-        }
-      },
-    });
-  }, [bgColor]);
-
-  // NUEVO useEffect para detectar cambios de color
-  useEffect(() => {
-    const color = bgColor?.main || bgColor || '#ffffff';
-    setCurrentBgColor(color);
-    setIsDarkBackground(isColorDark(color));
+      const newColor = new THREE.Color(hex);
+      gsap.to(clearColor.current, {
+        r: newColor.r,
+        g: newColor.g,
+        b: newColor.b,
+        duration: 1,
+        onUpdate: () => {
+          if (glRef.current) {
+            glRef.current.setClearColor(clearColor.current);
+          }
+        },
+      });
+    }
   }, [bgColor]);
 
   const hexToRGB = (hex) => {
@@ -295,24 +310,6 @@ function App() {
     }
     
     setScene3DReady(true);
-    
-    // Forzar cursor hidden
-    const enforceHiddenCursor = () => {
-      document.body.style.cursor = 'none';
-      
-      const allElements = document.querySelectorAll('*');
-      allElements.forEach(el => {
-        if (getComputedStyle(el).cursor !== 'none') {
-          el.style.cursor = 'none';
-        }
-      });
-    };
-    
-    enforceHiddenCursor();
-    
-    const cursorInterval = setInterval(enforceHiddenCursor, 2000);
-    
-    return () => clearInterval(cursorInterval);
   }, []);
 
   // Handler optimizado para la transición sin retrasos
@@ -399,11 +396,13 @@ function App() {
     };
   }, [showGallery, photographerName]);
 
-  // Function to return to main carousel
+  // FIX: Function to return to main carousel - reset color to white
   const handleBackToCarousel = () => {
     setShowGallery(false);
     setCollection("");
     setSelectedProjectInfo(null);
+    setThemeColors(null); // Limpiar colores del tema
+    setBgColor('#ffffff'); // FIX: Resetear explícitamente a blanco
   };
 
   // Handlers memoizados para evitar re-renders
@@ -555,9 +554,8 @@ function App() {
     <>
       {/* Global styles */}
       <GlobalStyle />
-      <BodyStyle />
       
-      {/* Componente de cursor global */}
+      {/* Componente de cursor global (ahora inactivo) */}
       <CursorManager isOffCanvasOpen={isOffCanvasOpen} />
       
       {/* SCREENSAVER BANNER ULTRA SMOOTH - 20 SEGUNDOS */}
@@ -602,21 +600,22 @@ function App() {
 
         {renderContent()}
 
-        {/* Información del proyecto - ACTUALIZADA CON GLITCH Y DETECCIÓN DE COLOR */}
+        {/* Información del proyecto - ACTUALIZADA PARA USAR COLORES DEL TEMA */}
         {!showGallery && (
-          <ProjectInfoContainer isVisible={!!selectedProjectInfo} isDarkBackground={isDarkBackground}>
+          <ProjectInfoContainer 
+            isVisible={!!selectedProjectInfo} 
+            textColor={themeColors?.text || '#000000'} // Usar el color de texto del tema
+          >
             {selectedProjectInfo && (
               <>
                 <ProjectName>
                   <GlitchText 
                     text={selectedProjectInfo.name || 'UNTITLED'} 
-                    isDark={isDarkBackground}
                   />
                 </ProjectName>
                 <ProjectYear>
                   <GlitchText 
                     text={selectedProjectInfo.year || '2024'} 
-                    isDark={isDarkBackground}
                   />
                 </ProjectYear>
               </>

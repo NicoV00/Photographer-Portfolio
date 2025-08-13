@@ -47,23 +47,7 @@ const LoadingTitle = styled(Box)(({ theme }) => ({
   },
 }));
 
-// Year con la misma fuente Helvetica-Bold pero más pequeño
-const LoadingYear = styled(Box)(({ theme }) => ({
-  fontFamily: '"Helvetica-Bold", "Arial Black", sans-serif',
-  fontSize: '20px', // Reducido de 40px a 32px
-  fontWeight: 'bold',
-  letterSpacing: '2px',
-  marginTop: '8px',
-  position: 'relative',
-  transform: 'translateY(100px)',
-  opacity: 0,
-  marginBottom: '40px',
-  textAlign: 'center',
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '28px', // Ajustado proporcionalmente
-    letterSpacing: '1.5px',
-  },
-}));
+
 
 // Barra de progreso minimalista
 const ProgressBarContainer = styled(Box)({
@@ -89,7 +73,6 @@ const ProgressBarFill = styled(Box)(({ progress }) => ({
 
 const GalleryLoadingScreen = ({ 
   title, 
-  year, 
   loading, 
   loadProgress = 0,
   onAnimationComplete,
@@ -98,14 +81,13 @@ const GalleryLoadingScreen = ({
   progressColor = '#000000'
 }) => {
   const titleRef = useRef(null);
-  const yearRef = useRef(null);
   const loadingScreenRef = useRef(null);
 
   // Loading screen title and year animation effect
   useEffect(() => {
     if (!loading) return;
     
-    if (titleRef.current && yearRef.current) {
+    if (titleRef.current) {
       gsap.to(titleRef.current, {
         y: 0,
         opacity: 1,
@@ -113,27 +95,18 @@ const GalleryLoadingScreen = ({
         ease: "power2.out",
         delay: 0.3,
       });
-      
-      gsap.to(yearRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.5,
-      });
     }
     
     return () => {
       gsap.killTweensOf(titleRef.current);
-      gsap.killTweensOf(yearRef.current);
     };
   }, [loading]);
   
   // Handle loading complete animation
   useEffect(() => {
     if (loadProgress >= 100 && loading) {
-      if (titleRef.current && yearRef.current && loadingScreenRef.current) {
-        gsap.to([titleRef.current, yearRef.current], {
+      if (titleRef.current && loadingScreenRef.current) {
+        gsap.to([titleRef.current], {
           y: -100,
           opacity: 0,
           duration: 0.8,
@@ -171,12 +144,6 @@ const GalleryLoadingScreen = ({
           {title} {/* Mantiene el texto como se pasa, sin uppercase */}
         </LoadingTitle>
         
-        <LoadingYear 
-          ref={yearRef}
-          sx={{ color: textColor }} // Usa el color de texto pasado como prop
-        >
-          {year}
-        </LoadingYear>
         
         <ProgressBarContainer>
           <ProgressBarFill 

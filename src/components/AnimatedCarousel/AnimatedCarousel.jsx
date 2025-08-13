@@ -45,7 +45,7 @@ const AnimatedCarousel = ({
     "./images/blua_constelaciones_finales.jpg": { name: "Constelacion, Blua", year: "2024" },
     "./images/PLATA/PLATA-2.jpg": { name: "Plata, Blua", year: "2024" },
     "./images/CAT-17.jpg": { name: "Catatumbo", year: "2024" },
-    "./images/NWB&W-09.jpg": { name: "NEW BLACK & WHITE", year: "2024" },
+    "./images/NWB&W-09.jpg": { name: "Neam Wave", year: "2024" },
     "./images/S-1.jpg": { name: "Ana Livni", year: "2024" },
     "./images/MDLST/MDLST-1.png": { name: "Maison de l'Est", year: "2024" },
     "./images/TEO/V1.jpg": { name: "La Notte, Vestimeteo", year: "2024" },
@@ -72,44 +72,6 @@ const AnimatedCarousel = ({
   );
 
   const refs = Array.from({ length: textures.length }, () => useRef());
-
-  {/*
-  const originalPositions = useMemo(() => {
-    const areaWidth = 25;
-    const areaHeight = 25;
-    const areaDepth = 20;
-
-    return imageUrls.map((url, index) => {
-      // Si es la imagen especial, darle una posición fija prominente
-      if (url === "./images/blua_constelaciones_finales.jpg") {
-        return [0, 3, 15]; // Posición central, ligeramente elevada y más adelante
-      }
-
-      // Para el resto de imágenes, usar el posicionamiento estándar
-      const cluster = Math.floor(index / 4);
-      const intraClusterIndex = index % 4;
-
-      let baseX = (cluster % 3 - 1) * (areaWidth / 2);
-      let baseZ = Math.floor(cluster / 3) * (areaDepth / 2) - areaDepth / 4;
-
-      const angleInCluster = (intraClusterIndex / 4) * Math.PI * 2;
-      const clusterRadius = 8;
-
-      const randomOffset = () => (Math.random() - 0.5) * 5;
-
-      const x = baseX + Math.cos(angleInCluster) * clusterRadius + randomOffset();
-      const y = (Math.random() - 0.5) * areaHeight;
-      const z = baseZ + Math.sin(angleInCluster) * clusterRadius + randomOffset();
-
-      const indexVariation = Math.sin(index * 0.5) * 3;
-
-      return [
-        x + indexVariation,
-        y + Math.cos(index * 0.7) * 2,
-        z + indexVariation * 0.5
-      ];
-    });
-  }, [imageUrls]); */}
 
   // POSICIONES AJUSTADAS basándome en las imágenes de referencia
   const originalPositions = [
@@ -519,7 +481,7 @@ const AnimatedCarousel = ({
     }
   });
 
-  // Reset de posiciones con movimiento perfecto
+  // Reset de posiciones con movimiento perfecto - CORREGIDO PARA RESETEAR COLOR
   const resetImagePositions = () => {
     // Evitar múltiples resets
     if (animationInProgressRef.current) return;
@@ -536,6 +498,19 @@ const AnimatedCarousel = ({
     if (setSelectedProjectInfo) {
       setSelectedProjectInfo(null);
     }
+
+    // *** FIX IMPORTANTE: Resetear el color a blanco explícitamente ***
+    if (setActiveGalleryColor) {
+      // Enviar el objeto de colores para blanco en lugar de null
+      setActiveGalleryColor({
+        main: '#ffffff',
+        text: '#000000',
+        highlight: '#666666'
+      });
+    }
+
+    // Resetear el color de fondo de la escena Three.js a blanco
+    backgroundRef.current = new THREE.Color('#ffffff');
 
     // Crear nuevo timeline para reset coordinado
     timelineRef.current = gsap.timeline({
@@ -556,10 +531,6 @@ const AnimatedCarousel = ({
 
         setIsImageUpFront(false);
         setSelectedImage([]);
-
-        if (setActiveGalleryColor) {
-          setActiveGalleryColor(null);
-        }
 
         animationInProgressRef.current = false;
       }

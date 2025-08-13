@@ -25,12 +25,31 @@ import {
   CloseButton 
 } from './StyledComponents';
 
+// Declaración de la fuente Suisse Intl Mono
+const fontFaceStyle = `
+  @font-face {
+    font-family: 'Suisse Intl Mono';
+    src: url('/fonts.com-Suisse_Intl_Mono.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+`;
+
 // OPTIMIZACIÓN 2: Memoizar el componente de tiempo para evitar re-renders del padre
-const UruguayTime = memo(({ fontFamily, fontSize }) => {
+const UruguayTime = memo(({ fontSize }) => {
   const [time, setTime] = useState('');
   const [showColon, setShowColon] = useState(true);
   
   useEffect(() => {
+    // Inyectar los estilos de fuente si no están ya presentes
+    if (!document.getElementById('suisse-intl-mono-font')) {
+      const style = document.createElement('style');
+      style.id = 'suisse-intl-mono-font';
+      style.innerHTML = fontFaceStyle;
+      document.head.appendChild(style);
+    }
+
     const updateTime = () => {
       const now = new Date();
       const uruguayTime = now.toLocaleTimeString('en-US', {
@@ -59,7 +78,12 @@ const UruguayTime = memo(({ fontFamily, fontSize }) => {
   const formatTimeWithBlinkingColons = (timeString) => {
     const parts = timeString.split(':');
     return (
-      <Box component="span" sx={{ fontFamily, fontSize, fontWeight: '500' }}>
+      <Box component="span" sx={{ 
+        fontFamily: "'Suisse Intl Mono', monospace", 
+        fontSize, 
+        fontWeight: '400',
+        letterSpacing: '0.02em'
+      }}>
         {parts[0]}
         <Box component="span" sx={{ opacity: showColon ? 1 : 0.3, transition: 'opacity 0.1s ease' }}>
           :
@@ -95,21 +119,11 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isClicking, setIsClicking] = useState(false);
   const [cursorText, setCursorText] = useState('');
-
-  // OPTIMIZACIÓN 3: Precargar imagen solo cuando se abre por primera vez
-  const [imagePreloaded, setImagePreloaded] = useState(false);
   
   const handleOpen = useCallback(() => {
     setOpen(true);
     if (onShowChange) onShowChange(true);
-    
-    // Precargar imagen solo la primera vez
-    if (!imagePreloaded) {
-      const img = new Image();
-      img.src = '/images/image3.png';
-      img.onload = () => setImagePreloaded(true);
-    }
-  }, [onShowChange, imagePreloaded]);
+  }, [onShowChange]);
 
   const handleClose = useCallback(() => {
     setOpen(false);
@@ -329,47 +343,50 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               </CloseButton>
             )}
             
+            {/* TÍTULO ENZO CIMILLO - Alineado con el resto del contenido */}
             <Box sx={{ 
               position: 'relative',
               width: '100%', 
               display: 'flex', 
-              justifyContent: 'center', 
-              pt: { xs: '12px', sm: '16px', md: '8px' },
-              pb: { xs: '12px', sm: '12px', md: '12px' },
-              marginBottom: isMobile ? '2.5rem' : '0.5rem'
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              pt: { xs: '20px', sm: '24px', md: '10px' },
+              pb: { xs: '20px', sm: '24px', md: '28px' },
+              px: '20px', // MISMO MARGEN QUE EL RESTO: 20px
+              marginBottom: isMobile ? '2.5rem' : '1.5rem'
             }}>
-              <Box
-                component="img"
-                src="/images/image3.png"
-                alt="enzo cimillo"
-                loading="lazy" // OPTIMIZACIÓN: Native lazy loading
+              <Typography
                 sx={{
-                  width: { 
-                    xs: '80%',
-                    sm: '70%',
-                    md: '100%'
+                  fontFamily: 'Helvetica-Bold, "Helvetica Neue", Helvetica, Arial, sans-serif',
+                  fontSize: { 
+                    xs: '3.5rem',
+                    sm: '5rem',
+                    md: '8.1rem'
                   },
-                  maxWidth: '1050px',
-                  filter: 'invert(1)',
+                  fontWeight: 'bold',
+                  color: 'white',
+                  lineHeight: '0.9',
+                  letterSpacing: '-0.02em',
+                  margin: 0,
                   opacity: canvasReady ? 1 : 0,
                   transition: 'opacity 0.5s ease',
-                  objectFit: 'contain',
                 }}
-              />
+              >
+                enzo cimillo
+              </Typography>
             </Box>
             
-            {/* Todo el contenido sigue igual pero con los callbacks optimizados */}
-            {/* Content sections with improved responsiveness - BAJADAS MÁS */}
+            {/* Content sections - TODOS CON MARGEN 20px */}
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
-              top: { md: '22rem' },
-              left: '12px', 
-              right: '12px', 
+              top: { md: '25rem' },
+              left: '20px', // MARGEN CONSISTENTE: 20px
+              right: '20px', // MARGEN CONSISTENTE: 20px
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' }, 
               alignItems: 'flex-start',
               flexWrap: 'wrap',
-              marginBottom: { xs: '2.5rem', md: 0 } 
+              marginBottom: { xs: '2rem', md: 0 }
             }}>
               <Box sx={{ 
                 width: { xs: '100%', sm: '12rem' },
@@ -378,7 +395,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                 paddingRight: { xs: '10px', sm: 0 }
               }}>
                 <SequentialGlitchText 
-                  text="(Based in Montevideo, Uruguay)" 
+                  text="(Based in Montevideo,  Uruguay)" 
                   fontWeight="bold" 
                   fontSize={{ xs: '0.8rem', sm: '0.95rem' }}
                   initialGlitch={canvasReady}
@@ -393,7 +410,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                 wordBreak: 'keep-all'
               }}>
                 <SequentialGlitchText 
-                  text="I'm a young photographer and videographer with a strong inclination towards fashion production."
+                  text="I'm a young photographer and videographer with a strong inclination towards fashion productions."
                   fontSize={{ xs: '0.95rem', sm: '1.1rem' }}
                   lineHeight={{ xs: '1.25rem', sm: '1.35rem' }}
                   fontWeight="500"
@@ -402,23 +419,25 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                     marginBottom: '1.2rem',
                     wordWrap: 'break-word',
                     overflowWrap: 'break-word',
-                    hyphens: 'auto'
+                    hyphens: 'manual',
+                    wordBreak: 'normal'
                   }}
                   initialGlitch={canvasReady}
                 />
               </Box>
             </Box>
             
+            {/* Capabilities section - MARGEN 20px */}
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
-              top: { md: '30rem' },
-              left: '12px', 
-              right: '12px', 
+              top: { md: '34rem' },
+              left: '20px', // MARGEN CONSISTENTE: 20px
+              right: '20px', // MARGEN CONSISTENTE: 20px
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' }, 
               alignItems: 'flex-start',
               flexWrap: 'wrap',
-              marginBottom: { xs: '2.5rem', md: 0 } 
+              marginBottom: { xs: '2rem', md: 0 }
             }}>
               <Box sx={{ 
                 width: { xs: '100%', sm: '12rem' },
@@ -464,30 +483,21 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                     style={helveticaTextStyle}
                   />
                 </Box>
-                <Box sx={{ marginBottom: '0.7rem' }}>
-                  <SequentialGlitchText 
-                    text="Visual communication"
-                    fontSize={{ xs: '0.95rem', sm: '1.1rem' }}
-                    lineHeight={{ xs: '1.25rem', sm: '1.45rem' }}
-                    fontWeight="500"
-                    initialGlitch={canvasReady}
-                    style={helveticaTextStyle}
-                  />
-                </Box>
               </Box>
             </Box>
             
+            {/* Contact section - MARGEN 20px */}
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
-              bottom: { md: '6rem' },
-              left: '12px', 
-              right: '12px', 
+              bottom: { md: '8rem' },
+              left: '20px', // MARGEN CONSISTENTE: 20px
+              right: '20px', // MARGEN CONSISTENTE: 20px
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' }, 
               alignItems: 'flex-start',
               flexWrap: 'wrap',
               marginBottom: { xs: '2.5rem', md: 0 },
-              mt: { xs: '3rem', md: 0 }
+              mt: { xs: '2rem', md: 0 }
             }}>
               <Box sx={{ 
                 width: { xs: '100%', sm: '12rem' },
@@ -507,8 +517,8 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                 flex: 1,
                 wordWrap: 'break-word',
                 overflowWrap: 'break-word',
-                hyphens: 'auto',
-                wordBreak: 'keep-all'
+                hyphens: 'manual',
+                wordBreak: 'normal'
               }}>
                 <SequentialGlitchText 
                   text="Available for commission and freelance work."
@@ -520,7 +530,8 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                     marginBottom: '1.2rem',
                     wordWrap: 'break-word',
                     overflowWrap: 'break-word',
-                    hyphens: 'auto'
+                    hyphens: 'manual',
+                    wordBreak: 'normal'
                   }}
                   initialGlitch={canvasReady}
                 />
@@ -606,11 +617,12 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               </Box>
             </Box>
             
+            {/* Local time section - MARGEN 20px */}
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
               bottom: { md: '3rem' },
-              left: '12px', 
-              right: '12px', 
+              left: '20px', // MARGEN CONSISTENTE: 20px
+              right: '20px', // MARGEN CONSISTENTE: 20px
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' }, 
               alignItems: 'flex-start',
@@ -631,9 +643,8 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                 />
               </Box>
               <Box sx={{ flex: 1 }}>
-                {/* Componente UruguayTime optimizado con memo */}
+                {/* Componente UruguayTime optimizado con memo y fuente Suisse Intl Mono */}
                 <UruguayTime 
-                  fontFamily="Helvetica-Regular, Helvetica, Arial, sans-serif" 
                   fontSize={{ xs: '0.95rem', sm: '1.1rem' }} 
                 />
               </Box>

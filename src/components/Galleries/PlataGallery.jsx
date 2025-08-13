@@ -511,7 +511,7 @@ const PlataGallery = ({ onBack }) => {
       
       {/* Loading screen component */}
       <GalleryLoadingScreen 
-        title="PLATA"
+        title="Plata, Blua"
         year="2024"
         loading={loading}
         loadProgress={loadProgress}
