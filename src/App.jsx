@@ -13,6 +13,7 @@ import { gsap } from 'gsap';
 import * as THREE from 'three';
 import MyWaySection from './components/MyWaySection';
 import { Analytics } from '@vercel/analytics/react';
+import MobileComingSoon from './components/MobileComingSoon';
 
 // Lazy loaded galleries
 const AnaLivniGallery = lazy(() => import('./components/Galleries/AnaLivniGallery'));
@@ -30,6 +31,21 @@ const IdentidadGallery = lazy(() => import('./components/Galleries/IdentidadGall
 
 // Precarga
 import('./components/Galleries/BluaGallery');
+
+// Función para detectar dispositivos móviles
+const isMobileDevice = () => {
+  // Detecta por user agent
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+  
+  // Detecta por tamaño de pantalla
+  const screenWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+  
+  // Detecta por capacidades táctiles
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  
+  return mobileRegex.test(userAgent.toLowerCase()) || (screenWidth <= 768 && hasTouch);
+};
 
 // Componente para el texto con efecto glitch
 const GlitchText = ({ text }) => {
@@ -201,6 +217,9 @@ function App() {
   // NUEVO ESTADO para almacenar los colores del tema actual
   const [themeColors, setThemeColors] = useState(null);
 
+  // NUEVO ESTADO para detectar dispositivos móviles
+  const [isMobile, setIsMobile] = useState(isMobileDevice());
+
   // Collection mapping
   const specialCollections = {
     "./images/CALDO/CALDO-1 (PORTADA).jpg": "caldo",
@@ -216,6 +235,16 @@ function App() {
     "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg": "pasarela",
     "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": "identidad"
   };
+
+  // NUEVO: Detectar cambios en el tamaño de ventana
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(isMobileDevice());
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleOffCanvasState = (show) => {
     setIsOffCanvasOpen(show);
@@ -550,6 +579,12 @@ function App() {
     }
   };
 
+  // RENDERIZADO CONDICIONAL: Si es móvil, mostrar Coming Soon
+  if (isMobile) {
+    return <MobileComingSoon />;
+  }
+
+  // Si no es móvil, mostrar la aplicación completa
   return (
     <>
       {/* Global styles */}
