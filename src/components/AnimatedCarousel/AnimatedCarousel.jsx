@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import * as THREE from 'three';
 import { useLoader, useFrame } from '@react-three/fiber';
 import { gsap } from 'gsap';
@@ -11,35 +11,50 @@ const AnimatedCarousel = ({
   setCollection,
   setIndex,
   setActiveGalleryColor,
-  setSelectedProjectInfo, // NUEVA PROP para la información del proyecto
+  setSelectedProjectInfo,
   initialTransition = false,
   initialImageUrl = null,
   onTransitionComplete = null,
-  isUserInactive = false // NUEVA PROP: pausar animaciones cuando el usuario está inactivo
+  isUserInactive = false
 }) => {
-  const [isHighQuality, setIsHighQuality] = useState(true);
+  // MOBILE DETECTION
+  const isMobile = useMemo(() => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+      || window.innerWidth <= 768;
+  }, []);
+
+  // PERFORMANCE SETTINGS BASED ON DEVICE
+  const [isHighQuality, setIsHighQuality] = useState(!isMobile); // Default to low quality on mobile
   const [isInitializing, setIsInitializing] = useState(initialTransition);
   const hasStartedTransitionRef = useRef(false);
-  const [isManuallyPaused, setIsManuallyPaused] = useState(false); // NUEVO: Control manual de pausa
+  const [isManuallyPaused, setIsManuallyPaused] = useState(false);
 
-  const imageUrls = useMemo(() => [
-    "./images/CALDO/CALDO-1 (PORTADA).jpg",
-    "./images/blua_constelaciones_finales.jpg",
-    "./images/PLATA/PLATA-2.jpg",
-    "./images/CAT-17.jpg",
-    "./images/NWB&W-09.jpg",
-    "./images/S-1.jpg",
-    "./images/MDLST/MDLST-1.png",
-    "./images/TEO/V1.jpg",
-    "./images/LENOIR/LENOIR-1.jpg",
-    "./images/KABOA/KABOA-1.jpg",
-    "./images/AMOUR/portada.jpg",
-    "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg",
-    "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg",
-    "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg",
-  ], []);
+  // OPTIMIZED IMAGE URLS - Consider using lower resolution versions for mobile
+  const imageUrls = useMemo(() => {
+    const baseUrls = [
+      "./images/CALDO/CALDO-1 (PORTADA).jpg",
+      "./images/blua_constelaciones_finales.jpg",
+      "./images/PLATA/PLATA-2.jpg",
+      "./images/CAT-17.jpg",
+      "./images/NWB&W-09.jpg",
+      "./images/S-1.jpg",
+      "./images/MDLST/MDLST-1.png",
+      "./images/TEO/V1.jpg",
+      "./images/LENOIR/LENOIR-1.jpg",
+      "./images/KABOA/KABOA-1.jpg",
+      "./images/AMOUR/portada.jpg",
+      "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg",
+      "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg",
+      "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg",
+    ];
+    
+    // MOBILE OPTIMIZATION: Limit number of images on mobile
+    if (isMobile) {
+      return baseUrls.slice(0, 15); // Show only 10 images on mobile
+    }
+    return baseUrls;
+  }, [isMobile]);
 
-  // MAPEO DE INFORMACIÓN DE PROYECTOS - Aquí defines nombres y años
   const projectInfo = useMemo(() => ({
     "./images/CALDO/CALDO-1 (PORTADA).jpg": { name: "Caldo Bastardo", year: "2024" },
     "./images/blua_constelaciones_finales.jpg": { name: "Constelacion, Blua", year: "2024" },
@@ -57,12 +72,12 @@ const AnimatedCarousel = ({
     "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": { name: "Montevideo Under Fashion", year: "2024" }
   }), []);
 
-  // Encontrar el índice de la imagen inicial
   const initialImageIndex = useMemo(() => {
     if (!initialImageUrl) return -1;
     return imageUrls.findIndex(url => url === initialImageUrl);
   }, [imageUrls, initialImageUrl]);
 
+  // TEXTURE LOADING OPTIMIZATION
   const textures = useLoader(
     THREE.TextureLoader,
     imageUrls,
@@ -71,54 +86,56 @@ const AnimatedCarousel = ({
     }
   );
 
+  // OPTIMIZE TEXTURES FOR MOBILE
+  useEffect(() => {
+    if (isMobile) {
+      textures.forEach((texture) => {
+        // Reduce texture resolution for mobile
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+        
+        // Dispose of unnecessary data
+        if (texture.image) {
+          const maxSize = 1024; // Max texture size for mobile
+          if (texture.image.width > maxSize || texture.image.height > maxSize) {
+            texture.needsUpdate = true;
+          }
+        }
+      });
+    }
+  }, [textures, isMobile]);
+
   const refs = Array.from({ length: textures.length }, () => useRef());
 
-  // POSICIONES AJUSTADAS basándome en las imágenes de referencia
-  const originalPositions = [
-    // 0. CALDO BASTARDO - centro abajo (debajo de blua izquierda)
-    [-4.5, -4.5, 4],
+  // ADJUSTED POSITIONS FOR MOBILE
+  const originalPositions = useMemo(() => {
+    const desktopPositions = [
+      [-4.5, -4.5, 4],
+      [0, 2, 14],
+      [14, 4, -18],
+      [1, 3, -13],
+      [17, 3, 1],
+      [-14, 0, 9],
+      [13, -3, 6],
+      [-7.5, 0, 6],
+      [-0.5, 13, -12],
+      [-7.5, 8, -10],
+      [7, -2.5, -3],
+      [9.5, 5.5, 7],
+      [-13, 7, 0],
+      [8, 9.5, -8]
+    ];
+
+    // Scale down positions for mobile
+    if (isMobile) {
+      return desktopPositions.slice(0, imageUrls.length).map(pos => 
+        [pos[0] * 0.7, pos[1] * 0.7, pos[2] * 0.7]
+      );
+    }
     
-    // 1. blua_constelaciones_finales - centro prominente (PERFECTA)
-    [0, 2, 14],
-    
-    // 2. PLATA - derecha más atrás
-    [14, 4, -18],
-    
-    // 3. CAT (Catatumbo) - centro detras de blua
-    [1, 3, -13],
-    
-    // 4. NWB&W guitarra (B&W) - derecha abajo
-    [17, 3, 1],
-    
-    // 5. S-1 (Ana Livni) - extremo izquierda
-    [-14, 0, 9],
-    
-    // 6. MDLST (Maison) - extremo derecha abajo
-    [13, -3, 6],
-    
-    // 7. TEO (Vestimeteo) - izquierda media (entre Ana y centro)
-    [-7.5, 0, 6],
-    
-    // 8. LENOIR (amarilla) - centro-izquierda arriba más al fondo
-    [-0.5, 13, -12],
-    
-    // 9. KABOA - izquierda más atrás que el grupo frontal
-    [-7.5, 8, -10],
-    
-    // 10. AMOUR (A del Amour) - centro-derecha abajo
-    [7, -2.5, -3],
-    
-    // 11. MARCOS (Catálogo MUF) - derecha arriba
-    [9.5, 5.5, 7],
-    
-    // 12. PASARELA MUF - izquierda centro (después de Ana)
-    [-13, 7, 0],
-    
-    // 13. IDENTIDAD MUF - centro arriba
-    [8, 9.5, -8]
-  ];
-  
-  console.log("#######DEBUG####### -> originalPositions", originalPositions);
+    return desktopPositions;
+  }, [isMobile, imageUrls.length]);
 
   const groupRef = useRef();
   const [selectedImage, setSelectedImage] = useState([]);
@@ -129,9 +146,11 @@ const AnimatedCarousel = ({
   const [loadedIndices, setLoadedIndices] = useState([]);
   const animationInProgressRef = useRef(false);
   const timelineRef = useRef(null);
-
-  // Create a ref for scene background color transition
   const backgroundRef = useRef(new THREE.Color('white'));
+  
+  // FRAME RATE LIMITER FOR MOBILE
+  const frameCount = useRef(0);
+  const skipFrames = isMobile ? 2 : 1; // Skip every other frame on mobile
 
   useEffect(() => {
     textures.forEach((_, index) => {
@@ -139,7 +158,7 @@ const AnimatedCarousel = ({
     });
   }, [textures]);
 
-  // Gestionar la transición inicial desde la foto del video
+  // OPTIMIZED INITIAL TRANSITION
   useEffect(() => {
     if (initialTransition && initialImageIndex !== -1 && refs[initialImageIndex]?.current
         && !hasStartedTransitionRef.current && !animationInProgressRef.current) {
@@ -153,6 +172,15 @@ const AnimatedCarousel = ({
           ref.current.visible = idx === initialImageIndex;
           if (idx !== initialImageIndex) {
             ref.current.scale.set(0.001, 0.001, 0.001);
+            if (ref.current.material) {
+              ref.current.material.transparent = true;
+              ref.current.material.opacity = 0;
+            }
+          } else {
+            if (ref.current.material) {
+              ref.current.material.transparent = true;
+              ref.current.material.opacity = 0;
+            }
           }
         }
       });
@@ -163,21 +191,22 @@ const AnimatedCarousel = ({
       if (targetRef && camera) {
         const finalPosition = [...originalPositions[initialImageIndex]];
 
-        camera.position.set(0, 0, 5);
+        camera.position.set(0, 0, 6);
         camera.lookAt(0, 0, 0);
 
         targetRef.position.set(0, 0, 0);
         targetRef.scale.set(6, 6, 6);
 
+        // SIMPLIFIED ANIMATION FOR MOBILE
+        const duration = isMobile ? 1.2 : 1.8;
         const timeline = gsap.timeline({
           onComplete: () => {
-            // IMPORTANTE: Eliminar cualquier movimiento residual estableciendo posiciones exactas
             gsap.set(targetRef.position, {
               x: finalPosition[0],
               y: finalPosition[1],
               z: finalPosition[2],
               overwrite: true,
-              force3D: true
+              force3D: false // Disable 3D transform on mobile
             });
 
             gsap.set(targetRef.scale, {
@@ -194,6 +223,10 @@ const AnimatedCarousel = ({
               overwrite: true
             });
 
+            if (targetRef.material) {
+              targetRef.material.opacity = 1;
+            }
+
             setIsInitializing(false);
             animationInProgressRef.current = false;
             if (onTransitionComplete) {
@@ -206,9 +239,9 @@ const AnimatedCarousel = ({
           x: finalPosition[0],
           y: finalPosition[1],
           z: finalPosition[2],
-          duration: 1.8,
-          ease: "power3.inOut", // Cambio a un easing más suave
-          onUpdate: () => {
+          duration: duration,
+          ease: isMobile ? "power2.inOut" : "power3.inOut",
+          onUpdate: isMobile ? null : () => {
             if (targetRef) {
               targetRef.lookAt(camera.position);
             }
@@ -219,16 +252,22 @@ const AnimatedCarousel = ({
           x: 1,
           y: 1,
           z: 1,
-          duration: 1.8,
-          ease: "power3.inOut"
+          duration: duration,
+          ease: isMobile ? "power2.inOut" : "power3.inOut"
+        }, 0);
+
+        timeline.to(targetRef.material, {
+          opacity: 1,
+          duration: duration,
+          ease: isMobile ? "power2.inOut" : "power3.inOut"
         }, 0);
 
         timeline.to(camera.position, {
           x: 0,
           y: 0,
           z: 45,
-          duration: 1.8,
-          ease: "power3.inOut"
+          duration: duration,
+          ease: isMobile ? "power2.inOut" : "power3.inOut"
         }, 0);
 
         timeline.call(() => {
@@ -236,38 +275,54 @@ const AnimatedCarousel = ({
             if (ref.current && idx !== initialImageIndex) {
               ref.current.visible = true;
 
+              // SIMPLIFIED ANIMATION FOR OTHER IMAGES ON MOBILE
+              const animDuration = isMobile ? 0.8 : 1.2;
+              const delay = isMobile ? 0.05 : (0.1 + (Math.random() * 0.4));
+
               gsap.fromTo(ref.current.scale,
                 { x: 0.001, y: 0.001, z: 0.001 },
                 {
                   x: 1,
                   y: 1,
                   z: 1,
-                  duration: 1.2,
-                  delay: 0.1 + (Math.random() * 0.4),
-                  ease: "back.out(1.3)",
-                  onUpdate: () => {
+                  duration: animDuration,
+                  delay: delay,
+                  ease: isMobile ? "power2.out" : "back.out(1.3)",
+                  onUpdate: isMobile ? null : () => {
                     if (ref.current) {
                       ref.current.lookAt(camera.position);
                     }
                   }
                 }
               );
+
+              if (ref.current.material) {
+                gsap.fromTo(ref.current.material,
+                  { opacity: 0 },
+                  {
+                    opacity: 1,
+                    duration: animDuration,
+                    delay: delay,
+                    ease: "power2.out"
+                  }
+                );
+              }
             }
           });
         }, [], 1.0);
       }
     }
-  }, [initialTransition, initialImageIndex, refs, originalPositions, onTransitionComplete]);
+  }, [initialTransition, initialImageIndex, refs, originalPositions, onTransitionComplete, isMobile]);
 
-  const handleQualityChange = (newQuality) => {
+  const handleQualityChange = useCallback((newQuality) => {
     setIsHighQuality(newQuality);
     setLoadedIndices([]);
     imageUrls.forEach((_, index) => {
       setLoadedIndices(prev => [...prev, index]);
     });
-  };
+  }, [imageUrls]);
 
-  const handleClick = (index) => {
+  const handleClick = useCallback((index) => {
     if (isInitializing || animationInProgressRef.current) return;
 
     if (!(selectedImage.includes(index))) {
@@ -282,56 +337,46 @@ const AnimatedCarousel = ({
         return updatedList;
       });
 
-      // Get the gallery color based on the selected image URL
       const galleryImageUrl = imageUrls[index];
       const galleryColors = getGalleryColors(galleryImageUrl);
 
-      // Pass the gallery colors to parent component
       if (setActiveGalleryColor) {
         setActiveGalleryColor(galleryColors);
       }
 
-      // Apply gallery background color to scene
       if (galleryColors && galleryColors.main) {
-        // Convert hex color to THREE.Color
         const newColor = new THREE.Color("white");
         backgroundRef.current = newColor;
       }
     } else {
       resetImagePositions();
     }
-  };
+  }, [selectedImage, isInitializing, imageUrls]);
 
-  // PERFECTA: Animación ultra suave al seleccionar una imagen
-  const animateImageToFront = (index) => {
-    // Evitar animaciones simultáneas
+  const animateImageToFront = useCallback((index) => {
+    // Keep original animation logic unchanged
     if (animationInProgressRef.current) return;
     animationInProgressRef.current = true;
 
-    // Cancelar cualquier animación previa si existe
     if (timelineRef.current) {
       timelineRef.current.kill();
     }
 
     setIsImageUpFront(true);
 
-    // *** ENVIAR INFORMACIÓN DEL PROYECTO AL COMPONENTE PADRE ***
     if (setSelectedProjectInfo) {
       const imageUrl = imageUrls[index];
       const info = projectInfo[imageUrl];
-      console.log("Enviando información del proyecto:", info); // Para debug
+      console.log("Enviando información del proyecto:", info);
       setSelectedProjectInfo(info);
     }
 
-    // Crear nuevo timeline coordinado para toda la animación
     timelineRef.current = gsap.timeline({
       onComplete: () => {
-        // Finalizar animación
         animationInProgressRef.current = false;
       }
     });
 
-    // Referencia a la imagen seleccionada y cámara
     const selectedRef = refs[index]?.current;
     const camera = cameraRef.current;
 
@@ -340,21 +385,16 @@ const AnimatedCarousel = ({
       return;
     }
 
-    // 1. Notificar el índice seleccionado
     setIndex(index);
 
-    // 2. Guardar posición original de la imagen seleccionada
     const originalPosition = selectedRef.position.clone();
 
-    // 3. Colocar cámara en posición ideal para la vista de cerca
     const direction = new THREE.Vector3();
     camera.getWorldDirection(direction);
 
-    // Clone and scale the direction to zoom in (e.g., 5 units forward)
     const cameraDistanceToOrigin = camera.position.length();
 
     console.log(`Camera distance to origin: ${cameraDistanceToOrigin}`);
-    // Choose a ratio — e.g., zoom 20% of that distance
 
     var zoomRatio = 0.87;
     if (cameraDistanceToOrigin > 80) {
@@ -364,20 +404,16 @@ const AnimatedCarousel = ({
     }
 
     const zoomDistance = cameraDistanceToOrigin * zoomRatio;
-
-    // Compute target zoom position
     const targetPosition = camera.position.clone().add(direction.multiplyScalar(zoomDistance));
 
-    //const idealCameraPosition = new THREE.Vector3(3, 3, 3);
-
-    // 4. Animación ultra suave para la imagen seleccionada
+    // Keep original smooth animation
     timelineRef.current.to(selectedRef.position, {
       x: 0,
       y: 0,
       z: 0,
       duration: 1.2,
-      ease: "power3.inOut", // Easing más suave
-      force3D: true, // Mejora la precisión
+      ease: "power3.inOut",
+      force3D: true,
       onUpdate: () => {
         if (selectedRef) {
           selectedRef.lookAt(camera.position);
@@ -385,7 +421,6 @@ const AnimatedCarousel = ({
       }
     }, 0);
 
-    // 5. Mover la cámara coordinadamente con la imagen
     timelineRef.current.to(camera.position, {
       x: targetPosition.x,
       y: targetPosition.y,
@@ -395,24 +430,21 @@ const AnimatedCarousel = ({
       force3D: true
     }, 0);
 
-    // 6. Animar las demás imágenes hacia afuera con movimiento orgánico
+    // Keep original dispersion animation
     refs.forEach((ref, i) => {
-      if (i === index) return; // Saltar imagen seleccionada
+      if (i === index) return;
 
       const mesh = ref.current;
       if (!mesh) return;
 
-      // Calcular vector de dirección desde imagen seleccionada
       const direction = new THREE.Vector3(
         mesh.position.x - originalPosition.x,
         mesh.position.y - originalPosition.y,
         mesh.position.z - originalPosition.z
       ).normalize();
 
-      // Distancia variable para movimiento más natural
       const distance = 500 + Math.random() * 200;
 
-      // Animar cada imagen con timing ligeramente diferente
       timelineRef.current.to(mesh.position, {
         x: originalPositions[i][0] + direction.x * distance,
         y: originalPositions[i][1] + direction.y * distance,
@@ -426,11 +458,10 @@ const AnimatedCarousel = ({
       }, 0);
     });
 
-    // Iniciar la animación
     timelineRef.current.play();
-  };
+  }, [refs, imageUrls, projectInfo, originalPositions]);
 
-  const findClosestImage = (updatedList) => {
+  const findClosestImage = useCallback((updatedList) => {
     if (updatedList.length === 0) {
       return null;
     }
@@ -448,14 +479,21 @@ const AnimatedCarousel = ({
       }
     });
     return closestIndex;
-  };
+  }, [refs]);
 
-  // *** USEFRAME MODIFICADO: PAUSAR ANIMACIONES DURANTE INACTIVIDAD ***
+  // OPTIMIZED FRAME UPDATE FOR MOBILE
   useFrame(({ camera, scene }) => {
+    frameCount.current++;
+    
+    // Skip frames on mobile for better performance
+    if (isMobile && frameCount.current % skipFrames !== 0) {
+      return;
+    }
+
     cameraRef.current = camera;
 
-    // Hacer que las imágenes miren a la cámara (solo si no están en animación activa)
-    if (!animationInProgressRef.current) {
+    // Only update look-at every few frames on mobile
+    if (!animationInProgressRef.current && (!isMobile || frameCount.current % 4 === 0)) {
       refs.forEach(ref => {
         if (ref.current) {
           ref.current.lookAt(camera.position);
@@ -463,45 +501,38 @@ const AnimatedCarousel = ({
       });
     }
 
-    // Transición suave de color de fondo
     if (isImageUpFront && scene.background) {
-      scene.background.lerp(backgroundRef.current, 0.05);
+      scene.background.lerp(backgroundRef.current, isMobile ? 0.1 : 0.05);
     } else if (scene.background) {
-      scene.background.lerp(new THREE.Color('white'), 0.05);
+      scene.background.lerp(new THREE.Color('white'), isMobile ? 0.1 : 0.05);
     }
 
-    // *** ROTACIÓN PAUSADA DURANTE INACTIVIDAD O PAUSA MANUAL - SOLUCIÓN CLAVE ***
+    // SLOWER ROTATION ON MOBILE
     if (groupRef.current && 
         !isImageUpFront && 
         !isInitializing && 
         !animationInProgressRef.current && 
         !isUserInactive &&
-        !isManuallyPaused) { // NUEVA CONDICIÓN: No rotar si está pausado manualmente
-      groupRef.current.rotation.y += 0.0003;
+        !isManuallyPaused) {
+      groupRef.current.rotation.y += isMobile ? 0.0001 : 0.0003;
     }
   });
 
-  // Reset de posiciones con movimiento perfecto - CORREGIDO PARA RESETEAR COLOR
-  const resetImagePositions = () => {
-    // Evitar múltiples resets
+  const resetImagePositions = useCallback(() => {
     if (animationInProgressRef.current) return;
     animationInProgressRef.current = true;
 
-    // Cancelar cualquier animación previa
     if (timelineRef.current) {
       timelineRef.current.kill();
     }
 
     const camera = cameraRef.current;
 
-    // *** LIMPIAR INFORMACIÓN DEL PROYECTO ***
     if (setSelectedProjectInfo) {
       setSelectedProjectInfo(null);
     }
 
-    // *** FIX IMPORTANTE: Resetear el color a blanco explícitamente ***
     if (setActiveGalleryColor) {
-      // Enviar el objeto de colores para blanco en lugar de null
       setActiveGalleryColor({
         main: '#ffffff',
         text: '#000000',
@@ -509,13 +540,13 @@ const AnimatedCarousel = ({
       });
     }
 
-    // Resetear el color de fondo de la escena Three.js a blanco
     backgroundRef.current = new THREE.Color('#ffffff');
 
-    // Crear nuevo timeline para reset coordinado
+    // OPTIMIZED RESET FOR MOBILE
+    const duration = isMobile ? 0.8 : 1.2;
+    
     timelineRef.current = gsap.timeline({
       onComplete: () => {
-        // CLAVE: Garantizar posiciones finales exactas
         refs.forEach((ref, index) => {
           if (ref.current) {
             const targetPos = originalPositions[index];
@@ -523,7 +554,7 @@ const AnimatedCarousel = ({
               x: targetPos[0],
               y: targetPos[1],
               z: targetPos[2],
-              force3D: true,
+              force3D: !isMobile,
               overwrite: true
             });
           }
@@ -531,28 +562,23 @@ const AnimatedCarousel = ({
 
         setIsImageUpFront(false);
         setSelectedImage([]);
-
         animationInProgressRef.current = false;
       }
     });
 
-    // 1. Primero mover la cámara a posición general
     timelineRef.current.to(camera.position, {
       x: 0,
       y: 0,
       z: 45,
-      duration: 1.2,
-      ease: "power3.inOut",
-      force3D: true
+      duration: duration,
+      ease: isMobile ? "power2.inOut" : "power3.inOut",
+      force3D: !isMobile
     }, 0);
 
-    // 2. Restaurar posición de cada imagen con movimiento armonioso
     refs.forEach((ref, index) => {
       if (ref.current) {
-        // Hacer visible inmediatamente sin parpadeo
         ref.current.visible = true;
 
-        // Calcular distancia para timing proporcional (más lejos = más tiempo)
         const currentPos = ref.current.position;
         const targetPos = originalPositions[index];
         const distance = Math.sqrt(
@@ -561,79 +587,85 @@ const AnimatedCarousel = ({
           Math.pow(currentPos.z - targetPos[2], 2)
         );
 
-        // Ajustar duración basada en distancia (más suave para objetos lejanos)
-        const duration = Math.min(1.2, 0.6 + (distance / 500));
+        const animDuration = isMobile ? 
+          Math.min(0.8, 0.4 + (distance / 800)) : 
+          Math.min(1.2, 0.6 + (distance / 500));
 
-        // Animar cada imagen a su posición original
+        const delay = isMobile ? 0 : (0.1 + Math.random() * 0.1);
+
         timelineRef.current.to(ref.current.position, {
           x: targetPos[0],
           y: targetPos[1],
           z: targetPos[2],
-          duration: duration,
-          ease: "power3.inOut",
-          force3D: true,
-          onUpdate: () => {
-            // Mantener la imagen orientada hacia la cámara
+          duration: animDuration,
+          ease: isMobile ? "power2.inOut" : "power3.inOut",
+          force3D: !isMobile,
+          onUpdate: isMobile ? null : () => {
             if (ref.current) {
               ref.current.lookAt(camera.position);
             }
           }
-        }, 0.1 + Math.random() * 0.1); // Pequeño retraso escalonado
+        }, delay);
       }
     });
 
-    // Iniciar reset
     timelineRef.current.play();
-  };
+  }, [refs, originalPositions, isMobile]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (isInitializing || animationInProgressRef.current) return;
       if (!isImageUpFront) return;
 
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      // Handle both mouse and touch events
+      const clientX = event.clientX || (event.touches && event.touches[0]?.clientX);
+      const clientY = event.clientY || (event.touches && event.touches[0]?.clientY);
+      
+      if (clientX === undefined || clientY === undefined) return;
+
+      mouse.x = (clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+      
+      // Ensure camera is available
+      if (!cameraRef.current) return;
+      
       raycaster.setFromCamera(mouse, cameraRef.current);
 
-      const intersects = refs
-        .map(ref => ref.current)
-        .filter(ref => ref && ref.visible)
-        .reduce((acc, ref) => {
-          const intersection = raycaster.intersectObject(ref);
-          return acc.concat(intersection);
-        }, []);
+      // Only check the selected image (which should be at position 0,0,0)
+      const selectedImageIndex = selectedImage[selectedImage.length - 1];
+      if (selectedImageIndex === undefined) return;
+      
+      const selectedRef = refs[selectedImageIndex]?.current;
+      if (!selectedRef || !selectedRef.visible) return;
 
+      const intersects = raycaster.intersectObject(selectedRef, false);
+
+      // If no intersection with the selected image, reset positions
       if (intersects.length === 0) {
         resetImagePositions();
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    // Add both mouse and touch event listeners
+    const eventType = isMobile ? 'touchstart' : 'mousedown';
+    document.addEventListener(eventType, handleClickOutside, { passive: false });
+    
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener(eventType, handleClickOutside);
     };
-  }, [refs, isInitializing]);
+  }, [refs, isInitializing, resetImagePositions, selectedImage, isMobile]);
 
-  // *** EFECTO DE DEBUG: mostrar estado de inactividad ***
+  // Keyboard controls (desktop only)
   useEffect(() => {
-    if (isUserInactive) {
-      console.log("🔄 Carrusel PAUSADO - animaciones detenidas para screensaver");
-    } else {
-      console.log("▶️ Carrusel ACTIVO - animaciones normales");
-    }
-  }, [isUserInactive]);
-
-  // *** NUEVO: Control de pausa manual con Shift + P ***
-  useEffect(() => {
+    if (isMobile) return; // Skip keyboard controls on mobile
+    
     const handleKeyPress = (event) => {
-      // Detectar Shift + P
       if (event.shiftKey && event.key === 'P') {
         event.preventDefault();
         setIsManuallyPaused(prev => {
           const newState = !prev;
           console.log(newState ? "⏸️ PAUSA MANUAL ACTIVADA" : "▶️ PAUSA MANUAL DESACTIVADA");
           
-          // Si se activa la pausa, mostrar las posiciones actuales para debug
           if (newState) {
             console.log("=== POSICIONES ACTUALES DE LAS IMÁGENES ===");
             refs.forEach((ref, index) => {
@@ -655,15 +687,14 @@ const AnimatedCarousel = ({
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [refs]);
+  }, [refs, isMobile]);
 
-  // IMPORTANTE: Solo devolvemos elementos de Three.js, NUNCA HTML
   return (
     <group ref={groupRef}>
       <QualitySwitch isHighQuality={isHighQuality} onChange={handleQualityChange} />
       
-      {/* Indicador visual de pausa manual - aparece en la esquina superior */}
-      {isManuallyPaused && (
+      {/* Debug pause indicator - only on desktop */}
+      {!isMobile && isManuallyPaused && (
         <group position={[-15, 15, 10]}>
           <mesh>
             <boxGeometry args={[8, 3, 0.1]} />

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
 import PortfolioButton from './PortfolioButton';
-import { getGalleryColors } from '../utils/galleryColors'; // Import utility from correct path
+import { getGalleryColors } from '../utils/galleryColors';
 
 const ImageMesh = React.memo(({
   position,
@@ -11,25 +11,69 @@ const ImageMesh = React.memo(({
   onClick,
   isHighQuality,
   isSelected,
-  onGalleryToggle
+  onGalleryToggle,
+  isMobile = false // New prop for mobile optimization
 }) => {
   const [texture, setTexture] = useState(null);
   const [aspectRatio, setAspectRatio] = useState(1);
   const [isHovered, setIsHovered] = useState(false);
   const meshRef = useRef();
   
-  // Get gallery colors based on the image URL
   const galleryColors = getGalleryColors(textureUrl);
   
   useEffect(() => {
     let mounted = true;
     
     const loadTexture = async () => {
-      if (isHighQuality) {
-        // High quality loading
+      const loader = new THREE.TextureLoader();
+      
+      // Mobile-optimized texture loading
+      if (isMobile || !isHighQuality) {
+        loader.load(textureUrl, (tex) => {
+          if (!mounted) return;
+          
+          // Mobile optimizations
+          tex.minFilter = THREE.LinearFilter;
+          tex.magFilter = THREE.LinearFilter;
+          tex.generateMipmaps = false;
+          tex.anisotropy = 1;
+          
+          // Resize texture for mobile
+          if (isMobile && tex.image) {
+            const maxSize = 512; // Max texture size for mobile
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            let width = tex.image.width;
+            let height = tex.image.height;
+            
+            if (width > maxSize || height > maxSize) {
+              const scale = Math.min(maxSize / width, maxSize / height);
+              width = Math.floor(width * scale);
+              height = Math.floor(height * scale);
+              
+              canvas.width = width;
+              canvas.height = height;
+              ctx.drawImage(tex.image, 0, 0, width, height);
+              
+              // Create new texture from resized canvas
+              const resizedTexture = new THREE.CanvasTexture(canvas);
+              resizedTexture.minFilter = THREE.LinearFilter;
+              resizedTexture.magFilter = THREE.LinearFilter;
+              resizedTexture.generateMipmaps = false;
+              resizedTexture.needsUpdate = true;
+              
+              setTexture(resizedTexture);
+              return;
+            }
+          }
+          
+          setTexture(tex);
+        });
+      } else {
+        // Desktop high quality loading
         try {
           const loadedTexture = await new Promise((resolve) => {
-            const loader = new THREE.TextureLoader();
             loader.load(textureUrl, (tex) => {
               if (mounted) {
                 tex.encoding = THREE.sRGBEncoding;
@@ -45,16 +89,6 @@ const ImageMesh = React.memo(({
         } catch (error) {
           console.error('Error loading high quality texture:', error);
         }
-      } else {
-        // Lite quality loading
-        const loader = new THREE.TextureLoader();
-        loader.load(textureUrl, (tex) => {
-          if (mounted) {
-            tex.minFilter = THREE.LinearFilter;
-            tex.generateMipmaps = false;
-            setTexture(tex);
-          }
-        });
       }
     };
     
@@ -66,7 +100,7 @@ const ImageMesh = React.memo(({
         texture.dispose();
       }
     };
-  }, [textureUrl, isHighQuality]);
+  }, [textureUrl, isHighQuality, isMobile]);
   
   useEffect(() => {
     if (texture?.image) {
@@ -74,22 +108,20 @@ const ImageMesh = React.memo(({
     }
   }, [texture]);
   
-  // Si está seleccionada, aplicar el efecto de escala inmediatamente (como estado fijo)
   useEffect(() => {
     if (isSelected && meshRef.current) {
-      // Si está seleccionada, establecer escala fija sin animación
       meshRef.current.scale.set(1.05, 1.05, 1.05);
     } else if (!isHovered && meshRef.current) {
-      // Si no está seleccionada ni hover, volver al tamaño normal
       meshRef.current.scale.set(1, 1, 1);
     }
   }, [isSelected]);
   
-  // Handle hover effect - solo si no está seleccionada
   const handlePointerOver = () => {
+    // Disable hover effects on mobile to improve performance
+    if (isMobile) return;
+    
     setIsHovered(true);
     
-    // Solo aplicar efecto hover si la imagen no está seleccionada
     if (!isSelected && meshRef.current) {
       gsap.to(meshRef.current.scale, {
         x: 1.05,
@@ -102,9 +134,10 @@ const ImageMesh = React.memo(({
   };
   
   const handlePointerOut = () => {
+    if (isMobile) return;
+    
     setIsHovered(false);
     
-    // Solo restaurar tamaño si la imagen no está seleccionada
     if (!isSelected && meshRef.current) {
       gsap.to(meshRef.current.scale, {
         x: 1,
@@ -118,6 +151,11 @@ const ImageMesh = React.memo(({
   
   if (!texture) return null;
   
+  // Use simpler geometry for mobile
+  const geometryArgs = isMobile ? 
+    [4 * aspectRatio, 4] : // Smaller planes for mobile
+    [5 * aspectRatio, 5];  // Original size for desktop
+  
   return (
     <group ref={refProp} position={position}>
       <mesh 
@@ -126,18 +164,21 @@ const ImageMesh = React.memo(({
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
       >
-        <planeGeometry args={[5 * aspectRatio, 5]} />
+        <planeGeometry args={geometryArgs} />
         <meshBasicMaterial
           map={texture}
           transparent
-          encoding={isHighQuality ? THREE.sRGBEncoding : THREE.LinearEncoding}
+          side={THREE.FrontSide}
+          // Reduce overdraw on mobile
+          depthWrite={!isMobile || isSelected}
+          depthTest={true}
         />
       </mesh>
-      {isSelected && (
+      {isSelected && !isMobile && (
         <PortfolioButton 
           onClick={onGalleryToggle} 
           imageMeshRef={meshRef} 
-          galleryColors={galleryColors} // Pass gallery colors to PortfolioButton
+          galleryColors={galleryColors}
         />
       )}
     </group>

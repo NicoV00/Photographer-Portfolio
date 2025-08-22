@@ -16,7 +16,7 @@ const VideoContainer = styled(Box)({
   overflow: 'hidden',
 });
 
-const Video = styled('video')({
+const Video = styled('video')(({ zoomScale }) => ({
   width: '100%',
   height: '100%',
   objectFit: 'cover',
@@ -24,7 +24,10 @@ const Video = styled('video')({
   top: 0,
   left: 0,
   zIndex: 0,
-});
+  transform: `scale(${zoomScale})`,
+  transition: 'transform 4s cubic-bezier(0.25, 0.1, 0.25, 1)',
+  transformOrigin: 'center center',
+}));
 
 const FinalImage = styled('div')(({ opacity }) => ({
   position: 'absolute',
@@ -50,12 +53,18 @@ function IntroVideo({ onIntroComplete }) {
   const finalImageUrl = "./images/blua_constelaciones_finales.jpg";
   const videoLoadedRef = useRef(false);
   const videoEndedRef = useRef(false);
+  const zoomStartedRef = useRef(false);
   
   // Estados
   const [imageOpacity, setImageOpacity] = useState(0);
   const [videoDuration, setVideoDuration] = useState(6);
   const [isMobile, setIsMobile] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
+  const [videoZoomScale, setVideoZoomScale] = useState(1); // Nuevo estado para el zoom
+  
+  // Configuración del zoom
+  const ZOOM_START_TIME = 2.0; // Segundos antes del final para empezar el zoom
+  const MAX_ZOOM_SCALE = 1.75; // Escala máxima del zoom (1.5 = 150%)
   
   // DETECCIÓN MEJORADA DE MÓVIL
   useEffect(() => {
@@ -175,6 +184,14 @@ function IntroVideo({ onIntroComplete }) {
     const handleTimeUpdate = () => {
       const currentTime = videoElement.currentTime;
       const duration = videoElement.duration || 6;
+      const timeUntilEnd = duration - currentTime;
+      
+      // Aplicar zoom en los últimos frames - una sola vez
+      if (timeUntilEnd <= ZOOM_START_TIME && !zoomStartedRef.current) {
+        zoomStartedRef.current = true;
+        setVideoZoomScale(MAX_ZOOM_SCALE);
+        console.log(`🔍 Zoom iniciado: ${MAX_ZOOM_SCALE}x`);
+      }
       
       if (currentTime >= duration - 0.1) {
         console.log("📹 Video cerca del final");
@@ -298,6 +315,7 @@ function IntroVideo({ onIntroComplete }) {
     <VideoContainer ref={containerRef}>
       <Video
         ref={videoRef}
+        zoomScale={videoZoomScale}
         autoPlay
         muted
         playsInline

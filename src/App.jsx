@@ -580,9 +580,11 @@ function App() {
   };
 
   // RENDERIZADO CONDICIONAL: Si es móvil, mostrar Coming Soon
+  {/* Si es móvil, mostrar Coming Soon 
   if (isMobile) {
     return <MobileComingSoon />;
   }
+  */}
 
   // Si no es móvil, mostrar la aplicación completa
   return (
