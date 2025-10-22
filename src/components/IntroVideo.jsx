@@ -64,7 +64,6 @@ function IntroVideo({ onIntroComplete }) {
   
   // Configuración del zoom
   const ZOOM_START_TIME = 2.0; // Segundos antes del final para empezar el zoom
-  const MAX_ZOOM_SCALE = 1.75; // Escala máxima del zoom (1.5 = 150%)
   
   // DETECCIÓN MEJORADA DE MÓVIL
   useEffect(() => {

@@ -284,7 +284,7 @@ const MyWaySection = ({ onBack, onBackToGalleries }) => {
           '--padding': '25rem', // REDUCIDO para ver las letras antes
           '--scroll-progress': scrollProgress,
           '--distortion': 50,
-          
+
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
@@ -296,9 +296,9 @@ const MyWaySection = ({ onBack, onBackToGalleries }) => {
           background: '#f5f5f5',
 
           '@media (max-width: 768px)': {
-            '--padding': '8rem', // Reducido para móvil
-            minHeight: '100vh',
-            padding: 'calc(var(--padding) * 0.2) 0 calc(var(--padding) * 0.6)',
+            '--padding': '6rem', // Reducido AUN MAS para móvil (de 8rem a 6rem)
+            minHeight: '90vh', // Reducido para scroll más corto
+            padding: 'calc(var(--padding) * 0.15) 0 calc(var(--padding) * 0.4)', // Menos espacio arriba y abajo
           }
         }}
       >

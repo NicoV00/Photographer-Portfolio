@@ -152,8 +152,8 @@ const ImageMesh = React.memo(({
   if (!texture) return null;
   
   // Use simpler geometry for mobile
-  const geometryArgs = isMobile ? 
-    [4 * aspectRatio, 4] : // Smaller planes for mobile
+  const geometryArgs = isMobile ?
+    [3.2 * aspectRatio, 3.2] : // Much smaller planes for mobile to fit screen better
     [5 * aspectRatio, 5];  // Original size for desktop
   
   return (

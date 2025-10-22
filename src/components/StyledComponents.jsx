@@ -64,7 +64,7 @@ export const OverlayBackdrop = styled(Box)({
   backgroundColor: 'rgba(1, 1, 1, 0.2)',
   display: 'flex',
   justifyContent: 'flex-end',
-  zIndex: 9999,
+  zIndex: 10000,
 });
 
 export const CloseButton = styled(Box)(({ isMobile }) => ({

@@ -52,14 +52,14 @@ const UruguayTime = memo(({ fontSize }) => {
 
     const updateTime = () => {
       const now = new Date();
-      const uruguayTime = now.toLocaleTimeString('en-US', {
-        timeZone: 'America/Montevideo',
+      const barcelonaTime = now.toLocaleTimeString('en-US', {
+        timeZone: 'Europe/Madrid',
         hour12: false,
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit'
       });
-      setTime(uruguayTime);
+      setTime(barcelonaTime);
     };
 
     updateTime();
@@ -78,9 +78,9 @@ const UruguayTime = memo(({ fontSize }) => {
   const formatTimeWithBlinkingColons = (timeString) => {
     const parts = timeString.split(':');
     return (
-      <Box component="span" sx={{ 
-        fontFamily: "'Suisse Intl Mono', monospace", 
-        fontSize, 
+      <Box component="span" sx={{
+        fontFamily: "'Suisse Intl Mono', monospace",
+        fontSize,
         fontWeight: '400',
         letterSpacing: '0.02em'
       }}>
@@ -92,7 +92,7 @@ const UruguayTime = memo(({ fontSize }) => {
         <Box component="span" sx={{ opacity: showColon ? 1 : 0.3, transition: 'opacity 0.1s ease' }}>
           :
         </Box>
-        {parts[2]} UYT
+        {parts[2]} CEST
       </Box>
     );
   };
@@ -313,11 +313,11 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
           ref={overlayRef} 
           onClick={handleOverlayClick}
         >
-          <Box 
+          <Box
             ref={drawerRef}
             onMouseEnter={handleMouseEnterCanvas}
             onMouseLeave={handleMouseLeaveCanvas}
-            sx={{ 
+            sx={{
               width: drawerWidth,
               height: '100%',
               bgcolor: 'black',
@@ -330,7 +330,8 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               overflowY: 'auto',
               overflowX: 'hidden',
               cursor: 'none',
-              '& *': { 
+              zIndex: 10001,
+              '& *': {
                 cursor: 'none !important',
                 fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif'
               }
@@ -388,18 +389,19 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               flexWrap: 'wrap',
               marginBottom: { xs: '2rem', md: 0 }
             }}>
-              <Box sx={{ 
+              <Box sx={{
                 width: { xs: '100%', sm: '12rem' },
                 marginBottom: { xs: '1.2rem', sm: 0 },
                 marginRight: { sm: '2.5rem' },
-                paddingRight: { xs: '10px', sm: 0 }
+                paddingRight: { xs: '10px', sm: 0 },
+                whiteSpace: 'nowrap' // Forzar que no haya salto de línea
               }}>
-                <SequentialGlitchText 
-                  text="(Based in Montevideo,  Uruguay)" 
-                  fontWeight="bold" 
+                <SequentialGlitchText
+                  text="(Based in Barcelona, Spain)"
+                  fontWeight="bold"
                   fontSize={{ xs: '0.8rem', sm: '0.95rem' }}
                   initialGlitch={canvasReady}
-                  style={helveticaTextStyle}
+                  style={{ ...helveticaTextStyle, whiteSpace: 'nowrap' }}
                 />
               </Box>
               <Box sx={{ 
@@ -676,7 +678,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               borderRadius: '0',
               transform: 'translate(-50%, -50%)',
               pointerEvents: 'none',
-              zIndex: 10000,
+              zIndex: 10002,
               cursor: 'none',
               left: `${position.x}px`,
               top: `${position.y}px`,
@@ -698,7 +700,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               backgroundColor: 'white',
               mixBlendMode: 'difference',
               pointerEvents: 'none',
-              zIndex: 10000,
+              zIndex: 10002,
               transform: 'translate(-50%, -50%)',
               left: `${position.x}px`,
               top: `${position.y}px`,
@@ -721,7 +723,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                 fontWeight: 'bold',
                 fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif',
                 pointerEvents: 'none',
-                zIndex: 10001,
+                zIndex: 10002,
                 padding: '2px 4px',
                 opacity: 1,
                 transition: 'opacity 0.3s ease',

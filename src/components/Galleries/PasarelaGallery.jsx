@@ -127,29 +127,44 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   position: 'relative',
   transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
-    width: '7000px', // Keep same width for mobile
+    width: '5800px', // Reducido para móvil (aproximadamente 62% del desktop)
     flexDirection: 'row',
     height: '100%',
-    padding: '40px',
-    paddingRight: '300px',
+    padding: '20px', // Menos padding
+    paddingRight: '150px', // Menos padding al final
   },
 }));
 
-// Image item - optimized with GPU acceleration
+// Image item - optimized with GPU acceleration and mobile support
 const ImageItem = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'isVisible'
-})(({ theme, top, left, width, height, zIndex = 1, isVisible = true }) => ({
+  shouldForwardProp: (prop) =>
+    !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileHeight', 'mobileWidth'].includes(prop)
+})(({
+  theme,
+  top,
+  left,
+  width,
+  height,
+  zIndex = 1,
+  isMobile = false,
+  isVisible = true,
+  // Props específicos para móvil
+  mobileTop,
+  mobileLeft,
+  mobileHeight,
+  mobileWidth
+}) => ({
   position: 'absolute', // Always use absolute positioning
-  top: top,
-  left: left,
-  width: width,
-  height: height,
+  top: isMobile ? mobileTop || top : top,
+  left: isMobile ? mobileLeft || (left ? `${parseInt(left) * 0.6}px` : left) : left,
+  width: isMobile ? mobileWidth || (width === 'auto' ? 'auto' : width ? `${parseInt(width) * 0.7}px` : width) : width,
+  height: isMobile ? mobileHeight || (height === 'auto' ? 'auto' : height ? (height.includes('vh') ? `${parseInt(height) * 0.85}vh` : `${parseInt(height) * 0.7}px`) : height) : height,
   zIndex: zIndex,
   marginBottom: '0', // No margin needed with absolute positioning
   opacity: isVisible ? 1 : 0,
-  transform: isVisible ? 'translateY(-50%)' : 'translateY(-50%) scale(0.98)',
-  transition: 'opacity 0.5s ease, transform 0.5s ease',
-  willChange: 'transform, opacity',
+  transform: 'translateZ(0)', // Solo GPU acceleration, sin animación de escala
+  transition: 'opacity 0.5s ease', // Solo transición de opacidad
+  willChange: 'opacity', // Solo opacidad cambiará
   backfaceVisibility: 'hidden', // GPU optimization
   '& img': {
     width: '100%',
@@ -335,11 +350,11 @@ const PasarelaGallery = ({ onBack }) => {
     }
   }, [loading, isMobile, checkVisibility]);
 
-  // Gallery content rendering function - Using fixed positioning
+  // Gallery content rendering function - Using fixed positioning with mobile support
   const renderGalleryContent = () => (
     <>
       {/* Imagen 1 - Primera fila (izquierda) */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[0] = el}
         top="50%"
         left="0px"
@@ -347,12 +362,16 @@ const PasarelaGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[0] !== false}
+        isMobile={isMobile}
+        mobileTop="42%"
+        mobileLeft="0px"
+        mobileHeight="85vh"
       >
         <Box component="img" src={images[0]} alt="PASARELA 1" loading="eager" />
       </ImageItem>
-      
+
       {/* Imagen 2 - Primera fila */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[1] = el}
         top="50%"
         left="1900px"
@@ -360,12 +379,16 @@ const PasarelaGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[1] !== false}
+        isMobile={isMobile}
+        mobileTop="42%"
+        mobileLeft="1140px"
+        mobileHeight="68vh"
       >
         <Box component="img" src={images[1]} alt="PASARELA 2" loading="lazy" />
       </ImageItem>
-      
+
       {/* Imagen 3 - Primera fila */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[2] = el}
         top="40%"
         left="2800px"
@@ -373,12 +396,16 @@ const PasarelaGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[2] !== false}
+        isMobile={isMobile}
+        mobileTop="32%"
+        mobileLeft="1680px"
+        mobileHeight="34vh"
       >
         <Box component="img" src={images[2]} alt="PASARELA 3" loading="lazy" />
       </ImageItem>
-      
+
       {/* Imagen 4 - Primera fila */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[3] = el}
         top="50%"
         left="3100px"
@@ -386,12 +413,16 @@ const PasarelaGallery = ({ onBack }) => {
         width="auto"
         zIndex={1}
         isVisible={visibleImages[3] !== false}
+        isMobile={isMobile}
+        mobileTop="42%"
+        mobileLeft="1860px"
+        mobileHeight="72vh"
       >
         <Box component="img" src={images[3]} alt="PASARELA 4" loading="lazy" />
       </ImageItem>
-      
+
       {/* Imagen 5 - Primera fila */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[4] = el}
         top="50%"
         left="3800px"
@@ -399,12 +430,16 @@ const PasarelaGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[4] !== false}
+        isMobile={isMobile}
+        mobileTop="42%"
+        mobileLeft="2280px"
+        mobileHeight="72vh"
       >
         <Box component="img" src={images[4]} alt="PASARELA 5" loading="lazy" />
       </ImageItem>
-      
+
       {/* Imagen 6 - Primera fila */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[5] = el}
         top="50%"
         left="4300px"
@@ -412,25 +447,16 @@ const PasarelaGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[5] !== false}
+        isMobile={isMobile}
+        mobileTop="42%"
+        mobileLeft="2580px"
+        mobileHeight="60vh"
       >
         <Box component="img" src={images[5]} alt="PASARELA 6" loading="lazy" />
       </ImageItem>
-      
-      {/* Imagen PORTADA (centro destacado) */}
-      <ImageItem 
-        ref={el => imageRefs.current[11] = el}
-        top="50%"
-        left="7400px"
-        height="100vh"
-        width="auto"
-        zIndex={3}
-        isVisible={visibleImages[11] !== false}
-      >
-        <Box component="img" src={images[11]} alt="PASARELA 12 (PORTADA)" loading="lazy" />
-      </ImageItem>
-      
+
       {/* Imagen 7 - Segunda fila */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[6] = el}
         top="63%"
         left="4600px"
@@ -438,12 +464,16 @@ const PasarelaGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[6] !== false}
+        isMobile={isMobile}
+        mobileTop="52%"
+        mobileLeft="2760px"
+        mobileHeight="47vh"
       >
         <Box component="img" src={images[6]} alt="PASARELA 7" loading="lazy" />
       </ImageItem>
-      
+
       {/* Imagen 8 - Segunda fila */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[7] = el}
         top="50%"
         left="5500px"
@@ -451,12 +481,16 @@ const PasarelaGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[7] !== false}
+        isMobile={isMobile}
+        mobileTop="42%"
+        mobileLeft="3300px"
+        mobileHeight="60vh"
       >
         <Box component="img" src={images[7]} alt="PASARELA 8" loading="lazy" />
       </ImageItem>
-      
+
       {/* Imagen 9 - Segunda fila */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[8] = el}
         top="50%"
         left="6000px"
@@ -464,12 +498,16 @@ const PasarelaGallery = ({ onBack }) => {
         width="auto"
         zIndex={5}
         isVisible={visibleImages[8] !== false}
+        isMobile={isMobile}
+        mobileTop="42%"
+        mobileLeft="3600px"
+        mobileHeight="51vh"
       >
         <Box component="img" src={images[8]} alt="PASARELA 9" loading="lazy" />
       </ImageItem>
-      
+
       {/* Imagen 10 - Segunda fila (segunda) */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[9] = el}
         top="50%"
         left="6000px"
@@ -477,12 +515,16 @@ const PasarelaGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[9] !== false}
+        isMobile={isMobile}
+        mobileTop="42%"
+        mobileLeft="3600px"
+        mobileHeight="60vh"
       >
         <Box component="img" src={images[9]} alt="PASARELA 10" loading="lazy" />
       </ImageItem>
-      
+
       {/* Imagen 11 - (final) */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[10] = el}
         top="50%"
         left="6515px"
@@ -490,12 +532,33 @@ const PasarelaGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[10] !== false}
+        isMobile={isMobile}
+        mobileTop="42%"
+        mobileLeft="3909px"
+        mobileHeight="60vh"
       >
         <Box component="img" src={images[10]} alt="PASARELA 11" loading="lazy" />
       </ImageItem>
-      
+
+      {/* Imagen PORTADA (centro destacado) */}
+      <ImageItem
+        ref={el => imageRefs.current[11] = el}
+        top="50%"
+        left="7400px"
+        height="100vh"
+        width="auto"
+        zIndex={3}
+        isVisible={visibleImages[11] !== false}
+        isMobile={isMobile}
+        mobileTop="42%"
+        mobileLeft="4440px"
+        mobileHeight="85vh"
+      >
+        <Box component="img" src={images[11]} alt="PASARELA 12 (PORTADA)" loading="lazy" />
+      </ImageItem>
+
       {/* Imagen 13 - (final) */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[12] = el}
         top="50%"
         left="8500px"
@@ -503,6 +566,10 @@ const PasarelaGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[12] !== false}
+        isMobile={isMobile}
+        mobileTop="42%"
+        mobileLeft="5100px"
+        mobileHeight="72vh"
       >
         <Box component="img" src={images[12]} alt="PASARELA 13" loading="lazy" />
       </ImageItem>
