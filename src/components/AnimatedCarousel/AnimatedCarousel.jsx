@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react'
 import * as THREE from 'three';
 import { useLoader, useFrame } from '@react-three/fiber';
 import { gsap } from 'gsap';
-import QualitySwitch from './QualitySwitch';
 import ImageMesh from './ImageMesh';
 import { getGalleryColors } from '../utils/galleryColors';
 
@@ -23,8 +22,8 @@ const AnimatedCarousel = ({
       || window.innerWidth <= 768;
   }, []);
 
-  // PERFORMANCE SETTINGS BASED ON DEVICE
-  const [isHighQuality, setIsHighQuality] = useState(!isMobile); // Default to low quality on mobile
+  // ALWAYS HIGH QUALITY - No quality switch
+  const isHighQuality = true; // Siempre máxima calidad
   const [isInitializing, setIsInitializing] = useState(initialTransition);
   const hasStartedTransitionRef = useRef(false);
   const [isManuallyPaused, setIsManuallyPaused] = useState(false);
@@ -46,6 +45,7 @@ const AnimatedCarousel = ({
       "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg",
       "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg",
       "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg",
+      "./images/X/@enzocimillo_ex-_1.jpg",
     ];
     
     // MOBILE OPTIMIZATION: Limit number of images on mobile
@@ -69,7 +69,8 @@ const AnimatedCarousel = ({
     "./images/AMOUR/portada.jpg": { name: "A del Amour", year: "2024" },
     "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg": { name: "Catalogo MUF", year: "2024" },
     "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg": { name: "Pasarela MUF", year: "2024" },
-    "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": { name: "Montevideo Under Fashion", year: "2024" }
+    "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": { name: "Montevideo Under Fashion", year: "2024" },
+    "./images/X/@enzocimillo_ex-_1.jpg": { name: "ex-", year: "2026" }
   }), []);
 
   const initialImageIndex = useMemo(() => {
@@ -86,7 +87,7 @@ const AnimatedCarousel = ({
     }
   );
 
-  // OPTIMIZE TEXTURES FOR MOBILE
+  // OPTIMIZE TEXTURES FOR MOBILE AND CLEANUP ON UNMOUNT
   useEffect(() => {
     if (isMobile) {
       textures.forEach((texture) => {
@@ -94,7 +95,7 @@ const AnimatedCarousel = ({
         texture.minFilter = THREE.LinearFilter;
         texture.magFilter = THREE.LinearFilter;
         texture.generateMipmaps = false;
-        
+
         // Dispose of unnecessary data
         if (texture.image) {
           const maxSize = 1024; // Max texture size for mobile
@@ -104,6 +105,16 @@ const AnimatedCarousel = ({
         }
       });
     }
+
+    // CLEANUP: Dispose textures on unmount
+    return () => {
+      console.log('🧹 Cleaning up textures...');
+      textures.forEach((texture) => {
+        if (texture) {
+          texture.dispose();
+        }
+      });
+    };
   }, [textures, isMobile]);
 
   const refs = Array.from({ length: textures.length }, () => useRef());
@@ -124,7 +135,8 @@ const AnimatedCarousel = ({
       [7, -2.5, -3],
       [9.5, 5.5, 7],
       [-13, 7, 0],
-      [8, 9.5, -8]
+      [8, 9.5, -8],
+      [2, -4, 12]  // Nueva posición para la imagen de ex- (más a la derecha)
     ];
 
     // Scale down positions for mobile
@@ -147,10 +159,23 @@ const AnimatedCarousel = ({
   const animationInProgressRef = useRef(false);
   const timelineRef = useRef(null);
   const backgroundRef = useRef(new THREE.Color('white'));
-  
+
   // FRAME RATE LIMITER FOR MOBILE
   const frameCount = useRef(0);
   const skipFrames = isMobile ? 2 : 1; // Skip every other frame on mobile
+
+  // CLEANUP: Kill all GSAP animations on unmount
+  useEffect(() => {
+    return () => {
+      console.log('🧹 Cleaning up GSAP animations...');
+      if (timelineRef.current) {
+        timelineRef.current.kill();
+        timelineRef.current = null;
+      }
+      // Kill all GSAP tweens
+      gsap.killTweensOf("*");
+    };
+  }, []);
 
   useEffect(() => {
     textures.forEach((_, index) => {
@@ -314,13 +339,7 @@ const AnimatedCarousel = ({
     }
   }, [initialTransition, initialImageIndex, refs, originalPositions, onTransitionComplete, isMobile]);
 
-  const handleQualityChange = useCallback((newQuality) => {
-    setIsHighQuality(newQuality);
-    setLoadedIndices([]);
-    imageUrls.forEach((_, index) => {
-      setLoadedIndices(prev => [...prev, index]);
-    });
-  }, [imageUrls]);
+  // Quality change handler removed - always high quality
 
   const handleClick = useCallback((index) => {
     if (isInitializing || animationInProgressRef.current) return;
@@ -691,8 +710,8 @@ const AnimatedCarousel = ({
 
   return (
     <group ref={groupRef}>
-      <QualitySwitch isHighQuality={isHighQuality} onChange={handleQualityChange} />
-      
+      {/* Quality switch removed - always high quality */}
+
       {/* Debug pause indicator - only on desktop */}
       {!isMobile && isManuallyPaused && (
         <group position={[-15, 15, 10]}>

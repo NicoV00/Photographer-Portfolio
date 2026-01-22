@@ -29,6 +29,7 @@ const AmourGallery = lazy(() => import('./components/Galleries/AmourGallery'));
 const MarcosGallery = lazy(() => import('./components/Galleries/MarcosGallery'));
 const PasarelaGallery = lazy(() => import('./components/Galleries/PasarelaGallery'));
 const IdentidadGallery = lazy(() => import('./components/Galleries/IdentidadGallery'));
+const EnzoGallery = lazy(() => import('./components/Galleries/EnzoGallery'));
 
 // Precarga
 import('./components/Galleries/BluaGallery');
@@ -194,7 +195,11 @@ function App() {
   const [isOffCanvasOpen, setIsOffCanvasOpen] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [collection, setCollection] = useState("");
-  const [showIntro, setShowIntro] = useState(true);
+  // Check sessionStorage to see if intro was already shown in this session
+  const [showIntro, setShowIntro] = useState(() => {
+    const introShown = sessionStorage.getItem('introShown');
+    return introShown !== 'true'; // Show intro only if NOT shown before in this session
+  });
   const containerRef = useRef(null);
   const photographerNameRef = useRef(null);
 
@@ -234,7 +239,8 @@ function App() {
     "./images/AMOUR/portada.jpg": "amour",
     "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg": "marcos",
     "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg": "pasarela",
-    "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": "identidad"
+    "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": "identidad",
+    "./images/X/@enzocimillo_ex-_1.jpg": "enzo"
   };
 
   // Reverse mapping for slug to image path (needed for router deep links)
@@ -286,6 +292,8 @@ function App() {
         return <Suspense fallback={loadingComponent}><PasarelaGallery onBack={onBack} /></Suspense>;
       case "identidad":
         return <Suspense fallback={loadingComponent}><IdentidadGallery onBack={onBack} /></Suspense>;
+      case "enzo":
+        return <Suspense fallback={loadingComponent}><EnzoGallery onBack={onBack} /></Suspense>;
       default:
         // Try to see if it's a "MyWay" collection
         // Since we don't have the image path here, we might need to handle this differently
@@ -313,15 +321,31 @@ function App() {
     setIsOffCanvasOpen(show);
   };
 
+  // CLEANUP: Clear all GSAP animations and resources on unmount
+  useEffect(() => {
+    return () => {
+      console.log('🧹 Cleaning up App component...');
+      // Kill all GSAP animations
+      if (window.gsap) {
+        window.gsap.killTweensOf("*");
+      }
+      // Clear session storage on page unload (not on component unmount)
+      // sessionStorage will persist during navigation between projects
+    };
+  }, []);
+
   // FIX: Manejo correcto del reset de color a blanco
   useEffect(() => {
     const fallback = '#ffffff';
+
 
     // Si bgColor es null, undefined, o se está reseteando, volver a blanco
     if (!bgColor) {
       setThemeColors(null);
 
+
       console.log('||||| ---> Reseteando color a BLANCO');
+
 
       const whiteColor = new THREE.Color('#ffffff');
       gsap.to(clearColor.current, {
@@ -409,10 +433,12 @@ function App() {
     if (transitionInProgressRef.current) return;
     transitionInProgressRef.current = true;
 
+
     console.log("Iniciando transición sin retrasos");
 
     setTransitionImageUrl(finalImageUrl);
     setInitialTransition(true);
+
 
     setTimeout(() => {
       setShowIntro(false);

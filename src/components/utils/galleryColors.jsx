@@ -36,11 +36,11 @@ const galleryColors = {
     text: "#000000",     // Black text
     highlight: "#8CAA21" // Darker green for highlights
   },
- "pasarela": {
+  "pasarela": {
     main: "#1e1815",     // Dark background for runway
     text: "#13359B",     // Blue text for dark background
     highlight: "#13359B" // Blue highlights
-  }, 
+  },
   "identidad": {
     main: "#13359B",     // Dark background for runway
     text: "#ffffffff",     // Blue text for dark background
@@ -76,6 +76,11 @@ const galleryColors = {
     text: "#000000",     // Black text (AÑADIDO)
     highlight: "#000000" // Black highlights
   },
+  "enzo": {
+    main: "#f9f9f9",     // Enzo X light gray/white background
+    text: "#000000",     // Black text
+    highlight: "#333333" // Dark gray highlights
+  },
   // Default colors for collections without specific mapping
   "default": {
     main: "#FFFFFF",     // White background
@@ -107,13 +112,14 @@ export const getGalleryColors = (collectionPath) => {
     if (collectionPath.includes('IDENTIDAD')) return galleryColors.identidad;
     if (collectionPath.includes('CAT-')) return galleryColors.catatumbo;
     if (collectionPath.includes('NWB&W') || collectionPath.includes('BLACK')) return galleryColors.newblackwhite;
+    if (collectionPath.includes('X/') || collectionPath.includes('enzocimillo')) return galleryColors.enzo;
   }
-  
+
   // If collection type provided directly
   if (collectionPath && galleryColors[collectionPath]) {
     return galleryColors[collectionPath];
   }
-  
+
   // Default fallback
   return galleryColors.default;
 };
