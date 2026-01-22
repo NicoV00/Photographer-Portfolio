@@ -5,6 +5,12 @@ import { gsap } from 'gsap';
 import ImageMesh from './ImageMesh';
 import { getGalleryColors } from '../utils/galleryColors';
 
+const checkIsMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || window.innerWidth <= 768;
+};
+
+
 const AnimatedCarousel = ({
   setShowCollection,
   setCollection,
@@ -17,10 +23,8 @@ const AnimatedCarousel = ({
   isUserInactive = false
 }) => {
   // MOBILE DETECTION
-  const isMobile = useMemo(() => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
-      || window.innerWidth <= 768;
-  }, []);
+  const isMobile = useRef(checkIsMobile()).current;
+
 
   // ALWAYS HIGH QUALITY - No quality switch
   const isHighQuality = true; // Siempre máxima calidad
@@ -47,7 +51,7 @@ const AnimatedCarousel = ({
       "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg",
       "./images/X/@enzocimillo_ex-_1.jpg",
     ];
-    
+
     // MOBILE OPTIMIZATION: Limit number of images on mobile
     if (isMobile) {
       return baseUrls.slice(0, 15); // Show only 10 images on mobile
@@ -117,7 +121,11 @@ const AnimatedCarousel = ({
     };
   }, [textures, isMobile]);
 
-  const refs = Array.from({ length: textures.length }, () => useRef());
+  const refsRef = useRef([]);
+  if (refsRef.current.length !== textures.length) {
+    refsRef.current = Array.from({ length: textures.length }, () => ({ current: null }));
+  }
+  const refs = refsRef.current;
 
   // ADJUSTED POSITIONS FOR MOBILE
   const originalPositions = useMemo(() => {
@@ -141,11 +149,16 @@ const AnimatedCarousel = ({
 
     // Scale down positions for mobile
     if (isMobile) {
-      return desktopPositions.slice(0, imageUrls.length).map(pos => 
-        [pos[0] * 0.7, pos[1] * 0.7, pos[2] * 0.7]
-      );
+      // Pre-calcular sin crear arrays intermedios
+      const scaled = [];
+      const len = Math.min(desktopPositions.length, imageUrls.length);
+      for (let i = 0; i < len; i++) {
+        const pos = desktopPositions[i];
+        scaled[i] = [pos[0] * 0.7, pos[1] * 0.7, pos[2] * 0.7];
+      }
+      return scaled;
     }
-    
+
     return desktopPositions;
   }, [isMobile, imageUrls.length]);
 
@@ -153,13 +166,15 @@ const AnimatedCarousel = ({
   const [selectedImage, setSelectedImage] = useState([]);
   const [isImageUpFront, setIsImageUpFront] = useState(false);
   const cameraRef = useRef();
-  const raycaster = new THREE.Raycaster();
-  const mouse = new THREE.Vector2();
+  const raycaster = useRef(new THREE.Raycaster()).current;
+  const mouse = useRef(new THREE.Vector2()).current;
   const [loadedIndices, setLoadedIndices] = useState([]);
   const animationInProgressRef = useRef(false);
   const timelineRef = useRef(null);
-  const backgroundRef = useRef(new THREE.Color('white'));
-
+  const backgroundRef = useRef(null);
+  if (!backgroundRef.current) {
+    backgroundRef.current = new THREE.Color('white');
+  }
   // FRAME RATE LIMITER FOR MOBILE
   const frameCount = useRef(0);
   const skipFrames = isMobile ? 2 : 1; // Skip every other frame on mobile
@@ -186,7 +201,7 @@ const AnimatedCarousel = ({
   // OPTIMIZED INITIAL TRANSITION
   useEffect(() => {
     if (initialTransition && initialImageIndex !== -1 && refs[initialImageIndex]?.current
-        && !hasStartedTransitionRef.current && !animationInProgressRef.current) {
+      && !hasStartedTransitionRef.current && !animationInProgressRef.current) {
 
       hasStartedTransitionRef.current = true;
       animationInProgressRef.current = true;
@@ -503,7 +518,7 @@ const AnimatedCarousel = ({
   // OPTIMIZED FRAME UPDATE FOR MOBILE
   useFrame(({ camera, scene }) => {
     frameCount.current++;
-    
+
     // Skip frames on mobile for better performance
     if (isMobile && frameCount.current % skipFrames !== 0) {
       return;
@@ -527,12 +542,12 @@ const AnimatedCarousel = ({
     }
 
     // SLOWER ROTATION ON MOBILE
-    if (groupRef.current && 
-        !isImageUpFront && 
-        !isInitializing && 
-        !animationInProgressRef.current && 
-        !isUserInactive &&
-        !isManuallyPaused) {
+    if (groupRef.current &&
+      !isImageUpFront &&
+      !isInitializing &&
+      !animationInProgressRef.current &&
+      !isUserInactive &&
+      !isManuallyPaused) {
       groupRef.current.rotation.y += isMobile ? 0.0001 : 0.0003;
     }
   });
@@ -563,7 +578,7 @@ const AnimatedCarousel = ({
 
     // OPTIMIZED RESET FOR MOBILE
     const duration = isMobile ? 0.8 : 1.2;
-    
+
     timelineRef.current = gsap.timeline({
       onComplete: () => {
         refs.forEach((ref, index) => {
@@ -606,8 +621,8 @@ const AnimatedCarousel = ({
           Math.pow(currentPos.z - targetPos[2], 2)
         );
 
-        const animDuration = isMobile ? 
-          Math.min(0.8, 0.4 + (distance / 800)) : 
+        const animDuration = isMobile ?
+          Math.min(0.8, 0.4 + (distance / 800)) :
           Math.min(1.2, 0.6 + (distance / 500));
 
         const delay = isMobile ? 0 : (0.1 + Math.random() * 0.1);
@@ -639,21 +654,21 @@ const AnimatedCarousel = ({
       // Handle both mouse and touch events
       const clientX = event.clientX || (event.touches && event.touches[0]?.clientX);
       const clientY = event.clientY || (event.touches && event.touches[0]?.clientY);
-      
+
       if (clientX === undefined || clientY === undefined) return;
 
       mouse.x = (clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(clientY / window.innerHeight) * 2 + 1;
-      
+
       // Ensure camera is available
       if (!cameraRef.current) return;
-      
+
       raycaster.setFromCamera(mouse, cameraRef.current);
 
       // Only check the selected image (which should be at position 0,0,0)
       const selectedImageIndex = selectedImage[selectedImage.length - 1];
       if (selectedImageIndex === undefined) return;
-      
+
       const selectedRef = refs[selectedImageIndex]?.current;
       if (!selectedRef || !selectedRef.visible) return;
 
@@ -668,7 +683,7 @@ const AnimatedCarousel = ({
     // Add both mouse and touch event listeners
     const eventType = isMobile ? 'touchstart' : 'mousedown';
     document.addEventListener(eventType, handleClickOutside, { passive: false });
-    
+
     return () => {
       document.removeEventListener(eventType, handleClickOutside);
     };
@@ -677,14 +692,14 @@ const AnimatedCarousel = ({
   // Keyboard controls (desktop only)
   useEffect(() => {
     if (isMobile) return; // Skip keyboard controls on mobile
-    
+
     const handleKeyPress = (event) => {
       if (event.shiftKey && event.key === 'P') {
         event.preventDefault();
         setIsManuallyPaused(prev => {
           const newState = !prev;
           console.log(newState ? "⏸️ PAUSA MANUAL ACTIVADA" : "▶️ PAUSA MANUAL DESACTIVADA");
-          
+
           if (newState) {
             console.log("=== POSICIONES ACTUALES DE LAS IMÁGENES ===");
             refs.forEach((ref, index) => {
@@ -696,7 +711,7 @@ const AnimatedCarousel = ({
             console.log("==========================================");
             console.log("Presiona Shift+P nuevamente para reanudar el movimiento");
           }
-          
+
           return newState;
         });
       }
@@ -725,7 +740,7 @@ const AnimatedCarousel = ({
           </mesh>
         </group>
       )}
-      
+
       {imageUrls.map((texture, index) => (
         <ImageMesh
           key={index}
