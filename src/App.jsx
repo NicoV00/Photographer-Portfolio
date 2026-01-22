@@ -1,5 +1,6 @@
 import React from 'react';
 import { useEffect, useRef, useState, lazy, Suspense, useCallback } from 'react';
+import { Routes, Route, useNavigate, useParams, Link } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import About1 from './components/About1';
 import Footer from './components/Footer';
@@ -20,7 +21,7 @@ const AnaLivniGallery = lazy(() => import('./components/Galleries/AnaLivniGaller
 const BluaGallery = lazy(() => import('./components/Galleries/BluaGallery'));
 const MaisonGallery = lazy(() => import('./components/Galleries/MaisonGallery'));
 const VestimeTeoGallery = lazy(() => import('./components/Galleries/VestimeTeoGallery'));
-const CaldoGallery = lazy(() => import('./components/Galleries/CaldoGallery')); 
+const CaldoGallery = lazy(() => import('./components/Galleries/CaldoGallery'));
 const PlataGallery = lazy(() => import('./components/Galleries/PlataGallery'));
 const LenoirGallery = lazy(() => import('./components/Galleries/LenoirGallery'));
 const KaboaGallery = lazy(() => import('./components/Galleries/KaboaGallery'));
@@ -37,13 +38,13 @@ const isMobileDevice = () => {
   // Detecta por user agent
   const userAgent = navigator.userAgent || navigator.vendor || window.opera;
   const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
-  
+
   // Detecta por tamaño de pantalla
   const screenWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-  
+
   // Detecta por capacidades táctiles
   const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  
+
   return mobileRegex.test(userAgent.toLowerCase()) || (screenWidth <= 768 && hasTouch);
 };
 
@@ -52,7 +53,7 @@ const GlitchText = ({ text }) => {
   const [displayText, setDisplayText] = useState(text);
   const [isGlitching, setIsGlitching] = useState(false);
   const prevTextRef = useRef(text);
-  
+
   useEffect(() => {
     // Activar glitch cuando cambia el texto
     if (text !== prevTextRef.current) {
@@ -60,7 +61,7 @@ const GlitchText = ({ text }) => {
       setIsGlitching(true);
       const characters = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
       let iterations = 0;
-      
+
       const interval = setInterval(() => {
         setDisplayText(text
           .split("")
@@ -73,20 +74,20 @@ const GlitchText = ({ text }) => {
           })
           .join("")
         );
-        
+
         if (iterations >= text.length) {
           clearInterval(interval);
           setIsGlitching(false);
           setDisplayText(text);
         }
-        
+
         iterations += 1;
       }, 30);
-      
+
       return () => clearInterval(interval);
     }
   }, [text]);
-  
+
   return <span>{displayText}</span>;
 };
 
@@ -166,8 +167,8 @@ const ProjectInfoContainer = styled(Box)(({ isVisible, textColor }) => ({
   letterSpacing: '0.5px',
   lineHeight: '1.4',
   opacity: isVisible ? 1 : 0,
-  transform: isVisible 
-    ? 'translateX(-50%) translateY(0)' 
+  transform: isVisible
+    ? 'translateX(-50%) translateY(0)'
     : 'translateX(-50%) translateY(20px)',
   transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
 }));
@@ -229,11 +230,73 @@ function App() {
     "./images/TEO/V1.jpg": "vestimeteo",
     "./images/PLATA/PLATA-2.jpg": "plata",
     "./images/LENOIR/LENOIR-1.jpg": "lenoir",
-    "./images/KABOA/KABOA-1.jpg": "kaboa",
+    "./images/KABoa/KABOA-1.jpg": "kaboa",
     "./images/AMOUR/portada.jpg": "amour",
     "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg": "marcos",
     "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg": "pasarela",
     "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": "identidad"
+  };
+
+  // Reverse mapping for slug to image path (needed for router deep links)
+  const slugToImage = Object.fromEntries(
+    Object.entries(specialCollections).map(([img, slug]) => [slug, img])
+  );
+
+  const navigate = useNavigate();
+
+  const GalleryWrapper = ({ onBack, setBgColor }) => {
+    const { id } = useParams();
+
+    // Si no hay ID o queremos volver al carrusel
+    if (!id) return null;
+
+    const loadingComponent = (
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh'
+      }}>
+        <CircularProgress />
+      </Box>
+    );
+
+    switch (id) {
+      case "ana-livni":
+        return <Suspense fallback={loadingComponent}><AnaLivniGallery onBack={onBack} /></Suspense>;
+      case "blua":
+        return <Suspense fallback={loadingComponent}><BluaGallery onBack={onBack} /></Suspense>;
+      case "maison":
+        return <Suspense fallback={loadingComponent}><MaisonGallery onBack={onBack} /></Suspense>;
+      case "caldo":
+        return <Suspense fallback={loadingComponent}><CaldoGallery onBack={onBack} /></Suspense>;
+      case "vestimeteo":
+        return <Suspense fallback={loadingComponent}><VestimeTeoGallery onBack={onBack} /></Suspense>;
+      case "plata":
+        return <Suspense fallback={loadingComponent}><PlataGallery onBack={onBack} /></Suspense>;
+      case "lenoir":
+        return <Suspense fallback={loadingComponent}><LenoirGallery onBack={onBack} /></Suspense>;
+      case "kaboa":
+        return <Suspense fallback={loadingComponent}><KaboaGallery onBack={onBack} /></Suspense>;
+      case "amour":
+        return <Suspense fallback={loadingComponent}><AmourGallery onBack={onBack} /></Suspense>;
+      case "marcos":
+        return <Suspense fallback={loadingComponent}><MarcosGallery onBack={onBack} /></Suspense>;
+      case "pasarela":
+        return <Suspense fallback={loadingComponent}><PasarelaGallery onBack={onBack} /></Suspense>;
+      case "identidad":
+        return <Suspense fallback={loadingComponent}><IdentidadGallery onBack={onBack} /></Suspense>;
+      default:
+        // Try to see if it's a "MyWay" collection
+        // Since we don't have the image path here, we might need to handle this differently
+        // but for now let's assume if it's not special, it's MyWay
+        return (
+          <MyWaySection
+            onBack={onBack}
+            collection={slugToImage[id] || id}
+          />
+        );
+    }
   };
 
   // NUEVO: Detectar cambios en el tamaño de ventana
@@ -241,7 +304,7 @@ function App() {
     const handleResize = () => {
       setIsMobile(isMobileDevice());
     };
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -253,13 +316,13 @@ function App() {
   // FIX: Manejo correcto del reset de color a blanco
   useEffect(() => {
     const fallback = '#ffffff';
-    
+
     // Si bgColor es null, undefined, o se está reseteando, volver a blanco
     if (!bgColor) {
       setThemeColors(null);
-      
+
       console.log('||||| ---> Reseteando color a BLANCO');
-      
+
       const whiteColor = new THREE.Color('#ffffff');
       gsap.to(clearColor.current, {
         r: whiteColor.r,
@@ -274,12 +337,12 @@ function App() {
       });
       return;
     }
-    
+
     // Si bgColor es un objeto con la estructura del tema
     if (typeof bgColor === 'object' && bgColor.main) {
       setThemeColors(bgColor); // Guardar todo el objeto de colores
       const hex = bgColor.main || fallback;
-      
+
       console.log('||||| ---> Tema COMPLETO recibido:', bgColor);
       console.log('||||| ---> Color de fondo:', bgColor.main);
       console.log('||||| ---> Color de texto:', bgColor.text);
@@ -300,7 +363,7 @@ function App() {
       // Si bgColor es solo un string de color
       const hex = bgColor;
       setThemeColors(null);
-      
+
       console.log('||||| ---> Color simple recibido:', hex);
 
       const newColor = new THREE.Color(hex);
@@ -337,7 +400,7 @@ function App() {
       containerRef.current.style.display = 'block';
       document.body.style.backgroundColor = 'white';
     }
-    
+
     setScene3DReady(true);
   }, []);
 
@@ -345,12 +408,12 @@ function App() {
   const handleIntroComplete = (finalImageUrl) => {
     if (transitionInProgressRef.current) return;
     transitionInProgressRef.current = true;
-    
+
     console.log("Iniciando transición sin retrasos");
-    
+
     setTransitionImageUrl(finalImageUrl);
     setInitialTransition(true);
-    
+
     setTimeout(() => {
       setShowIntro(false);
     }, 300);
@@ -365,11 +428,11 @@ function App() {
   const handleTransitionComplete = () => {
     console.log("Transición completada");
     setInitialTransition(false);
-    
+
     if (photographerNameRef.current) {
       photographerNameRef.current.style.opacity = '1';
     }
-    
+
     transitionInProgressRef.current = false;
   };
 
@@ -390,7 +453,7 @@ function App() {
   // Photographer name hover effect
   useEffect(() => {
     if (showGallery) return;
-    
+
     const nameContainer = document.querySelector('.photographer-name');
     if (!nameContainer) return;
 
@@ -402,7 +465,7 @@ function App() {
         letter.style.textShadow = '0 0 2px rgba(0, 255, 0, 0.5), 0 0 3px rgba(0, 255, 0, 0.3)';
         glitchEffect(letter, photographerName[index]);
       });
-      
+
       nameContainer.style.letterSpacing = '-1px';
     };
 
@@ -412,7 +475,7 @@ function App() {
         letter.style.color = 'black';
         letter.style.textShadow = 'none';
       });
-      
+
       nameContainer.style.letterSpacing = '-2px';
     };
 
@@ -427,11 +490,17 @@ function App() {
 
   // FIX: Function to return to main carousel - reset color to white
   const handleBackToCarousel = () => {
-    setShowGallery(false);
+    navigate('/');
     setCollection("");
     setSelectedProjectInfo(null);
     setThemeColors(null); // Limpiar colores del tema
     setBgColor('#ffffff'); // FIX: Resetear explícitamente a blanco
+  };
+
+  const handleCollectionChange = (newCollection) => {
+    const slug = specialCollections[newCollection] || encodeURIComponent(newCollection);
+    setCollection(newCollection);
+    navigate(`/gallery/${slug}`);
   };
 
   // Handlers memoizados para evitar re-renders
@@ -451,132 +520,32 @@ function App() {
   }, []);
 
   // Determine content to show
-  const renderContent = () => {
-    if (!showGallery) {
-      // 3D carousel
-      return (
-        <Canvas
-          camera={{
-            fov: 65,
-            position: [0, 0, 40],
-          }}
-          onCreated={({ gl }) => {
-            gl.setClearColor("white");
-            glRef.current = gl;
-          }}
-        >
-          <About1 
-            setIndex={setIndex} 
-            setShowCollection={() => {setShowGallery(!showGallery)}} 
-            setCollection={(index) => { setCollection(index);}}
-            setActiveGalleryColor={setBgColor}
-            setSelectedProjectInfo={handleProjectInfoChange}
-            initialTransition={initialTransition}
-            initialImageUrl={transitionImageUrl}
-            onTransitionComplete={handleTransitionComplete}
-            onCarouselReady={handleCarouselReady}
-            isUserInactive={isUserInactive}
-          />
-        </Canvas>
-      );
-    } else {
-      // Check for special collections
-      const collectionType = specialCollections[collection];
-      
-      // Loading component
-      const loadingComponent = (
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center',
-          height: '100vh' 
-        }}>
-          <CircularProgress />
-        </Box>
-      );
-      
-      // Display appropriate gallery
-      if (collectionType === "ana-livni") {
-        return (
-          <Suspense fallback={loadingComponent}>
-            <AnaLivniGallery onBack={handleBackToCarousel} />
-          </Suspense>
-        );
-      } else if (collectionType === "blua") {
-        return (
-          <Suspense fallback={loadingComponent}>
-            <BluaGallery onBack={handleBackToCarousel} />
-          </Suspense>
-        );
-      } else if (collectionType === "maison") {
-        return (
-          <Suspense fallback={loadingComponent}>
-            <MaisonGallery onBack={handleBackToCarousel} />
-          </Suspense>
-        );
-      } else if (collectionType === "caldo") {
-        return (
-          <Suspense fallback={loadingComponent}>
-            <CaldoGallery onBack={handleBackToCarousel} />
-          </Suspense>
-        );
-      } else if (collectionType === "vestimeteo") {
-        return (
-          <Suspense fallback={loadingComponent}>
-            <VestimeTeoGallery onBack={handleBackToCarousel} />
-          </Suspense>
-        );
-      } else if (collectionType === "plata") {
-        return (
-          <Suspense fallback={loadingComponent}>
-            <PlataGallery onBack={handleBackToCarousel} />
-          </Suspense>
-        );
-      } else if (collectionType === "lenoir") {
-        return (
-          <Suspense fallback={loadingComponent}>
-            <LenoirGallery onBack={handleBackToCarousel} />
-          </Suspense>
-        );
-      } else if (collectionType === "kaboa") {
-        return (
-          <Suspense fallback={loadingComponent}>
-            <KaboaGallery onBack={handleBackToCarousel} />
-          </Suspense>
-        );
-      } else if (collectionType === "amour") {
-        return (
-          <Suspense fallback={loadingComponent}>
-            <AmourGallery onBack={handleBackToCarousel} />
-          </Suspense>
-        );
-      } else if (collectionType === "marcos") {
-        return (
-          <Suspense fallback={loadingComponent}>
-            <MarcosGallery onBack={handleBackToCarousel} />
-          </Suspense>
-        );
-      } else if (collectionType === "pasarela") {
-        return (
-          <Suspense fallback={loadingComponent}>
-            <PasarelaGallery onBack={handleBackToCarousel} />
-          </Suspense>
-        );
-      } else if (collectionType === "identidad") {
-        return (
-          <Suspense fallback={loadingComponent}>
-            <IdentidadGallery onBack={handleBackToCarousel} />
-          </Suspense>
-        );
-      } else {
-        return (
-          <MyWaySection 
-            onBack={handleBackToCarousel}
-            collection={collection}
-          />
-        );
-      }
-    }
+  const renderHome = () => {
+    return (
+      <Canvas
+        camera={{
+          fov: 65,
+          position: [0, 0, 40],
+        }}
+        onCreated={({ gl }) => {
+          gl.setClearColor("white");
+          glRef.current = gl;
+        }}
+      >
+        <About1
+          setIndex={setIndex}
+          setShowCollection={() => { }} // Not strictly needed anymore but kept for compatibility
+          setCollection={handleCollectionChange}
+          setActiveGalleryColor={setBgColor}
+          setSelectedProjectInfo={handleProjectInfoChange}
+          initialTransition={initialTransition}
+          initialImageUrl={transitionImageUrl}
+          onTransitionComplete={handleTransitionComplete}
+          onCarouselReady={handleCarouselReady}
+          isUserInactive={isUserInactive}
+        />
+      </Canvas>
+    );
   };
 
   // RENDERIZADO CONDICIONAL: Si es móvil, mostrar Coming Soon
@@ -591,12 +560,12 @@ function App() {
     <>
       {/* Global styles */}
       <GlobalStyle />
-      
+
       {/* Componente de cursor global (ahora inactivo) */}
       <CursorManager isOffCanvasOpen={isOffCanvasOpen} />
-      
+
       {/* SCREENSAVER BANNER ULTRA SMOOTH - 20 SEGUNDOS */}
-      <ScreensaverBanner 
+      <ScreensaverBanner
         isActive={screensaverActive}
         timeout={20000} // 20 SEGUNDOS exactos
         onDismiss={handleScreensaverDismiss}
@@ -606,66 +575,66 @@ function App() {
           line2: "fashion photographer"
         }}
       />
-      
+
       {/* Mostrar IntroVideo solo mientras es necesario */}
       {showIntro && (
         <IntroVideo onIntroComplete={handleIntroComplete} />
       )}
-      
+
       {/* Contenedor principal */}
-      <ContainerCloud 
-        className="containerCloud" 
+      <ContainerCloud
+        className="containerCloud"
         ref={containerRef}
       >
-        {/* Photographer name */}
-        {!showGallery && (
-          <PhotographerName 
-            className="photographer-name"
-            ref={photographerNameRef}
-          >
-            {photographerName.split('').map((letter, index) => (
-              <Letter 
-                key={index} 
-                className="letter" 
-                ref={el => lettersRef.current[index] = el}
+        <Routes>
+          <Route path="/" element={
+            <>
+              {!isOffCanvasOpen && (
+                <PhotographerName
+                  className="photographer-name"
+                  ref={photographerNameRef}
+                >
+                  {photographerName.split('').map((letter, index) => (
+                    <Letter
+                      key={index}
+                      className="letter"
+                      ref={el => lettersRef.current[index] = el}
+                    >
+                      {letter}
+                    </Letter>
+                  ))}
+                </PhotographerName>
+              )}
+              {renderHome()}
+
+              <ProjectInfoContainer
+                isVisible={!!selectedProjectInfo}
+                textColor={themeColors?.text || '#000000'}
               >
-                {letter}
-              </Letter>
-            ))}
-          </PhotographerName>
-        )}
+                {selectedProjectInfo && (
+                  <>
+                    <ProjectName>
+                      <GlitchText text={selectedProjectInfo.name || 'UNTITLED'} />
+                    </ProjectName>
+                    <ProjectYear>
+                      <GlitchText text={selectedProjectInfo.year || '2024'} />
+                    </ProjectYear>
+                  </>
+                )}
+              </ProjectInfoContainer>
+            </>
+          } />
+          <Route path="/gallery/:id" element={
+            <GalleryWrapper onBack={handleBackToCarousel} setBgColor={setBgColor} />
+          } />
+        </Routes>
 
-        {renderContent()}
-
-        {/* Información del proyecto - ACTUALIZADA PARA USAR COLORES DEL TEMA */}
-        {!showGallery && (
-          <ProjectInfoContainer 
-            isVisible={!!selectedProjectInfo} 
-            textColor={themeColors?.text || '#000000'} // Usar el color de texto del tema
-          >
-            {selectedProjectInfo && (
-              <>
-                <ProjectName>
-                  <GlitchText 
-                    text={selectedProjectInfo.name || 'UNTITLED'} 
-                  />
-                </ProjectName>
-                <ProjectYear>
-                  <GlitchText 
-                    text={selectedProjectInfo.year || '2024'} 
-                  />
-                </ProjectYear>
-              </>
-            )}
-          </ProjectInfoContainer>
-        )}
-
-        <Footer 
-          onShowChange={handleOffCanvasState} 
+        <Footer
+          onShowChange={handleOffCanvasState}
           onGalleryToggle={null}
         />
       </ContainerCloud>
-      
+
       {/* Vercel Analytics */}
       <Analytics />
     </>
