@@ -20,7 +20,7 @@ const AnaLivniGallery = lazy(() => import('./components/Galleries/AnaLivniGaller
 const BluaGallery = lazy(() => import('./components/Galleries/BluaGallery'));
 const MaisonGallery = lazy(() => import('./components/Galleries/MaisonGallery'));
 const VestimeTeoGallery = lazy(() => import('./components/Galleries/VestimeTeoGallery'));
-const CaldoGallery = lazy(() => import('./components/Galleries/CaldoGallery')); 
+const CaldoGallery = lazy(() => import('./components/Galleries/CaldoGallery'));
 const PlataGallery = lazy(() => import('./components/Galleries/PlataGallery'));
 const LenoirGallery = lazy(() => import('./components/Galleries/LenoirGallery'));
 const KaboaGallery = lazy(() => import('./components/Galleries/KaboaGallery'));
@@ -28,6 +28,7 @@ const AmourGallery = lazy(() => import('./components/Galleries/AmourGallery'));
 const MarcosGallery = lazy(() => import('./components/Galleries/MarcosGallery'));
 const PasarelaGallery = lazy(() => import('./components/Galleries/PasarelaGallery'));
 const IdentidadGallery = lazy(() => import('./components/Galleries/IdentidadGallery'));
+const EnzoGallery = lazy(() => import('./components/Galleries/EnzoGallery'));
 
 // Precarga
 import('./components/Galleries/BluaGallery');
@@ -193,7 +194,11 @@ function App() {
   const [isOffCanvasOpen, setIsOffCanvasOpen] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [collection, setCollection] = useState("");
-  const [showIntro, setShowIntro] = useState(true);
+  // Check sessionStorage to see if intro was already shown in this session
+  const [showIntro, setShowIntro] = useState(() => {
+    const introShown = sessionStorage.getItem('introShown');
+    return introShown !== 'true'; // Show intro only if NOT shown before in this session
+  });
   const containerRef = useRef(null);
   const photographerNameRef = useRef(null);
 
@@ -233,7 +238,8 @@ function App() {
     "./images/AMOUR/portada.jpg": "amour",
     "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg": "marcos",
     "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg": "pasarela",
-    "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": "identidad"
+    "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": "identidad",
+    "./images/X/@enzocimillo_ex-_1.jpg": "enzo"
   };
 
   // NUEVO: Detectar cambios en el tamaño de ventana
@@ -250,16 +256,29 @@ function App() {
     setIsOffCanvasOpen(show);
   };
 
+  // CLEANUP: Clear all GSAP animations and resources on unmount
+  useEffect(() => {
+    return () => {
+      console.log('🧹 Cleaning up App component...');
+      // Kill all GSAP animations
+      if (window.gsap) {
+        window.gsap.killTweensOf("*");
+      }
+      // Clear session storage on page unload (not on component unmount)
+      // sessionStorage will persist during navigation between projects
+    };
+  }, []);
+
   // FIX: Manejo correcto del reset de color a blanco
   useEffect(() => {
     const fallback = '#ffffff';
-    
+
     // Si bgColor es null, undefined, o se está reseteando, volver a blanco
     if (!bgColor) {
       setThemeColors(null);
-      
+
       console.log('||||| ---> Reseteando color a BLANCO');
-      
+
       const whiteColor = new THREE.Color('#ffffff');
       gsap.to(clearColor.current, {
         r: whiteColor.r,
@@ -345,12 +364,15 @@ function App() {
   const handleIntroComplete = (finalImageUrl) => {
     if (transitionInProgressRef.current) return;
     transitionInProgressRef.current = true;
-    
+
     console.log("Iniciando transición sin retrasos");
-    
+
+    // Mark intro as shown for this session
+    sessionStorage.setItem('introShown', 'true');
+
     setTransitionImageUrl(finalImageUrl);
     setInitialTransition(true);
-    
+
     setTimeout(() => {
       setShowIntro(false);
     }, 300);
@@ -568,9 +590,15 @@ function App() {
             <IdentidadGallery onBack={handleBackToCarousel} />
           </Suspense>
         );
+      } else if (collectionType === "enzo") {
+        return (
+          <Suspense fallback={loadingComponent}>
+            <EnzoGallery onBack={handleBackToCarousel} />
+          </Suspense>
+        );
       } else {
         return (
-          <MyWaySection 
+          <MyWaySection
             onBack={handleBackToCarousel}
             collection={collection}
           />

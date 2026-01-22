@@ -296,16 +296,22 @@ const PasarelaGallery = ({ onBack }) => {
     setLoading(false);
   };
 
-  // Optimize browser performance
+  // Optimize browser performance AND cleanup on unmount
   useEffect(() => {
     if (!loading) {
       document.body.style.overscrollBehavior = 'none';
       document.documentElement.style.scrollBehavior = 'smooth';
     }
-    
+
     return () => {
+      console.log('🧹 Cleaning up PasarelaGallery...');
       document.body.style.overscrollBehavior = '';
       document.documentElement.style.scrollBehavior = '';
+
+      // Kill all GSAP animations for this component
+      if (window.gsap) {
+        window.gsap.killTweensOf("*");
+      }
     };
   }, [loading]);
 
