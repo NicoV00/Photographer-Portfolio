@@ -87,9 +87,9 @@ const GalleryContent = styled(Box)(({ theme }) => ({
 
 // Image item - optimized with GPU acceleration
 const ImageItem = styled(Box, {
-  shouldForwardProp: (prop) => 
-    prop !== 'isVisible' && 
-    prop !== 'isMobile' && 
+  shouldForwardProp: (prop) =>
+    prop !== 'isVisible' &&
+    prop !== 'isMobile' &&
     prop !== 'isPhoto'
 })(({ theme, top, left, width, height, zIndex = 1, isVisible = true, isPhoto = true }) => ({
   position: 'absolute',
@@ -123,7 +123,7 @@ const IdentidadGallery = ({ onBack }) => {
   // References for animation elements
   const progressBarRef = useRef(null);
   const containerRef = useRef(null);
-  
+
   // Image visibility state and references
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
@@ -142,19 +142,19 @@ const IdentidadGallery = ({ onBack }) => {
 
   // Images for IDENTIDAD gallery
   const images = useMemo(() => [
-    '/images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg',
-    '/images/IDENTIDAD/IDENTIDAD MUF-2.jpg',
-    '/images/IDENTIDAD/IDENTIDAD MUF-3.jpg',
+    '/images/IDENTIDAD/webp/IDENTIDAD MUF-1 (PORTADA).webp',
+    '/images/IDENTIDAD/webp/IDENTIDAD MUF-2.webp',
+    '/images/IDENTIDAD/webp/IDENTIDAD MUF-3.webp',
     '/images/IDENTIDAD/IDENTIDAD MUF-4.png',
-    '/images/IDENTIDAD/IDENTIDAD MUF-5.jpg',
-    '/images/IDENTIDAD/IDENTIDAD MUF-6.jpg',
-    '/images/IDENTIDAD/IDENTIDAD MUF-7.jpg',
+    '/images/IDENTIDAD/webp/IDENTIDAD MUF-5.webp',
+    '/images/IDENTIDAD/webp/IDENTIDAD MUF-6.webp',
+    '/images/IDENTIDAD/webp/IDENTIDAD MUF-7.webp',
   ], []);
 
   // Configuración de estilos responsivos para imágenes
   const imageConfigurations = {
     // =========== IMAGEN 1 (PORTADA) ===========
-    IDENTIDAD1: { 
+    IDENTIDAD1: {
       // Desktop
       xl: { top: "50%", left: "400px", height: "70vh", zIndex: 3 },
       lg: { top: "50%", left: "400px", height: "70vh", innerMaxWidth: "550px", zIndex: 3 },
@@ -163,9 +163,9 @@ const IdentidadGallery = ({ onBack }) => {
       sm: { top: "50%", left: "200px", height: "60vh", innerMaxWidth: "350px", zIndex: 3 },
       xs: { top: "50%", left: "150px", height: "55vh", innerMaxWidth: "80vw", zIndex: 3 },
     },
-    
+
     // =========== IMAGEN 2 ===========
-    IDENTIDAD2: { 
+    IDENTIDAD2: {
       // Desktop
       xl: { top: "50%", left: "1100px", height: "70vh", innerMaxWidth: "auto", zIndex: 2 },
       lg: { top: "50%", left: "1100px", height: "70vh", innerMaxWidth: "480px", zIndex: 2 },
@@ -174,9 +174,9 @@ const IdentidadGallery = ({ onBack }) => {
       sm: { top: "50%", left: "700px", height: "60vh", innerMaxWidth: "300px", zIndex: 2 },
       xs: { top: "50%", left: "600px", height: "55vh", innerMaxWidth: "70vw", zIndex: 2 },
     },
-    
+
     // =========== IMAGEN 3 ===========
-    IDENTIDAD3: { 
+    IDENTIDAD3: {
       // Desktop
       xl: { top: "50%", left: "1800px", height: "70vh", innerMaxWidth: "auto", zIndex: 2 },
       lg: { top: "50%", left: "1800px", height: "70vh", innerMaxWidth: "480px", zIndex: 2 },
@@ -185,9 +185,9 @@ const IdentidadGallery = ({ onBack }) => {
       sm: { top: "50%", left: "1200px", height: "60vh", innerMaxWidth: "300px", zIndex: 2 },
       xs: { top: "50%", left: "1100px", height: "55vh", innerMaxWidth: "70vw", zIndex: 2 },
     },
-    
+
     // =========== IMAGEN 4 ===========
-    IDENTIDAD4: { 
+    IDENTIDAD4: {
       // Desktop
       xl: { top: "50%", left: "2600px", height: "100vh", innerMaxWidth: "auto", zIndex: 2 },
       lg: { top: "50%", left: "2600px", height: "95vh", innerMaxWidth: "750px", zIndex: 2 },
@@ -196,9 +196,9 @@ const IdentidadGallery = ({ onBack }) => {
       sm: { top: "50%", left: "1700px", height: "90vh", innerMaxWidth: "600px", zIndex: 2 },
       xs: { top: "50%", left: "1600px", height: "85vh", innerMaxWidth: "90vw", zIndex: 2 },
     },
-    
+
     // =========== IMAGEN 5 ===========
-    IDENTIDAD5: { 
+    IDENTIDAD5: {
       // Desktop
       xl: { top: "50%", left: "3600px", height: "70vh", innerMaxWidth: "auto", zIndex: 2 },
       lg: { top: "50%", left: "3600px", height: "70vh", innerMaxWidth: "480px", zIndex: 2 },
@@ -207,9 +207,9 @@ const IdentidadGallery = ({ onBack }) => {
       sm: { top: "50%", left: "2400px", height: "60vh", innerMaxWidth: "300px", zIndex: 2 },
       xs: { top: "50%", left: "2300px", height: "55vh", innerMaxWidth: "70vw", zIndex: 2 },
     },
-    
+
     // =========== IMAGEN 6 ===========
-    IDENTIDAD6: { 
+    IDENTIDAD6: {
       // Desktop
       xl: { top: "50%", left: "4300px", height: "70vh", innerMaxWidth: "auto", zIndex: 2 },
       lg: { top: "50%", left: "4300px", height: "70vh", innerMaxWidth: "480px", zIndex: 2 },
@@ -218,9 +218,9 @@ const IdentidadGallery = ({ onBack }) => {
       sm: { top: "50%", left: "2900px", height: "60vh", innerMaxWidth: "300px", zIndex: 2 },
       xs: { top: "50%", left: "2800px", height: "55vh", innerMaxWidth: "70vw", zIndex: 2 },
     },
-    
+
     // =========== IMAGEN 7 ===========
-    IDENTIDAD7: { 
+    IDENTIDAD7: {
       // Desktop
       xl: { top: "50%", left: "5000px", height: "70vh", innerMaxWidth: "auto", zIndex: 2 },
       lg: { top: "50%", left: "5000px", height: "70vh", innerMaxWidth: "480px", zIndex: 2 },
@@ -246,28 +246,28 @@ const IdentidadGallery = ({ onBack }) => {
   // Updated visibility check
   const checkVisibility = useCallback(() => {
     if (!containerRef.current) return;
-    
+
     const container = containerRef.current;
     const containerRect = container.getBoundingClientRect();
     const containerWidth = containerRect.width;
-    
+
     const preloadMargin = containerWidth * 1.2;
-    
+
     const newVisibility = {};
-    
+
     imageRefs.current.forEach((ref, index) => {
       if (ref && ref.current) {
         const imageRect = ref.current.getBoundingClientRect();
-        
+
         const isVisible = (
           imageRect.left < containerRect.right + preloadMargin &&
           imageRect.right > containerRect.left - preloadMargin
         );
-        
+
         newVisibility[index] = isVisible;
       }
     });
-    
+
     setVisibleImages(prev => {
       if (JSON.stringify(prev) !== JSON.stringify(newVisibility)) {
         return newVisibility;
@@ -289,11 +289,11 @@ const IdentidadGallery = ({ onBack }) => {
     lerp: 0.04,
     colors: galleryTheme
   });
-  
+
   // Loading progress animation effect
   useEffect(() => {
     let interval;
-    
+
     if (loading) {
       interval = setInterval(() => {
         setLoadProgress(prev => {
@@ -306,7 +306,7 @@ const IdentidadGallery = ({ onBack }) => {
         });
       }, 250);
     }
-    
+
     return () => clearInterval(interval);
   }, [loading]);
 
@@ -317,7 +317,7 @@ const IdentidadGallery = ({ onBack }) => {
         setLoading(false);
       }
     }, 5000);
-    
+
     return () => clearTimeout(timer);
   }, [loading]);
 
@@ -332,7 +332,7 @@ const IdentidadGallery = ({ onBack }) => {
       document.body.style.overscrollBehavior = 'none';
       document.documentElement.style.scrollBehavior = 'smooth';
     }
-    
+
     return () => {
       document.body.style.overscrollBehavior = '';
       document.documentElement.style.scrollBehavior = '';
@@ -342,7 +342,7 @@ const IdentidadGallery = ({ onBack }) => {
   // Ajustes específicos para iOS
   useEffect(() => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    
+
     if (isIOS) {
       document.documentElement.style.height = '100%';
       document.body.style.height = '100%';
@@ -350,7 +350,7 @@ const IdentidadGallery = ({ onBack }) => {
       document.body.style.width = '100%';
       document.body.style.overflowY = 'hidden';
     }
-    
+
     return () => {
       if (isIOS) {
         document.documentElement.style.height = '';
@@ -367,14 +367,14 @@ const IdentidadGallery = ({ onBack }) => {
     if (loading || !containerRef.current) return;
 
     checkVisibility();
-    
+
     if ('IntersectionObserver' in window) {
       const options = {
         root: containerRef.current,
         rootMargin: '200px',
         threshold: 0.1
       };
-      
+
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           const id = entry.target.dataset.id;
@@ -386,14 +386,14 @@ const IdentidadGallery = ({ onBack }) => {
           }
         });
       }, options);
-      
+
       imageRefs.current.forEach((ref, index) => {
         if (ref?.current) {
           ref.current.dataset.id = index;
           observer.observe(ref.current);
         }
       });
-      
+
       return () => {
         imageRefs.current.forEach(ref => {
           if (ref?.current) observer.unobserve(ref.current);
@@ -407,7 +407,7 @@ const IdentidadGallery = ({ onBack }) => {
   const renderGalleryContent = () => (
     <>
       {/* Image 1 (PORTADA) */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[0] = el}
         top={getCurrentStyles('IDENTIDAD1', activeBreakpoints).top}
         left={getCurrentStyles('IDENTIDAD1', activeBreakpoints).left}
@@ -416,10 +416,10 @@ const IdentidadGallery = ({ onBack }) => {
         zIndex={getCurrentStyles('IDENTIDAD1', activeBreakpoints).zIndex}
         isVisible={visibleImages[0] !== false}
       >
-        <Box 
-          component="img" 
-          src={images[0]} 
-          alt="IDENTIDAD 1 PORTADA" 
+        <Box
+          component="img"
+          src={images[0]}
+          alt="IDENTIDAD 1 PORTADA"
           loading="eager"
           sx={{
             objectFit: "cover",
@@ -429,9 +429,9 @@ const IdentidadGallery = ({ onBack }) => {
           }}
         />
       </ImageItem>
-      
+
       {/* Image 2 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[1] = el}
         top={getCurrentStyles('IDENTIDAD2', activeBreakpoints).top}
         left={getCurrentStyles('IDENTIDAD2', activeBreakpoints).left}
@@ -440,10 +440,10 @@ const IdentidadGallery = ({ onBack }) => {
         zIndex={getCurrentStyles('IDENTIDAD2', activeBreakpoints).zIndex}
         isVisible={visibleImages[1] !== false}
       >
-        <Box 
-          component="img" 
-          src={images[1]} 
-          alt="IDENTIDAD 2" 
+        <Box
+          component="img"
+          src={images[1]}
+          alt="IDENTIDAD 2"
           loading="eager"
           sx={{
             objectFit: "cover",
@@ -453,9 +453,9 @@ const IdentidadGallery = ({ onBack }) => {
           }}
         />
       </ImageItem>
-      
+
       {/* Image 3 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[2] = el}
         top={getCurrentStyles('IDENTIDAD3', activeBreakpoints).top}
         left={getCurrentStyles('IDENTIDAD3', activeBreakpoints).left}
@@ -464,10 +464,10 @@ const IdentidadGallery = ({ onBack }) => {
         zIndex={getCurrentStyles('IDENTIDAD3', activeBreakpoints).zIndex}
         isVisible={visibleImages[2] !== false}
       >
-        <Box 
-          component="img" 
-          src={images[2]} 
-          alt="IDENTIDAD 3" 
+        <Box
+          component="img"
+          src={images[2]}
+          alt="IDENTIDAD 3"
           loading="lazy"
           sx={{
             objectFit: "cover",
@@ -477,9 +477,9 @@ const IdentidadGallery = ({ onBack }) => {
           }}
         />
       </ImageItem>
-      
+
       {/* Image 4 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[3] = el}
         top={getCurrentStyles('IDENTIDAD4', activeBreakpoints).top}
         left={getCurrentStyles('IDENTIDAD4', activeBreakpoints).left}
@@ -488,10 +488,10 @@ const IdentidadGallery = ({ onBack }) => {
         zIndex={getCurrentStyles('IDENTIDAD4', activeBreakpoints).zIndex}
         isVisible={visibleImages[3] !== false}
       >
-        <Box 
-          component="img" 
-          src={images[3]} 
-          alt="IDENTIDAD 4" 
+        <Box
+          component="img"
+          src={images[3]}
+          alt="IDENTIDAD 4"
           loading="lazy"
           sx={{
             objectFit: "cover",
@@ -501,9 +501,9 @@ const IdentidadGallery = ({ onBack }) => {
           }}
         />
       </ImageItem>
-      
+
       {/* Image 5 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[4] = el}
         top={getCurrentStyles('IDENTIDAD5', activeBreakpoints).top}
         left={getCurrentStyles('IDENTIDAD5', activeBreakpoints).left}
@@ -512,10 +512,10 @@ const IdentidadGallery = ({ onBack }) => {
         zIndex={getCurrentStyles('IDENTIDAD5', activeBreakpoints).zIndex}
         isVisible={visibleImages[4] !== false}
       >
-        <Box 
-          component="img" 
-          src={images[4]} 
-          alt="IDENTIDAD 5" 
+        <Box
+          component="img"
+          src={images[4]}
+          alt="IDENTIDAD 5"
           loading="lazy"
           sx={{
             objectFit: "cover",
@@ -525,9 +525,9 @@ const IdentidadGallery = ({ onBack }) => {
           }}
         />
       </ImageItem>
-      
+
       {/* Image 6 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[5] = el}
         top={getCurrentStyles('IDENTIDAD6', activeBreakpoints).top}
         left={getCurrentStyles('IDENTIDAD6', activeBreakpoints).left}
@@ -536,10 +536,10 @@ const IdentidadGallery = ({ onBack }) => {
         zIndex={getCurrentStyles('IDENTIDAD6', activeBreakpoints).zIndex}
         isVisible={visibleImages[5] !== false}
       >
-        <Box 
-          component="img" 
-          src={images[5]} 
-          alt="IDENTIDAD 6" 
+        <Box
+          component="img"
+          src={images[5]}
+          alt="IDENTIDAD 6"
           loading="lazy"
           sx={{
             objectFit: "cover",
@@ -549,9 +549,9 @@ const IdentidadGallery = ({ onBack }) => {
           }}
         />
       </ImageItem>
-      
+
       {/* Image 7 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[6] = el}
         top={getCurrentStyles('IDENTIDAD7', activeBreakpoints).top}
         left={getCurrentStyles('IDENTIDAD7', activeBreakpoints).left}
@@ -560,10 +560,10 @@ const IdentidadGallery = ({ onBack }) => {
         zIndex={getCurrentStyles('IDENTIDAD7', activeBreakpoints).zIndex}
         isVisible={visibleImages[6] !== false}
       >
-        <Box 
-          component="img" 
-          src={images[6]} 
-          alt="IDENTIDAD 7" 
+        <Box
+          component="img"
+          src={images[6]}
+          alt="IDENTIDAD 7"
           loading="lazy"
           sx={{
             objectFit: "cover",
@@ -579,9 +579,9 @@ const IdentidadGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
-      
+
       {/* Loading screen component */}
-      <GalleryLoadingScreen 
+      <GalleryLoadingScreen
         title="Montevideo Under Fashion"
         year="2024"
         loading={loading}
@@ -591,26 +591,26 @@ const IdentidadGallery = ({ onBack }) => {
         textColor={galleryTheme.text}
         progressColor={galleryTheme.text}
       />
-      
+
       {/* Scroll progress bar */}
-      <ScrollProgressBar 
+      <ScrollProgressBar
         ref={progressBarRef}
-        data-scroll-progress 
-        sx={{ 
+        data-scroll-progress
+        sx={{
           opacity: loading ? 0 : 1
-        }} 
+        }}
       />
-      
+
       {/* Navigation arrow */}
-      <NavigationArrow 
-        onBack={onBack} 
+      <NavigationArrow
+        onBack={onBack}
         containerRef={containerRef}
         colors={galleryTheme}
         isLoading={loading}
       />
-      
-      <GalleryContainer 
-        ref={containerRef} 
+
+      <GalleryContainer
+        ref={containerRef}
         style={{ cursor: 'grab' }}
       >
         <GalleryContent>

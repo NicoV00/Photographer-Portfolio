@@ -58,12 +58,12 @@ const GalleryContainer = styled(Box, {
   const transitionLength = 800;
   // Calculate transition progress (0 to 1)
   const gradientProgress = Math.min(Math.max((scrollPosition - scrollThreshold) / transitionLength, 0), 1);
-  
+
   // Color stays the same (dark) throughout
   const initialColor = galleryTheme.main;
   const finalColor = galleryTheme.main;
-  
-  
+
+
   // Color interpolation function
   const interpolateColor = (progress) => {
     // Parse hex colors to RGB
@@ -73,22 +73,22 @@ const GalleryContainer = styled(Box, {
       const b = parseInt(hex.slice(5, 7), 16);
       return [r, g, b];
     };
-    
+
     const [r1, g1, b1] = parseColor(initialColor);
     const [r2, g2, b2] = parseColor(finalColor);
-    
+
     // Interpolate between colors
     const r = Math.round(r1 + (r2 - r1) * progress);
     const g = Math.round(g1 + (g2 - g1) * progress);
     const b = Math.round(b1 + (b2 - b1) * progress);
-    
+
     // Convert back to hex
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   };
-  
+
   // Get current background color based on scroll
   const bgColor = interpolateColor(gradientProgress);
-  
+
   return {
     backgroundColor: bgColor,
     width: '100vw',
@@ -120,8 +120,7 @@ const GalleryContainer = styled(Box, {
 const GalleryContent = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  width: '9300px', // Width for all images
-  height: '100%',
+  width: '9300px',
   padding: '40px',
   paddingRight: '300px', // Extra padding at the end
   position: 'relative',
@@ -185,7 +184,7 @@ const PasarelaGallery = ({ onBack }) => {
   // References for animation elements
   const progressBarRef = useRef(null);
   const containerRef = useRef(null);
-  
+
   // Image visibility state and references
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
@@ -196,47 +195,47 @@ const PasarelaGallery = ({ onBack }) => {
 
   // Images for PASARELA gallery
   const images = useMemo(() => [
-    '/images/PASARELA/PASARELA MUF-1.jpg',
-    '/images/PASARELA/PASARELA MUF-2.jpg',
-    '/images/PASARELA/PASARELA MUF-3.jpg',
-    '/images/PASARELA/PASARELA MUF-4.jpg',
-    '/images/PASARELA/PASARELA MUF-5.jpg',
+    '/images/PASARELA/webp/PASARELA MUF-1.webp',
+    '/images/PASARELA/webp/PASARELA MUF-2.webp',
+    '/images/PASARELA/webp/PASARELA MUF-3.webp',
+    '/images/PASARELA/webp/PASARELA MUF-4.webp',
+    '/images/PASARELA/webp/PASARELA MUF-5.webp',
     '/images/PASARELA/PASARELA MUF-6.png',
-    '/images/PASARELA/PASARELA MUF-7.jpg',
-    '/images/PASARELA/PASARELA MUF-8.jpg',
-    '/images/PASARELA/PASARELA MUF-9.jpg',
-    '/images/PASARELA/PASARELA MUF-10.jpg',
-    '/images/PASARELA/PASARELA MUF-11.jpg',
-    '/images/PASARELA/PASARELA MUF-12(PORTADA).jpg',
-    '/images/PASARELA/PASARELA MUF-13.jpg',
+    '/images/PASARELA/webp/PASARELA MUF-7.webp',
+    '/images/PASARELA/webp/PASARELA MUF-8.webp',
+    '/images/PASARELA/PASARELA MUF-9.png',
+    '/images/PASARELA/webp/PASARELA MUF-10.webp',
+    '/images/PASARELA/webp/PASARELA MUF-11.webp',
+    '/images/PASARELA/webp/PASARELA MUF-12(PORTADA).webp',
+    '/images/PASARELA/webp/PASARELA MUF-13.webp',
   ], []);
-  
+
   // Updated visibility check to always use horizontal scrolling logic
   const checkVisibility = useCallback(() => {
     if (!containerRef.current) return;
-    
+
     const container = containerRef.current;
     const containerRect = container.getBoundingClientRect();
     const containerWidth = containerRect.width;
-    
+
     const preloadMargin = containerWidth * 0.8;
-    
+
     const newVisibility = {};
-    
+
     imageRefs.current.forEach((ref, index) => {
       if (ref && ref.current) {
         const imageRect = ref.current.getBoundingClientRect();
-        
+
         // Check horizontal visibility
         const isVisible = (
           imageRect.left < containerRect.right + preloadMargin &&
           imageRect.right > containerRect.left - preloadMargin
         );
-        
+
         newVisibility[index] = isVisible;
       }
     });
-    
+
     setVisibleImages(prev => {
       if (JSON.stringify(prev) !== JSON.stringify(newVisibility)) {
         return newVisibility;
@@ -258,11 +257,11 @@ const PasarelaGallery = ({ onBack }) => {
     lerp: 0.04,               // Reduced lerp for ultra smooth transitions
     colors: galleryTheme
   });
-  
+
   // Loading progress animation effect
   useEffect(() => {
     let interval;
-    
+
     if (loading) {
       interval = setInterval(() => {
         setLoadProgress(prev => {
@@ -275,7 +274,7 @@ const PasarelaGallery = ({ onBack }) => {
         });
       }, 250);
     }
-    
+
     return () => clearInterval(interval);
   }, [loading]);
 
@@ -287,7 +286,7 @@ const PasarelaGallery = ({ onBack }) => {
         setLoading(false);
       }
     }, 5000);
-    
+
     return () => clearTimeout(timer);
   }, [loading]);
 
@@ -320,14 +319,14 @@ const PasarelaGallery = ({ onBack }) => {
     if (loading || !containerRef.current) return;
 
     checkVisibility();
-    
+
     if ('IntersectionObserver' in window) {
       const options = {
         root: containerRef.current,
         rootMargin: '200px',
         threshold: 0.1
       };
-      
+
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           const id = entry.target.dataset.id;
@@ -339,14 +338,14 @@ const PasarelaGallery = ({ onBack }) => {
           }
         });
       }, options);
-      
+
       imageRefs.current.forEach((ref, index) => {
         if (ref?.current) {
           ref.current.dataset.id = index;
           observer.observe(ref.current);
         }
       });
-      
+
       return () => {
         imageRefs.current.forEach(ref => {
           if (ref?.current) observer.unobserve(ref.current);
@@ -585,9 +584,9 @@ const PasarelaGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
-      
+
       {/* Loading screen component */}
-      <GalleryLoadingScreen 
+      <GalleryLoadingScreen
         title="Pasarela MUF"
         year="2024"
         loading={loading}
@@ -597,27 +596,27 @@ const PasarelaGallery = ({ onBack }) => {
         textColor={galleryTheme.text}
         progressColor={galleryTheme.text}
       />
-      
+
       {/* Scroll progress bar */}
-      <ScrollProgressBar 
+      <ScrollProgressBar
         ref={progressBarRef}
-        data-scroll-progress 
-        sx={{ 
+        data-scroll-progress
+        sx={{
           opacity: loading ? 0 : 1,
           width: `${scrollProgress}%`
-        }} 
+        }}
       />
-      
+
       {/* Navigation arrow */}
-      <NavigationArrow 
-        onBack={onBack} 
+      <NavigationArrow
+        onBack={onBack}
         containerRef={containerRef}
         colors={galleryTheme}
         isLoading={loading}
       />
-      
-      <GalleryContainer 
-        ref={containerRef} 
+
+      <GalleryContainer
+        ref={containerRef}
         scrollPosition={scrollLeft}
         style={{ cursor: 'grab' }}
       >

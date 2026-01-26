@@ -36,17 +36,17 @@ const ScrollProgressBar = styled(Box)({
 
 // Main container with horizontal scroll
 const GalleryContainer = styled(Box)(({ theme }) => ({
-  backgroundColor: galleryTheme.main, 
+  backgroundColor: galleryTheme.main,
   width: '100vw',
   height: '100vh',
   position: 'relative',
   overflowX: 'auto',
   overflowY: 'hidden',
-  transform: 'translateZ(0)',  
-  perspective: '1000px',       
-  backfaceVisibility: 'hidden', 
-  willChange: 'scroll-position', 
-  '-webkit-overflow-scrolling': 'touch', 
+  transform: 'translateZ(0)',
+  perspective: '1000px',
+  backfaceVisibility: 'hidden',
+  willChange: 'scroll-position',
+  '-webkit-overflow-scrolling': 'touch',
   '&::-webkit-scrollbar': {
     display: 'none',
   },
@@ -55,7 +55,7 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('sm')]: {
     overflowX: 'auto',
     overflowY: 'hidden',
-    height: '100vh', 
+    height: '100vh',
     minHeight: '100vh',
   },
 }));
@@ -71,10 +71,10 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   position: 'relative',
   transform: 'translateZ(0)',
   [theme.breakpoints.down('sm')]: {
-    width: '7500px', 
-    flexDirection: 'row', 
-    height: '100%', 
-    padding: '40px', 
+    width: '7500px',
+    flexDirection: 'row',
+    height: '100%',
+    padding: '40px',
     paddingRight: '300px',
   },
 }));
@@ -83,26 +83,26 @@ const GalleryContent = styled(Box)(({ theme }) => ({
 const ImageItem = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'isMobile' && prop !== 'top' && prop !== 'left' && prop !== 'isVisible' // No changes needed here based on request
 })(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true }) => ({
-  position: 'absolute', 
+  position: 'absolute',
   top: top,
   left: left, // This will now receive a percentage value
   width: width, // This will receive a percentage for the text box, otherwise usually undefined for images
   height: height,
   zIndex: zIndex,
-  marginBottom: '0', 
+  marginBottom: '0',
   opacity: isVisible ? 1 : 0,
-  transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)', 
+  transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
   transition: 'opacity 0.5s ease, transform 0.5s ease',
-  willChange: 'transform, opacity', 
-  backfaceVisibility: 'hidden', 
+  willChange: 'transform, opacity',
+  backfaceVisibility: 'hidden',
   '& img': {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
     borderRadius: '2px',
-    boxShadow: 'none', 
-    backfaceVisibility: 'hidden', 
-    transform: 'translateZ(0)', 
+    boxShadow: 'none',
+    backfaceVisibility: 'hidden',
+    transform: 'translateZ(0)',
   }
 }));
 
@@ -115,38 +115,38 @@ const AnaLivniGallery = ({ onBack }) => {
 
   const progressBarRef = useRef(null);
   const containerRef = useRef(null);
-  
+
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
 
   const images = useMemo(() => ({
-    L1: '/images/ANA/L1.jpg',
-    L2: '/images/ANA/L3.png', // ANA text
+    L1: '/images/ANA/webp/L1.webp',
+    L2: '/images/ANA/webp/L3.webp', // ANA text
     L3: '/images/ANA/L2.png', // LIVNI text
-    L4: '/images/ANA/L4.jpg',
-    L5: '/images/ANA/L5.jpg',
-    L6: '/images/ANA/L6.jpg',
-    L7: '/images/ANA/L7.jpg',
-    L8: '/images/ANA/L8.jpg',
-    L9: '/images/ANA/L9.jpg',
-    L10: '/images/ANA/L10.jpg',
-    L11: '/images/ANA/L11.jpg',
-    L12: '/images/ANA/L12.jpg',
-    L13: '/images/ANA/L13.jpg'
+    L4: '/images/ANA/webp/L4.webp',
+    L5: '/images/ANA/webp/L5.webp',
+    L6: '/images/ANA/webp/L6.webp',
+    L7: '/images/ANA/webp/L7.webp',
+    L8: '/images/ANA/webp/L8.webp',
+    L9: '/images/ANA/webp/L9.webp',
+    L10: '/images/ANA/webp/L10.webp',
+    L11: '/images/ANA/webp/L11.webp',
+    L12: '/images/ANA/webp/L12.webp',
+    L13: '/images/ANA/webp/L13.webp'
   }), []);
-  
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  
+
   const checkVisibility = useCallback(() => {
     if (!containerRef.current) return;
-    
+
     const container = containerRef.current;
     const containerRect = container.getBoundingClientRect();
     const containerWidth = containerRect.width;
     const preloadMargin = containerWidth * 0.8;
     const newVisibility = {};
-    
+
     imageRefs.current.forEach((ref, index) => {
       if (ref && ref.current) {
         const imageRect = ref.current.getBoundingClientRect();
@@ -157,7 +157,7 @@ const AnaLivniGallery = ({ onBack }) => {
         newVisibility[index] = isVisible;
       }
     });
-    
+
     setVisibleImages(prev => {
       if (JSON.stringify(prev) !== JSON.stringify(newVisibility)) {
         return newVisibility;
@@ -171,14 +171,14 @@ const AnaLivniGallery = ({ onBack }) => {
     isMobile, // This can still be used by useSmoothScroll for different physics if needed
     isLoading: loading,
     checkVisibility,
-    horizontal: true, 
-    duration: 2.5,     
-    wheelMultiplier: 1.2,  
-    touchMultiplier: 2,    
-    lerp: 0.04,           
+    horizontal: true,
+    duration: 2.5,
+    wheelMultiplier: 1.2,
+    touchMultiplier: 2,
+    lerp: 0.04,
     colors: galleryTheme
   });
-  
+
   // Loading progress animation effect
   useEffect(() => {
     let interval;
@@ -229,11 +229,11 @@ const AnaLivniGallery = ({ onBack }) => {
 
     if ('IntersectionObserver' in window) {
       const options = {
-        root: containerRef.current, 
+        root: containerRef.current,
         rootMargin: '200px', // Preload margin for IntersectionObserver
         threshold: 0.1 // At least 10% of item visible
       };
-      
+
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           const id = entry.target.dataset.id;
@@ -242,14 +242,14 @@ const AnaLivniGallery = ({ onBack }) => {
           }
         });
       }, options);
-      
+
       imageRefs.current.forEach((imageRef, index) => {
         if (imageRef?.current) {
           imageRef.current.dataset.id = index; // Assign index as id for tracking
           observer.observe(imageRef.current);
         }
       });
-      
+
       return () => {
         imageRefs.current.forEach(imageRef => {
           if (imageRef?.current) observer.unobserve(imageRef.current);
@@ -266,8 +266,8 @@ const AnaLivniGallery = ({ onBack }) => {
   const renderGalleryContent = () => (
     <>
       {/* 1. Large image (L1) */}
-      <ImageItem 
-        ref={el => imageRefs.current[0] = {current: el}} // Ensure ref structure compatibility
+      <ImageItem
+        ref={el => imageRefs.current[0] = { current: el }} // Ensure ref structure compatibility
         top="50%"
         left={`${(450 / TOTAL_CONTENT_WIDTH) * 100}%`} // 6%
         height="85vh"
@@ -279,13 +279,13 @@ const AnaLivniGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.L1} alt="ANA LIVNI 1" loading="eager" />
       </ImageItem>
-      
+
       {/* 2 & 3. "ANA" and "LIVNI" text images */}
-      <Box 
-        ref={el => imageRefs.current[1] = {current: el}}
-        sx={{ 
-          position: 'absolute', 
-          top: '85%', 
+      <Box
+        ref={el => imageRefs.current[1] = { current: el }}
+        sx={{
+          position: 'absolute',
+          top: '85%',
           left: `${(1300 / TOTAL_CONTENT_WIDTH) * 100}%`, // approx 17.33%
           width: `${(170 / TOTAL_CONTENT_WIDTH) * 100}%`, // approx 2.27%
           transform: 'translateY(-50%) translateZ(0)',
@@ -301,36 +301,36 @@ const AnaLivniGallery = ({ onBack }) => {
         <Box component="img" src={images.L2} alt="ANA" sx={{ width: '100%', marginBottom: '5px' }} loading="eager" />
         <Box component="img" src={images.L3} alt="LIVNI" sx={{ width: '100%' }} loading="eager" />
       </Box>
-      
-      <ImageItem 
-        ref={el => imageRefs.current[2] = {current: el}}
-        top="1%" 
+
+      <ImageItem
+        ref={el => imageRefs.current[2] = { current: el }}
+        top="1%"
         left={`${(1500 / TOTAL_CONTENT_WIDTH) * 100}%`} // 20%
-        height="55vh" 
+        height="55vh"
         zIndex={2}
         isVisible={visibleImages[2] !== false}
         isMobile={isMobile}
       >
         <Box component="img" src={images.L4} alt="ANA LIVNI 4" loading="eager" />
       </ImageItem>
-      
-      <ImageItem 
-        ref={el => imageRefs.current[3] = {current: el}}
-        top="44%" 
+
+      <ImageItem
+        ref={el => imageRefs.current[3] = { current: el }}
+        top="44%"
         left={`${(1875 / TOTAL_CONTENT_WIDTH) * 100}%`} // 25%
-        height="55vh" 
+        height="55vh"
         zIndex={2}
         isVisible={visibleImages[3] !== false}
         isMobile={isMobile}
       >
         <Box component="img" src={images.L5} alt="ANA LIVNI 5" loading="eager" />
       </ImageItem>
-      
-      <ImageItem 
-        ref={el => imageRefs.current[4] = {current: el}}
-        top="50%" 
+
+      <ImageItem
+        ref={el => imageRefs.current[4] = { current: el }}
+        top="50%"
         left={`${(2460 / TOTAL_CONTENT_WIDTH) * 100}%`} // 32.8%
-        height="50vh" 
+        height="50vh"
         zIndex={1}
         isVisible={visibleImages[4] !== false}
         isMobile={isMobile}
@@ -338,12 +338,12 @@ const AnaLivniGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.L6} alt="ANA LIVNI 6" loading="eager" />
       </ImageItem>
-      
-      <ImageItem 
-        ref={el => imageRefs.current[5] = {current: el}}
-        top="50%" 
+
+      <ImageItem
+        ref={el => imageRefs.current[5] = { current: el }}
+        top="50%"
         left={`${(3100 / TOTAL_CONTENT_WIDTH) * 100}%`} // approx 41.33%
-        height="50vh" 
+        height="50vh"
         zIndex={2}
         isVisible={visibleImages[5] !== false}
         isMobile={isMobile}
@@ -351,12 +351,12 @@ const AnaLivniGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.L7} alt="ANA LIVNI 7" loading="eager" />
       </ImageItem>
-      
-      <ImageItem 
-        ref={el => imageRefs.current[6] = {current: el}}
-        top="50%" 
+
+      <ImageItem
+        ref={el => imageRefs.current[6] = { current: el }}
+        top="50%"
         left={`${(3750 / TOTAL_CONTENT_WIDTH) * 100}%`} // 50%
-        height="100vh" 
+        height="100vh"
         zIndex={1}
         isVisible={visibleImages[6] !== false}
         isMobile={isMobile}
@@ -364,10 +364,10 @@ const AnaLivniGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.L8} alt="ANA LIVNI 8" loading="eager" />
       </ImageItem>
-      
-      <ImageItem 
-        ref={el => imageRefs.current[7] = {current: el}}
-        top="50%" 
+
+      <ImageItem
+        ref={el => imageRefs.current[7] = { current: el }}
+        top="50%"
         left={`${(5650 / TOTAL_CONTENT_WIDTH) * 100}%`} // approx 75.33%
         height="55vh"
         zIndex={2}
@@ -377,10 +377,10 @@ const AnaLivniGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.L9} alt="ANA LIVNI 9" loading="lazy" />
       </ImageItem>
-      
-      <ImageItem 
-        ref={el => imageRefs.current[8] = {current: el}}
-        top="50%" 
+
+      <ImageItem
+        ref={el => imageRefs.current[8] = { current: el }}
+        top="50%"
         left={`${(5250 / TOTAL_CONTENT_WIDTH) * 100}%`} // 70%
         height="55vh"
         zIndex={3}
@@ -390,12 +390,12 @@ const AnaLivniGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.L10} alt="ANA LIVNI 10" loading="lazy" />
       </ImageItem>
-      
-      <ImageItem 
-        ref={el => imageRefs.current[9] = {current: el}}
-        top="50%" 
+
+      <ImageItem
+        ref={el => imageRefs.current[9] = { current: el }}
+        top="50%"
         left={`${(4850 / TOTAL_CONTENT_WIDTH) * 100}%`} // approx 64.67%
-        height="55vh" 
+        height="55vh"
         zIndex={2}
         isVisible={visibleImages[9] !== false}
         isMobile={isMobile}
@@ -403,12 +403,12 @@ const AnaLivniGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.L11} alt="ANA LIVNI 11" loading="lazy" />
       </ImageItem>
-      
-      <ImageItem 
-        ref={el => imageRefs.current[10] = {current: el}}
-        top="35%" 
+
+      <ImageItem
+        ref={el => imageRefs.current[10] = { current: el }}
+        top="35%"
         left={`${(6400 / TOTAL_CONTENT_WIDTH) * 100}%`} // approx 85.33%
-        height="70vh" 
+        height="70vh"
         zIndex={2}
         isVisible={visibleImages[10] !== false}
         isMobile={isMobile}
@@ -416,12 +416,12 @@ const AnaLivniGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.L12} alt="ANA LIVNI 12" loading="lazy" />
       </ImageItem>
-      
-      <ImageItem 
-        ref={el => imageRefs.current[11] = {current: el}}
-        top="65%" 
+
+      <ImageItem
+        ref={el => imageRefs.current[11] = { current: el }}
+        top="65%"
         left={`${(6800 / TOTAL_CONTENT_WIDTH) * 100}%`} // approx 90.67%
-        height="70vh" 
+        height="70vh"
         zIndex={1}
         isVisible={visibleImages[11] !== false}
         isMobile={isMobile}
@@ -435,9 +435,9 @@ const AnaLivniGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
-      
+
       {/* Loading screen component */}
-      <GalleryLoadingScreen 
+      <GalleryLoadingScreen
         title="Ana Livni"
         year="2024"
         loading={loading}
@@ -447,23 +447,23 @@ const AnaLivniGallery = ({ onBack }) => {
         textColor={galleryTheme.text}
         progressColor={galleryTheme.text}
       />
-      
-      <ScrollProgressBar 
+
+      <ScrollProgressBar
         ref={progressBarRef}
         data-scroll-progress // For potential direct manipulation by scroll library if needed
-        sx={{ 
+        sx={{
           opacity: loading ? 0 : 1,
           width: `${scrollProgress * 100}%` // Controlled by useSmoothScroll
-        }} 
+        }}
       />
-      
-      <NavigationArrow 
-        onBack={onBack} 
+
+      <NavigationArrow
+        onBack={onBack}
         containerRef={containerRef} // Pass containerRef if needed by NavigationArrow
         colors={galleryTheme}
         isLoading={loading}
       />
-      
+
       <GalleryContainer ref={containerRef}>
         <GalleryContent>
           {renderGalleryContent()}

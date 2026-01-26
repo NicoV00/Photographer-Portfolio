@@ -76,11 +76,11 @@ const GalleryContainer = styled(Box, {
   const transitionLength = 1000;
   // Calculate transition progress (0 to 1)
   const gradientProgress = Math.min(Math.max((scrollPosition - scrollThreshold) / transitionLength, 0), 1);
-  
+
   // Color transition from lilac to light gray
   const initialColor = '#aa88ef'; // Lilac color
   const finalColor = '#e6e6e6';   // Light gray
-  
+
   // Color interpolation function
   const interpolateColor = (progress) => {
     // Parse hex colors to RGB
@@ -90,22 +90,22 @@ const GalleryContainer = styled(Box, {
       const b = parseInt(hex.slice(5, 7), 16);
       return [r, g, b];
     };
-    
+
     const [r1, g1, b1] = parseColor(initialColor);
     const [r2, g2, b2] = parseColor(finalColor);
-    
+
     // Interpolate between colors
     const r = Math.round(r1 + (r2 - r1) * progress);
     const g = Math.round(g1 + (g2 - g1) * progress);
     const b = Math.round(b1 + (b2 - b1) * progress);
-    
+
     // Convert back to hex
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   };
-  
+
   // Get current background color based on scroll
   const bgColor = interpolateColor(gradientProgress);
-  
+
   return {
     backgroundColor: bgColor,
     width: '100vw',
@@ -187,7 +187,7 @@ const LenoirGallery = ({ onBack }) => {
   // References for animation elements
   const progressBarRef = useRef(null);
   const containerRef = useRef(null);
-  
+
   // Image visibility state and references
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
@@ -198,16 +198,16 @@ const LenoirGallery = ({ onBack }) => {
 
   // Images for LENOIR
   const images = useMemo(() => [
-    "./images/LENOIR/LENOIR-1.jpg",
-    "./images/LENOIR/LENOIR-2.jpg",
-    "./images/LENOIR/LENOIR-3.jpg",
-    "./images/LENOIR/LENOIR-4.jpg",
-    "./images/LENOIR/LENOIR-5.jpg",
-    "./images/LENOIR/LENOIR-6.jpg",
-    "./images/LENOIR/LENOIR-7.jpg",
-    "./images/LENOIR/LENOIR-8.jpg",
+    "/images/LENOIR/webp/LENOIR-1.webp",
+    "/images/LENOIR/webp/LENOIR-2.webp",
+    "/images/LENOIR/webp/LENOIR-3.webp",
+    "/images/LENOIR/webp/LENOIR-4.webp",
+    "/images/LENOIR/webp/LENOIR-5.webp",
+    "/images/LENOIR/webp/LENOIR-6.webp",
+    "/images/LENOIR/webp/LENOIR-7.webp",
+    "/images/LENOIR/webp/LENOIR-8.webp",
   ], []);
-  
+
   // Handle loading complete
   const handleLoadingComplete = useCallback(() => {
     setLoading(false);
@@ -217,29 +217,29 @@ const LenoirGallery = ({ onBack }) => {
   // Updated visibility check to always use horizontal scrolling logic
   const checkVisibility = useCallback(() => {
     if (!containerRef.current) return;
-    
+
     const container = containerRef.current;
     const containerRect = container.getBoundingClientRect();
     const containerWidth = containerRect.width;
-    
+
     const preloadMargin = containerWidth * 0.8;
-    
+
     const newVisibility = {};
-    
+
     imageRefs.current.forEach((ref, index) => {
       if (ref && ref.current) {
         const imageRect = ref.current.getBoundingClientRect();
-        
+
         // Check horizontal visibility
         const isVisible = (
           imageRect.left < containerRect.right + preloadMargin &&
           imageRect.right > containerRect.left - preloadMargin
         );
-        
+
         newVisibility[index] = isVisible;
       }
     });
-    
+
     setVisibleImages(prev => {
       if (JSON.stringify(prev) !== JSON.stringify(newVisibility)) {
         return newVisibility;
@@ -261,11 +261,11 @@ const LenoirGallery = ({ onBack }) => {
     lerp: 0.04,               // Reduced lerp for ultra smooth transitions
     colors: galleryTheme
   });
-  
+
   // Loading progress animation effect
   useEffect(() => {
     let interval;
-    
+
     if (loading) {
       interval = setInterval(() => {
         setLoadProgress(prev => {
@@ -279,7 +279,7 @@ const LenoirGallery = ({ onBack }) => {
         });
       }, 250);
     }
-    
+
     return () => clearInterval(interval);
   }, [loading, handleLoadingComplete]);
 
@@ -289,11 +289,11 @@ const LenoirGallery = ({ onBack }) => {
     if (!loading) {
       // Disable overscroll for smoother experience
       document.body.style.overscrollBehavior = 'none';
-      
+
       // Enable smooth scrolling at the browser level for maximum smoothness
       document.documentElement.style.scrollBehavior = 'smooth';
     }
-    
+
     return () => {
       // Cleanup optimizations when component unmounts
       document.body.style.overscrollBehavior = '';
@@ -312,10 +312,10 @@ const LenoirGallery = ({ onBack }) => {
           img.onerror = resolve;
         });
       });
-      
+
       await Promise.all(imagePromises);
     };
-    
+
     preloadImages();
   }, [images]);
 
@@ -324,9 +324,9 @@ const LenoirGallery = ({ onBack }) => {
       <MediumFontStyle />
       <MyriadFontStyle />
       <PPEditorialUltraboldStyle />
-      
+
       {/* Loading screen component */}
-      <GalleryLoadingScreen 
+      <GalleryLoadingScreen
         title="Lenoir"
         year="2024"
         loading={loading}
@@ -336,33 +336,33 @@ const LenoirGallery = ({ onBack }) => {
         textColor={galleryTheme.text}
         progressColor={galleryTheme.text}
       />
-      
+
       {/* Scroll progress bar */}
-      <ScrollProgressBar 
+      <ScrollProgressBar
         ref={progressBarRef}
-        data-scroll-progress 
-        sx={{ 
+        data-scroll-progress
+        sx={{
           opacity: loading ? 0 : 1,
           width: `${scrollProgress}%`
-        }} 
+        }}
       />
-      
+
       {/* Navigation arrow */}
-      <NavigationArrow 
-        onBack={onBack} 
+      <NavigationArrow
+        onBack={onBack}
         containerRef={containerRef}
         colors={galleryTheme}
         isLoading={loading}
       />
-      
-      <GalleryContainer 
+
+      <GalleryContainer
         ref={containerRef}
         scrollPosition={scrollLeft}
         style={{ cursor: 'grab' }}
       >
         <GalleryContent>
           {/* Image 1 */}
-          <ImageItem 
+          <ImageItem
             ref={el => imageRefs.current[0] = { current: el }}
             top="50%"
             left="450px"
@@ -374,9 +374,9 @@ const LenoirGallery = ({ onBack }) => {
           >
             <Box component="img" src={images[0]} alt="LENOIR 1" loading="eager" />
           </ImageItem>
-          
+
           {/* Image 2 */}
-          <ImageItem 
+          <ImageItem
             ref={el => imageRefs.current[1] = { current: el }}
             top="50%"
             left="1200px"
@@ -388,9 +388,9 @@ const LenoirGallery = ({ onBack }) => {
           >
             <Box component="img" src={images[1]} alt="LENOIR 2" loading="lazy" />
           </ImageItem>
-          
+
           {/* Image 3 */}
-          <ImageItem 
+          <ImageItem
             ref={el => imageRefs.current[2] = { current: el }}
             top="50%"
             left="1950px"
@@ -402,9 +402,9 @@ const LenoirGallery = ({ onBack }) => {
           >
             <Box component="img" src={images[2]} alt="LENOIR 3" loading="lazy" />
           </ImageItem>
-          
+
           {/* Image 4 */}
-          <ImageItem 
+          <ImageItem
             ref={el => imageRefs.current[3] = { current: el }}
             top="50%"
             left="2700px"
@@ -416,9 +416,9 @@ const LenoirGallery = ({ onBack }) => {
           >
             <Box component="img" src={images[3]} alt="LENOIR 4" loading="lazy" />
           </ImageItem>
-          
+
           {/* Image 5 - Transition starts around here */}
-          <ImageItem 
+          <ImageItem
             ref={el => imageRefs.current[4] = { current: el }}
             top="50%"
             left="3900px"
@@ -430,9 +430,9 @@ const LenoirGallery = ({ onBack }) => {
           >
             <Box component="img" src={images[4]} alt="LENOIR 5" loading="lazy" />
           </ImageItem>
-          
+
           {/* Image 6 - Transition completes around here */}
-          <ImageItem 
+          <ImageItem
             ref={el => imageRefs.current[5] = { current: el }}
             top="50%"
             left="5000px"
@@ -444,9 +444,9 @@ const LenoirGallery = ({ onBack }) => {
           >
             <Box component="img" src={images[5]} alt="LENOIR 6" loading="lazy" />
           </ImageItem>
-          
+
           {/* Image 7 */}
-          <ImageItem 
+          <ImageItem
             ref={el => imageRefs.current[6] = { current: el }}
             top="50%"
             left="5700px"
@@ -458,9 +458,9 @@ const LenoirGallery = ({ onBack }) => {
           >
             <Box component="img" src={images[6]} alt="LENOIR 7" loading="lazy" />
           </ImageItem>
-          
+
           {/* Image 8 */}
-          <ImageItem 
+          <ImageItem
             ref={el => imageRefs.current[7] = { current: el }}
             top="50%"
             left="6900px"

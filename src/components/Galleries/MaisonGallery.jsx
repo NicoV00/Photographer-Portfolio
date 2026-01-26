@@ -144,14 +144,14 @@ const GalleryContent = styled(Box)(({ theme }) => ({
 // Image item with GPU acceleration
 const ImageItem = styled(Box, {
   shouldForwardProp: (prop) => !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileHeight', 'mobileWidth'].includes(prop)
-})(({ 
-  theme, 
-  top, 
-  left, 
-  width, 
-  height, 
-  zIndex = 1, 
-  isMobile = false, 
+})(({
+  theme,
+  top,
+  left,
+  width,
+  height,
+  zIndex = 1,
+  isMobile = false,
   isVisible = true,
   // Props específicos para móvil
   mobileTop,
@@ -204,14 +204,14 @@ const ImageItem = styled(Box, {
 // Frame for video with glow effect
 const VideoFrame = styled(Box, {
   shouldForwardProp: (prop) => !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileHeight', 'mobileWidth'].includes(prop)
-})(({ 
-  theme, 
-  top, 
-  left, 
-  width, 
-  height, 
-  zIndex = 1, 
-  isMobile = false, 
+})(({
+  theme,
+  top,
+  left,
+  width,
+  height,
+  zIndex = 1,
+  isMobile = false,
   isVisible = true,
   // Props específicos para móvil
   mobileTop,
@@ -256,11 +256,11 @@ const MaisonGallery = ({ onBack }) => {
   // Loading screen state
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
-  
+
   // References for animation elements
   const containerRef = useRef(null);
   const progressBarRef = useRef(null);
-  
+
   // Image visibility state and references with optimized memory usage
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
@@ -272,46 +272,46 @@ const MaisonGallery = ({ onBack }) => {
     M3: '/images/MDLST/MDLST-3.png',
     M4: '/images/MDLST/MDLST-4.png',
     M5: '/images/MDLST/MDLST-5.png',
-    M6: '/images/MDLST/MDLST-6.jpg',
-    M7: '/images/MDLST/MDLST-7.jpg',
-    M8: '/images/MDLST/MDLST-8.jpg',
+    M6: '/images/MDLST/webp/MDLST-6.webp',
+    M7: '/images/MDLST/webp/MDLST-7.webp',
+    M8: '/images/MDLST/webp/MDLST-8.webp',
     M9: '/images/MDLST/MDLST-9.mp4',
-    M10: '/images/MDLST/MDLST-10.jpg',
-    M11: '/images/MDLST/MDLST-11.jpg',
-    M12: '/images/MDLST/MDLST-12.jpg',
-    M13: '/images/MDLST/MDLST-13.jpg'
+    M10: '/images/MDLST/webp/MDLST-10.webp',
+    M11: '/images/MDLST/webp/MDLST-11.webp',
+    M12: '/images/MDLST/webp/MDLST-12.webp',
+    M13: '/images/MDLST/webp/MDLST-13.webp'
   }), []);
-  
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  
+
   // Optimized visibility checking - throttled for performance
   const checkVisibility = useCallback(() => {
     if (!containerRef.current) return;
-    
+
     const container = containerRef.current;
     const containerRect = container.getBoundingClientRect();
     const containerWidth = containerRect.width;
-    
+
     // Increased preload margin for smoother experience
     const preloadMargin = containerWidth * 1.2;
-    
+
     const newVisibility = {};
-    
+
     imageRefs.current.forEach((ref, index) => {
       if (ref && ref.current) {
         const imageRect = ref.current.getBoundingClientRect();
-        
+
         // Always use horizontal scrolling check logic regardless of device
         const isVisible = (
           imageRect.left < containerRect.right + preloadMargin &&
           imageRect.right > containerRect.left - preloadMargin
         );
-        
+
         newVisibility[index] = isVisible;
       }
     });
-    
+
     // Only update state if visibility has changed
     setVisibleImages(prev => {
       if (JSON.stringify(prev) !== JSON.stringify(newVisibility)) {
@@ -338,7 +338,7 @@ const MaisonGallery = ({ onBack }) => {
   // Loading progress animation effect
   useEffect(() => {
     let interval;
-    
+
     if (loading) {
       interval = setInterval(() => {
         setLoadProgress(prev => {
@@ -351,7 +351,7 @@ const MaisonGallery = ({ onBack }) => {
         });
       }, 250);
     }
-    
+
     return () => clearInterval(interval);
   }, [loading]);
 
@@ -362,7 +362,7 @@ const MaisonGallery = ({ onBack }) => {
         setLoading(false);
       }
     }, 5000);
-    
+
     return () => clearTimeout(timer);
   }, [loading]);
 
@@ -377,14 +377,14 @@ const MaisonGallery = ({ onBack }) => {
     if (!loading) {
       // Add will-change hint to body for smoother overall page performance
       document.body.style.willChange = 'scroll-position';
-      
+
       // Disable overscroll for smoother experience
       document.body.style.overscrollBehavior = 'none';
-      
+
       // Enable smooth scrolling at the browser level for maximum smoothness
       document.documentElement.style.scrollBehavior = 'smooth';
     }
-    
+
     return () => {
       // Cleanup optimizations when component unmounts
       document.body.style.willChange = '';
@@ -398,14 +398,14 @@ const MaisonGallery = ({ onBack }) => {
     if (loading || !containerRef.current) return;
 
     checkVisibility();
-    
+
     if ('IntersectionObserver' in window) {
       const options = {
         root: containerRef.current, // Always use container as root for both mobile and desktop
         rootMargin: '300px', // Increased margin for earlier loading
         threshold: 0.1
       };
-      
+
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           const id = entry.target.dataset.id;
@@ -417,14 +417,14 @@ const MaisonGallery = ({ onBack }) => {
           }
         });
       }, options);
-      
+
       imageRefs.current.forEach((ref, index) => {
         if (ref?.current) {
           ref.current.dataset.id = index;
           observer.observe(ref.current);
         }
       });
-      
+
       return () => {
         imageRefs.current.forEach(ref => {
           if (ref?.current) observer.unobserve(ref.current);
@@ -441,7 +441,7 @@ const MaisonGallery = ({ onBack }) => {
       const ua = navigator.userAgent;
       return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
     };
-    
+
     // Si estamos en un dispositivo móvil real, forzar ciertos ajustes
     if (detectRealMobile()) {
       // Asegurar que los elementos se muestren correctamente
@@ -453,7 +453,7 @@ const MaisonGallery = ({ onBack }) => {
       document.body.style.height = '100%';
       document.body.style.overflow = 'hidden';
     }
-    
+
     return () => {
       // Limpiar ajustes
       document.documentElement.style.fontSize = '';
@@ -480,7 +480,7 @@ const MaisonGallery = ({ onBack }) => {
   const renderGalleryContent = () => (
     <>
       {/* 1. First image - Man seated in industrial space */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[0] = el}
         top="50%"
         left="450px"
@@ -498,9 +498,9 @@ const MaisonGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.M1} alt="MAISON 1" loading="eager" />
       </ImageItem>
-      
+
       {/* 2. Close-up of hand with rings */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[1] = el}
         top="25%"
         left="1300px"
@@ -517,11 +517,11 @@ const MaisonGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.M2} alt="MAISON 2" loading="eager" />
       </ImageItem>
-      
+
       {/* 3. Man walking on metro platform */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[2] = el}
-        left="1550px" 
+        left="1550px"
         height="100vh"
         width="auto" // Añadido width original para referencia
         zIndex={2}
@@ -534,12 +534,12 @@ const MaisonGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.M3} alt="MAISON 3" loading="eager" />
       </ImageItem>
-      
+
       {/* 4. Abstract logo */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[3] = el}
-        top="35%" 
-        left="2240px" 
+        top="35%"
+        left="2240px"
         height="55vh"
         width="auto" // Añadido width original para referencia
         zIndex={3}
@@ -556,17 +556,17 @@ const MaisonGallery = ({ onBack }) => {
       </ImageItem>
 
       {/* 5. Logo (background) */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[4] = el}
-        top="70%" 
+        top="70%"
         left="2110px"
         height="120vh"
         width="auto" // Añadido width original para referencia
         zIndex={1}
         isVisible={visibleImages[4] !== false}
         isMobile={isMobile}
-        sx={{ 
-          transform: 'translateY(-50%) translateZ(0) rotate(35deg)', 
+        sx={{
+          transform: 'translateY(-50%) translateZ(0) rotate(35deg)',
           opacity: 0.1,
           '& img': {
             boxShadow: 'none',
@@ -581,11 +581,11 @@ const MaisonGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.M5} alt="MAISON 5" loading="eager" />
       </ImageItem>
-      
+
       {/* 6. Image */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[5] = el}
-        top="50%" 
+        top="50%"
         left="3500px"
         height="70vh"
         width="auto" // Añadido width original para referencia
@@ -601,11 +601,11 @@ const MaisonGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.M6} alt="MAISON 6" loading="eager" />
       </ImageItem>
-      
+
       {/* 7. Double panel of man seated in metro */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[6] = el}
-        top="50%" 
+        top="50%"
         left="4120px"
         height="70vh"
         width="auto" // Añadido width original para referencia
@@ -621,11 +621,11 @@ const MaisonGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.M7} alt="MAISON 7" loading="eager" />
       </ImageItem>
-      
+
       {/* 8. Man standing on metro platform */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[7] = el}
-        top="50%" 
+        top="50%"
         left="4735px"
         height="70vh"
         width="auto" // Añadido width original para referencia
@@ -641,11 +641,11 @@ const MaisonGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.M8} alt="MAISON 8" loading="lazy" />
       </ImageItem>
-      
+
       {/* 9. White frame with video and glow effect */}
-      <VideoFrame 
+      <VideoFrame
         ref={el => imageRefs.current[8] = el}
-        top="50%" 
+        top="50%"
         left="5560px"
         height="85vh"
         width="auto" // Añadido width original para referencia
@@ -659,7 +659,7 @@ const MaisonGallery = ({ onBack }) => {
         mobileHeight="75vh"
         mobileWidth="80vw" // Ancho relativo al viewport - aproximadamente 37% del ancho de pantalla (ligeramente más grande por ser video)
       >
-        <Box 
+        <Box
           component="video"
           src={images.M9}
           alt="MAISON Video"
@@ -669,11 +669,11 @@ const MaisonGallery = ({ onBack }) => {
           playsInline
         />
       </VideoFrame>
-      
+
       {/* 10. Man leaning on column in metro */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[9] = el}
-        top="41%" 
+        top="41%"
         left="6340px"
         height="55vh"
         width="auto" // Añadido width original para referencia
@@ -689,11 +689,11 @@ const MaisonGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.M10} alt="MAISON 10" loading="lazy" />
       </ImageItem>
-      
+
       {/* 11. Image #11 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[10] = el}
-        top="124px" 
+        top="124px"
         left="7020px"
         height="55vh"
         width="auto" // Añadido width original para referencia
@@ -708,9 +708,9 @@ const MaisonGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.M11} alt="MAISON 11" loading="lazy" />
       </ImageItem>
-      
+
       {/* 12. Image #12 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[11] = el}
         left="8000px"
         height="80vh"
@@ -726,11 +726,11 @@ const MaisonGallery = ({ onBack }) => {
       >
         <Box component="img" src={images.M12} alt="MAISON 12" loading="lazy" />
       </ImageItem>
-      
+
       {/* 13. Image #13 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[12] = el}
-        top="50%" 
+        top="50%"
         left="9000px"
         height="100vh"
         width="auto" // Añadido width original para referencia
@@ -752,9 +752,9 @@ const MaisonGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
-      
+
       {/* Loading screen component */}
-      <GalleryLoadingScreen 
+      <GalleryLoadingScreen
         title="Maison de l'Est"
         year="2024"
         loading={loading}
@@ -764,38 +764,38 @@ const MaisonGallery = ({ onBack }) => {
         textColor={galleryTheme.text}
         progressColor={galleryTheme.text}
       />
-      
+
       {/* Scroll progress bar - always visible after loading but controlled by Lenis via data-scroll-progress */}
-      <ScrollProgressBar 
+      <ScrollProgressBar
         ref={progressBarRef}
-        data-scroll-progress 
-        sx={{ 
+        data-scroll-progress
+        sx={{
           opacity: loading ? 0 : 1
-        }} 
+        }}
       />
-      
+
       {/* Top scroll ribbon */}
       <ScrollRibbon position="top">
         <ScrollText>
           {generateScrollText()}
         </ScrollText>
       </ScrollRibbon>
-      
+
       {/* Bottom scroll ribbon */}
       <ScrollRibbon position="bottom" isBottom={true}>
         <ScrollText>
           {generateScrollText()}
         </ScrollText>
       </ScrollRibbon>
-      
+
       {/* Navigation arrow */}
-      <NavigationArrow 
-        onBack={onBack} 
+      <NavigationArrow
+        onBack={onBack}
         containerRef={containerRef}
         colors={galleryTheme}
         isLoading={loading}
       />
-      
+
       <GalleryContainer ref={containerRef}>
         <GalleryContent>
           {renderGalleryContent()}

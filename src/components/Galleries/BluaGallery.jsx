@@ -76,7 +76,7 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
     width: '3000px', // Reduced width for mobile (65% of desktop)
-    height: '100%', 
+    height: '100%',
     padding: '20px', // Menos padding en móvil
     paddingRight: '150px', // Menos padding en móvil
     transform: 'translateZ(0)', // Keep GPU acceleration
@@ -85,17 +85,17 @@ const GalleryContent = styled(Box)(({ theme }) => ({
 
 // Image item - Updated to include mobile-specific properties like in MaisonGallery
 const ImageItem = styled(Box, {
-  shouldForwardProp: (prop) => 
+  shouldForwardProp: (prop) =>
     !['isMobile', 'top', 'left', 'isVisible', 'isPhoto', 'mobileTop', 'mobileLeft', 'mobileHeight', 'mobileWidth'].includes(prop)
-})(({ 
-  theme, 
-  top, 
-  left, 
-  width, 
-  height, 
-  zIndex = 1, 
-  isMobile = false, 
-  isVisible = true, 
+})(({
+  theme,
+  top,
+  left,
+  width,
+  height,
+  zIndex = 1,
+  isMobile = false,
+  isVisible = true,
   isPhoto = true,
   // Props específicos para móvil
   mobileTop,
@@ -129,15 +129,15 @@ const ImageItem = styled(Box, {
 
 // Spotify Container with CLEAN GLASS EFFECT - Minimal and simple
 const SpotifyContainer = styled(Box, {
-  shouldForwardProp: (prop) => 
+  shouldForwardProp: (prop) =>
     !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileWidth'].includes(prop)
-})(({ 
-  theme, 
-  top, 
-  left, 
-  width = '300px', 
-  zIndex = 1, 
-  isMobile = false, 
+})(({
+  theme,
+  top,
+  left,
+  width = '300px',
+  zIndex = 1,
+  isMobile = false,
   isVisible = true,
   // Props específicos para móvil
   mobileTop,
@@ -160,13 +160,13 @@ const SpotifyContainer = styled(Box, {
   transition: 'opacity 0.5s ease', // Only opacity transition, no transform
   marginBottom: '0',
   backfaceVisibility: 'hidden',
-  
+
   // Simple glass effect - clean and minimal
   background: 'rgba(255, 255, 255, 0.05)', // Very subtle white overlay
   backdropFilter: 'blur(1px)', // Minimal blur
   WebkitBackdropFilter: 'blur(1px)', // Safari support
   border: '1px solid rgba(0, 0, 0, 0.1)', // Black border instead of white
-  
+
   '& iframe': {
     border: 'none',
     width: '100%',
@@ -196,7 +196,7 @@ const ConstelacionGallery = ({ onBack }) => {
   // Referencias para los elementos de animación
   const progressBarRef = useRef(null);
   const containerRef = useRef(null);
-  
+
   // Estado para controlar la visibilidad de las imágenes
   const [visibleImages, setVisibleImages] = useState({});
   // Referencias para todas las imágenes
@@ -208,38 +208,38 @@ const ConstelacionGallery = ({ onBack }) => {
     // Using theme parameter to create a minimal UI and hide_cover=1 to hide album art
     embedUrl: 'https://open.spotify.com/embed/track/3VEQBNtshnnRnad8e0UhKV?utm_source=generator&theme=0&hide_cover=1'
   };
-  
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  
+
   // Check which images are visible - updated for horizontal scrolling for both mobile and desktop
   const checkVisibility = React.useCallback(() => {
     if (!containerRef.current) return;
-    
+
     const container = containerRef.current;
     const containerRect = container.getBoundingClientRect();
     const containerWidth = containerRect.width;
-    
+
     // Margen para precarga (carga imágenes un poco antes de que sean visibles)
     const preloadMargin = containerWidth * 0.8;
-    
+
     // Actualizar visibilidad de las imágenes
     const newVisibility = {};
-    
+
     imageRefs.current.forEach((ref, index) => {
       if (ref && ref.current) {
         const imageRect = ref.current.getBoundingClientRect();
-        
+
         // Always check horizontal visibility
         let isVisible = (
           imageRect.left < containerRect.right + preloadMargin &&
           imageRect.right > containerRect.left - preloadMargin
         );
-        
+
         newVisibility[index] = isVisible;
       }
     });
-    
+
     setVisibleImages(prev => {
       // Solo actualizar si hay cambios
       if (JSON.stringify(prev) !== JSON.stringify(newVisibility)) {
@@ -262,11 +262,11 @@ const ConstelacionGallery = ({ onBack }) => {
     lerp: 0.04,               // Reduced lerp for ultra smooth transitions
     colors: galleryTheme
   });
-  
+
   // Loading progress animation effect
   useEffect(() => {
     let interval;
-    
+
     if (loading) {
       interval = setInterval(() => {
         setLoadProgress(prev => {
@@ -279,7 +279,7 @@ const ConstelacionGallery = ({ onBack }) => {
         });
       }, 250);
     }
-    
+
     return () => clearInterval(interval);
   }, [loading]);
 
@@ -291,7 +291,7 @@ const ConstelacionGallery = ({ onBack }) => {
         setLoading(false);
       }
     }, 5000);
-    
+
     return () => clearTimeout(timer);
   }, [loading]);
 
@@ -306,11 +306,11 @@ const ConstelacionGallery = ({ onBack }) => {
     if (!loading) {
       // Disable overscroll for smoother experience
       document.body.style.overscrollBehavior = 'none';
-      
+
       // Enable smooth scrolling at the browser level for maximum smoothness
       document.documentElement.style.scrollBehavior = 'smooth';
     }
-    
+
     return () => {
       // Cleanup optimizations when component unmounts
       document.body.style.overscrollBehavior = '';
@@ -323,14 +323,14 @@ const ConstelacionGallery = ({ onBack }) => {
     if (loading || !containerRef.current) return;
 
     checkVisibility();
-    
+
     if ('IntersectionObserver' in window) {
       const options = {
         root: containerRef.current, // Always use container as root for horizontal scrolling
         rootMargin: '200px',
         threshold: 0.1
       };
-      
+
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           const id = entry.target.dataset.id;
@@ -342,14 +342,14 @@ const ConstelacionGallery = ({ onBack }) => {
           }
         });
       }, options);
-      
+
       imageRefs.current.forEach((ref, index) => {
         if (ref?.current) {
           ref.current.dataset.id = index;
           observer.observe(ref.current);
         }
       });
-      
+
       return () => {
         imageRefs.current.forEach(ref => {
           if (ref?.current) observer.unobserve(ref.current);
@@ -366,7 +366,7 @@ const ConstelacionGallery = ({ onBack }) => {
       const ua = navigator.userAgent;
       return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
     };
-    
+
     // Si estamos en un dispositivo móvil real, forzar ciertos ajustes
     if (detectRealMobile()) {
       // Asegurar que los elementos se muestren correctamente
@@ -378,7 +378,7 @@ const ConstelacionGallery = ({ onBack }) => {
       document.body.style.height = '100%';
       document.body.style.overflow = 'hidden';
     }
-    
+
     return () => {
       // Limpiar ajustes
       document.documentElement.style.fontSize = '';
@@ -394,7 +394,7 @@ const ConstelacionGallery = ({ onBack }) => {
   const renderGalleryContent = () => (
     <>
       {/* b1.jpg - Main photo */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[0] = el}
         top="50%"
         left="450px"
@@ -405,38 +405,38 @@ const ConstelacionGallery = ({ onBack }) => {
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
         // Ajustes específicos para móvil
-        mobileTop="45%" 
+        mobileTop="45%"
         mobileLeft="270px"
         mobileHeight="70vh"
         mobileWidth="70vh"
       >
-        <Box 
-          component="img" 
-          src="/images/blua/b1.jpg" 
-          alt="Retrato de joven con suéter gris" 
+        <Box
+          component="img"
+          src="/images/blua/webp/b1.webp"
+          alt="Retrato de joven con suéter gris"
           loading="eager"
         />
       </ImageItem>
 
       {/* Spotify embed with Clean Glass Effect */}
-      <SpotifyContainer 
+      <SpotifyContainer
         ref={el => imageRefs.current[1] = el}
         top="50%"
         left="1400px"
-        width="320px" 
+        width="320px"
         zIndex={2}
         isVisible={visibleImages[1] !== false}
         isMobile={isMobile}
-        sx={{ 
+        sx={{
           transform: 'translateY(-50%) translateZ(0)'
         }}
         // Ajustes específicos para móvil
-        mobileTop="50%" 
+        mobileTop="50%"
         mobileLeft="940px"
         mobileWidth="220px"
       >
-        <Box 
-          component="iframe" 
+        <Box
+          component="iframe"
           src={spotifyTrack.embedUrl}
           width="100%"
           height="80px"
@@ -448,7 +448,7 @@ const ConstelacionGallery = ({ onBack }) => {
       </SpotifyContainer>
 
       {/* 2.png image */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[2] = el}
         top="50%"
         left="2000px"
@@ -460,15 +460,15 @@ const ConstelacionGallery = ({ onBack }) => {
         isMobile={isMobile}
         sx={{ transform: 'translateY(-50%) translateZ(0)' }}
         // Ajustes específicos para móvil
-        mobileTop="45%" 
+        mobileTop="45%"
         mobileLeft="1300px"
         mobileHeight="auto"
         mobileWidth="1500px"
       >
-        <Box 
-          component="img" 
-          src="/images/blua/2.png" 
-          alt="Constelación" 
+        <Box
+          component="img"
+          src="/images/blua/2.png"
+          alt="Constelación"
           loading="lazy"
         />
       </ImageItem>
@@ -479,9 +479,9 @@ const ConstelacionGallery = ({ onBack }) => {
     <>
       <GlobalStyle />
       <SpotifyCustomStyle />
-      
+
       {/* Loading screen component */}
-      <GalleryLoadingScreen 
+      <GalleryLoadingScreen
         title="Constelación, Blua"
         year="2024"
         loading={loading}
@@ -491,24 +491,24 @@ const ConstelacionGallery = ({ onBack }) => {
         textColor={galleryTheme.text}
         progressColor={galleryTheme.text}
       />
-      
+
       {/* Scroll progress bar - always visible after loading but controlled by Lenis */}
-      <ScrollProgressBar 
+      <ScrollProgressBar
         ref={progressBarRef}
-        data-scroll-progress 
-        sx={{ 
+        data-scroll-progress
+        sx={{
           opacity: loading ? 0 : 1
-        }} 
+        }}
       />
-      
+
       {/* Flecha de navegación */}
-      <NavigationArrow 
-        onBack={onBack} 
+      <NavigationArrow
+        onBack={onBack}
         containerRef={containerRef}
         colors={galleryTheme}
         isLoading={loading}
       />
-      
+
       <GalleryContainer ref={containerRef}>
         <GalleryContent>
           {renderGalleryContent()}

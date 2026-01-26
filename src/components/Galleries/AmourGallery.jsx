@@ -61,11 +61,11 @@ const GalleryContainer = styled(Box, {
   const transitionLength = 800;
   // Calculate transition progress (0 to 1)
   const gradientProgress = Math.min(Math.max((scrollPosition - scrollThreshold) / transitionLength, 0), 1);
-  
+
   // Color stays the same (red) throughout
   const initialColor = '#e82d2d'; // Red
   const finalColor = '#e82d2d';   // Red
-  
+
   // Color interpolation function
   const interpolateColor = (progress) => {
     // Parse hex colors to RGB
@@ -75,22 +75,22 @@ const GalleryContainer = styled(Box, {
       const b = parseInt(hex.slice(5, 7), 16);
       return [r, g, b];
     };
-    
+
     const [r1, g1, b1] = parseColor(initialColor);
     const [r2, g2, b2] = parseColor(finalColor);
-    
+
     // Interpolate between colors
     const r = Math.round(r1 + (r2 - r1) * progress);
     const g = Math.round(g1 + (g2 - g1) * progress);
     const b = Math.round(b1 + (b2 - b1) * progress);
-    
+
     // Convert back to hex
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   };
-  
+
   // Get current background color based on scroll
   const bgColor = interpolateColor(gradientProgress);
-  
+
   return {
     backgroundColor: bgColor,
     width: '100vw',
@@ -142,9 +142,9 @@ const GalleryContent = styled(Box)(({ theme }) => ({
 
 // Image item - optimized with GPU acceleration
 const ImageItem = styled(Box, {
-  shouldForwardProp: (prop) => 
-    prop !== 'isVisible' && 
-    prop !== 'isMobile' && 
+  shouldForwardProp: (prop) =>
+    prop !== 'isVisible' &&
+    prop !== 'isMobile' &&
     prop !== 'isPhoto'
 })(({ theme, top, left, width, height, zIndex = 1, isVisible = true, isPhoto = true }) => ({
   position: 'absolute', // Always use absolute positioning for both mobile and desktop
@@ -178,7 +178,7 @@ const AmourGallery = ({ onBack }) => {
   // References for animation elements
   const progressBarRef = useRef(null);
   const containerRef = useRef(null);
-  
+
   // Image visibility state and references
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
@@ -199,16 +199,16 @@ const AmourGallery = ({ onBack }) => {
 
   // Images for AMOUR gallery - ELIMINADA la imagen 3 problemática
   const images = useMemo(() => [
-    '/images/AMOUR/ADELAMOUR-1.jpg',
-    '/images/AMOUR/ADELAMOUR-2.jpg',
-    '/images/AMOUR/ADELAMOUR-6.jpg',
+    '/images/AMOUR/webp/ADELAMOUR-1.webp',
+    '/images/AMOUR/webp/ADELAMOUR-2.webp',
+    '/images/AMOUR/webp/ADELAMOUR-6.webp',
     // ADELAMOUR-3.jpg ha sido eliminada
-    '/images/AMOUR/ADELAMOUR-4.jpg',
-    '/images/AMOUR/ADELAMOUR-5.jpg',
-    '/images/AMOUR/sape.jpg',
-    
-    '/images/AMOUR/ADELAMOUR-7.jpg',
-    '/images/AMOUR/ADELAMOUR-8.jpg',
+    '/images/AMOUR/webp/ADELAMOUR-4.webp',
+    '/images/AMOUR/webp/ADELAMOUR-5.webp',
+    '/images/AMOUR/webp/sape.webp',
+
+    '/images/AMOUR/webp/ADELAMOUR-7.webp',
+    '/images/AMOUR/webp/ADELAMOUR-8.webp',
   ], []);
 
   // CONFIGURACIÓN DE ESTILOS RESPONSIVOS PARA IMÁGENES
@@ -217,7 +217,7 @@ const AmourGallery = ({ onBack }) => {
   // Los valores de desktop (xl, lg, md) permanecen iguales a los originales
   const imageConfigurations = {
     // =========== IMAGEN 1 ===========
-    AMOUR1: { 
+    AMOUR1: {
       // Desktop - valores originales sin cambios
       xl: { top: "50%", left: "450px", height: "85vh", innerMaxWidth: "600px", zIndex: 2 },
       lg: { top: "50%", left: "450px", height: "85vh", innerMaxWidth: "550px", zIndex: 2 },
@@ -226,9 +226,9 @@ const AmourGallery = ({ onBack }) => {
       sm: { top: "45%", left: "220px", height: "70vh", innerMaxWidth: "350px", zIndex: 2 },
       xs: { top: "45%", left: "180px", height: "65vh", innerMaxWidth: "80vw", zIndex: 2 },
     },
-    
+
     // =========== IMAGEN 2 ===========
-    AMOUR2: { 
+    AMOUR2: {
       // Desktop - valores originales sin cambios
       xl: { top: "50%", left: "1350px", height: "60vh", innerMaxWidth: "500px", zIndex: 2 },
       lg: { top: "50%", left: "1350px", height: "60vh", innerMaxWidth: "480px", zIndex: 2 },
@@ -237,10 +237,10 @@ const AmourGallery = ({ onBack }) => {
       sm: { top: "45%", left: "850px", height: "55vh", innerMaxWidth: "300px", zIndex: 2 },
       xs: { top: "45%", left: "650px", height: "50vh", innerMaxWidth: "70vw", zIndex: 2 },
     },
-    
+
     // =========== IMAGEN 6 en posición 3 ===========
     // Esta configuración es para la imagen 6 que aparece en el lugar donde estaba la imagen 3
-    AMOUR6_POSITION3: { 
+    AMOUR6_POSITION3: {
       // Desktop - valores originales del renderGalleryContent() original
       xl: { top: "55%", left: "1770px", height: "60vh", innerMaxWidth: "500px", zIndex: 2 },
       lg: { top: "55%", left: "1770px", height: "60vh", innerMaxWidth: "480px", zIndex: 2 },
@@ -249,9 +249,9 @@ const AmourGallery = ({ onBack }) => {
       sm: { top: "50%", left: "1100px", height: "55vh", innerMaxWidth: "300px", zIndex: 2 },
       xs: { top: "50%", left: "1000px", height: "50vh", innerMaxWidth: "70vw", zIndex: 2 },
     },
-    
+
     // =========== IMAGEN 4 ===========
-    AMOUR4: { 
+    AMOUR4: {
       // Desktop - valores originales sin cambios
       xl: { top: "50%", left: "3450px", height: "65vh", innerMaxWidth: "550px", zIndex: 3 },
       lg: { top: "50%", left: "3450px", height: "65vh", innerMaxWidth: "520px", zIndex: 3 },
@@ -260,9 +260,9 @@ const AmourGallery = ({ onBack }) => {
       sm: { top: "55%", left: "2400px", height: "60vh", innerMaxWidth: "320px", zIndex: 2 },
       xs: { top: "55%", left: "2300px", height: "55vh", innerMaxWidth: "80vw", zIndex: 2 },
     },
-    
+
     // =========== IMAGEN 5 ===========
-    AMOUR5: { 
+    AMOUR5: {
       // Desktop - valores originales sin cambios
       xl: { top: "50%", left: "2750px", height: "100vh", innerMaxWidth: "800px", zIndex: 2 },
       lg: { top: "50%", left: "2750px", height: "95vh", innerMaxWidth: "750px", zIndex: 2 },
@@ -271,9 +271,9 @@ const AmourGallery = ({ onBack }) => {
       sm: { top: "45%", left: "1700px", height: "90vh", innerMaxWidth: "600px", zIndex: 2 },
       xs: { top: "45%", left: "1600px", height: "85vh", innerMaxWidth: "90vw", zIndex: 2 },
     },
-    
+
     // =========== IMAGEN 6 en posición normal ===========
-    AMOUR6: { 
+    AMOUR6: {
       // Desktop - valores originales sin cambios
       xl: { top: "50%", left: "4450px", height: "85vh", innerMaxWidth: "650px", zIndex: 2 },
       lg: { top: "50%", left: "4450px", height: "80vh", innerMaxWidth: "620px", zIndex: 2 },
@@ -282,9 +282,9 @@ const AmourGallery = ({ onBack }) => {
       sm: { top: "40%", left: "2750px", height: "55vh", innerMaxWidth: "300px", zIndex: 2 },
       xs: { top: "40%", left: "2550px", height: "50vh", innerMaxWidth: "70vw", zIndex: 2 },
     },
-    
+
     // =========== IMAGEN 7 ===========
-    AMOUR7: { 
+    AMOUR7: {
       // Desktop - valores originales sin cambios
       xl: { top: "50%", left: "5250px", height: "85vh", innerMaxWidth: "650px", zIndex: 2 },
       lg: { top: "50%", left: "5250px", height: "85vh", innerMaxWidth: "600px", zIndex: 2 },
@@ -293,9 +293,9 @@ const AmourGallery = ({ onBack }) => {
       sm: { top: "45%", left: "3300px", height: "75vh", innerMaxWidth: "400px", zIndex: 2 },
       xs: { top: "45%", left: "3100px", height: "70vh", innerMaxWidth: "85vw", zIndex: 2 },
     },
-    
+
     // =========== IMAGEN 8 ===========
-    AMOUR8: { 
+    AMOUR8: {
       // Desktop - valores originales sin cambios
       xl: { top: "50%", left: "6000px", height: "85vh", innerMaxWidth: "650px", zIndex: 2 },
       lg: { top: "50%", left: "6000px", height: "85vh", innerMaxWidth: "600px", zIndex: 2 },
@@ -317,33 +317,33 @@ const AmourGallery = ({ onBack }) => {
     if (breakpoints.isXl) return config.xl;
     return config.xl; // Default a xl
   };
-  
+
   // Updated visibility check to always use horizontal scrolling logic
   const checkVisibility = useCallback(() => {
     if (!containerRef.current) return;
-    
+
     const container = containerRef.current;
     const containerRect = container.getBoundingClientRect();
     const containerWidth = containerRect.width;
-    
+
     const preloadMargin = containerWidth * 1.2; // Aumentado para mejor precarga
-    
+
     const newVisibility = {};
-    
+
     imageRefs.current.forEach((ref, index) => {
       if (ref && ref.current) {
         const imageRect = ref.current.getBoundingClientRect();
-        
+
         // Check horizontal visibility
         const isVisible = (
           imageRect.left < containerRect.right + preloadMargin &&
           imageRect.right > containerRect.left - preloadMargin
         );
-        
+
         newVisibility[index] = isVisible;
       }
     });
-    
+
     setVisibleImages(prev => {
       if (JSON.stringify(prev) !== JSON.stringify(newVisibility)) {
         return newVisibility;
@@ -365,11 +365,11 @@ const AmourGallery = ({ onBack }) => {
     lerp: 0.04,               // Reduced lerp for ultra smooth transitions
     colors: galleryTheme
   });
-  
+
   // Loading progress animation effect
   useEffect(() => {
     let interval;
-    
+
     if (loading) {
       interval = setInterval(() => {
         setLoadProgress(prev => {
@@ -382,7 +382,7 @@ const AmourGallery = ({ onBack }) => {
         });
       }, 250);
     }
-    
+
     return () => clearInterval(interval);
   }, [loading]);
 
@@ -394,7 +394,7 @@ const AmourGallery = ({ onBack }) => {
         setLoading(false);
       }
     }, 5000);
-    
+
     return () => clearTimeout(timer);
   }, [loading]);
 
@@ -409,7 +409,7 @@ const AmourGallery = ({ onBack }) => {
       document.body.style.overscrollBehavior = 'none';
       document.documentElement.style.scrollBehavior = 'smooth';
     }
-    
+
     return () => {
       document.body.style.overscrollBehavior = '';
       document.documentElement.style.scrollBehavior = '';
@@ -419,7 +419,7 @@ const AmourGallery = ({ onBack }) => {
   // Ajustes específicos para iOS
   useEffect(() => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    
+
     if (isIOS) {
       document.documentElement.style.height = '100%';
       document.body.style.height = '100%';
@@ -427,7 +427,7 @@ const AmourGallery = ({ onBack }) => {
       document.body.style.width = '100%';
       document.body.style.overflowY = 'hidden';
     }
-    
+
     return () => {
       if (isIOS) {
         document.documentElement.style.height = '';
@@ -444,14 +444,14 @@ const AmourGallery = ({ onBack }) => {
     if (loading || !containerRef.current) return;
 
     checkVisibility();
-    
+
     if ('IntersectionObserver' in window) {
       const options = {
         root: containerRef.current,
         rootMargin: '200px',
         threshold: 0.1
       };
-      
+
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           const id = entry.target.dataset.id;
@@ -463,14 +463,14 @@ const AmourGallery = ({ onBack }) => {
           }
         });
       }, options);
-      
+
       imageRefs.current.forEach((ref, index) => {
         if (ref?.current) {
           ref.current.dataset.id = index;
           observer.observe(ref.current);
         }
       });
-      
+
       return () => {
         imageRefs.current.forEach(ref => {
           if (ref?.current) observer.unobserve(ref.current);
@@ -484,7 +484,7 @@ const AmourGallery = ({ onBack }) => {
   const renderGalleryContent = () => (
     <>
       {/* Image 1 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[0] = el}
         top={getCurrentStyles('AMOUR1', activeBreakpoints).top}
         left={getCurrentStyles('AMOUR1', activeBreakpoints).left}
@@ -493,10 +493,10 @@ const AmourGallery = ({ onBack }) => {
         zIndex={getCurrentStyles('AMOUR1', activeBreakpoints).zIndex}
         isVisible={visibleImages[0] !== false}
       >
-        <Box 
-          component="img" 
-          src={images[0]} 
-          alt="ADELAMOUR 1" 
+        <Box
+          component="img"
+          src={images[0]}
+          alt="ADELAMOUR 1"
           loading="eager"
           sx={{
             objectFit: "cover",
@@ -506,9 +506,9 @@ const AmourGallery = ({ onBack }) => {
           }}
         />
       </ImageItem>
-      
+
       {/* Image 2 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[1] = el}
         top={getCurrentStyles('AMOUR2', activeBreakpoints).top}
         left={getCurrentStyles('AMOUR2', activeBreakpoints).left}
@@ -517,10 +517,10 @@ const AmourGallery = ({ onBack }) => {
         zIndex={getCurrentStyles('AMOUR2', activeBreakpoints).zIndex}
         isVisible={visibleImages[1] !== false}
       >
-        <Box 
-          component="img" 
-          src={images[1]} 
-          alt="ADELAMOUR 2" 
+        <Box
+          component="img"
+          src={images[1]}
+          alt="ADELAMOUR 2"
           loading="eager"
           sx={{
             objectFit: "cover",
@@ -530,9 +530,9 @@ const AmourGallery = ({ onBack }) => {
           }}
         />
       </ImageItem>
-      
+
       {/* Image 6 en posición 3 - Usando la imagen 6 (índice 4) pero en la posición donde iba la imagen 3 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[2] = el}
         top={getCurrentStyles('AMOUR6_POSITION3', activeBreakpoints).top}
         left={getCurrentStyles('AMOUR6_POSITION3', activeBreakpoints).left}
@@ -541,10 +541,10 @@ const AmourGallery = ({ onBack }) => {
         zIndex={getCurrentStyles('AMOUR6_POSITION3', activeBreakpoints).zIndex}
         isVisible={visibleImages[2] !== false}
       >
-        <Box 
-          component="img" 
+        <Box
+          component="img"
           src={images[4]} /* Usando imagen 6 (índice 4 en el array) */
-          alt="ADELAMOUR 6 (en pos. 3)" 
+          alt="ADELAMOUR 6 (en pos. 3)"
           loading="eager"
           sx={{
             objectFit: "cover",
@@ -554,9 +554,9 @@ const AmourGallery = ({ onBack }) => {
           }}
         />
       </ImageItem>
-      
+
       {/* Image 4 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[3] = el}
         top={getCurrentStyles('AMOUR4', activeBreakpoints).top}
         left={getCurrentStyles('AMOUR4', activeBreakpoints).left}
@@ -565,10 +565,10 @@ const AmourGallery = ({ onBack }) => {
         zIndex={getCurrentStyles('AMOUR4', activeBreakpoints).zIndex}
         isVisible={visibleImages[3] !== false}
       >
-        <Box 
-          component="img" 
+        <Box
+          component="img"
           src={images[2]} /* Imagen 4 es índice 2 en array actualizado */
-          alt="ADELAMOUR 4" 
+          alt="ADELAMOUR 4"
           loading="lazy"
           sx={{
             objectFit: "cover",
@@ -578,9 +578,9 @@ const AmourGallery = ({ onBack }) => {
           }}
         />
       </ImageItem>
-      
+
       {/* Image 5 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[4] = el}
         top={getCurrentStyles('AMOUR5', activeBreakpoints).top}
         left={getCurrentStyles('AMOUR5', activeBreakpoints).left}
@@ -589,10 +589,10 @@ const AmourGallery = ({ onBack }) => {
         zIndex={getCurrentStyles('AMOUR5', activeBreakpoints).zIndex}
         isVisible={visibleImages[4] !== false}
       >
-        <Box 
-          component="img" 
+        <Box
+          component="img"
           src={images[3]} /* Imagen 5 es índice 3 en array actualizado */
-          alt="ADELAMOUR 5" 
+          alt="ADELAMOUR 5"
           loading="lazy"
           sx={{
             objectFit: "cover",
@@ -602,9 +602,9 @@ const AmourGallery = ({ onBack }) => {
           }}
         />
       </ImageItem>
-      
+
       {/* Image 6 en su posición original */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[5] = el}
         top={getCurrentStyles('AMOUR6', activeBreakpoints).top}
         left={getCurrentStyles('AMOUR6', activeBreakpoints).left}
@@ -613,10 +613,10 @@ const AmourGallery = ({ onBack }) => {
         zIndex={getCurrentStyles('AMOUR6', activeBreakpoints).zIndex}
         isVisible={visibleImages[5] !== false}
       >
-        <Box 
-          component="img" 
+        <Box
+          component="img"
           src={images[4]} /* Imagen 6 es índice 4 en array actualizado */
-          alt="ADELAMOUR 6" 
+          alt="ADELAMOUR 6"
           loading="lazy"
           sx={{
             objectFit: "cover",
@@ -626,9 +626,9 @@ const AmourGallery = ({ onBack }) => {
           }}
         />
       </ImageItem>
-      
+
       {/* Image 7 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[6] = el}
         top={getCurrentStyles('AMOUR7', activeBreakpoints).top}
         left={getCurrentStyles('AMOUR7', activeBreakpoints).left}
@@ -637,10 +637,10 @@ const AmourGallery = ({ onBack }) => {
         zIndex={getCurrentStyles('AMOUR7', activeBreakpoints).zIndex}
         isVisible={visibleImages[6] !== false}
       >
-        <Box 
-          component="img" 
+        <Box
+          component="img"
           src={images[5]} /* Imagen 7 es índice 5 en array actualizado */
-          alt="ADELAMOUR 7" 
+          alt="ADELAMOUR 7"
           loading="lazy"
           sx={{
             objectFit: "cover",
@@ -650,9 +650,9 @@ const AmourGallery = ({ onBack }) => {
           }}
         />
       </ImageItem>
-      
+
       {/* Image 8 */}
-      <ImageItem 
+      <ImageItem
         ref={el => imageRefs.current[7] = el}
         top={getCurrentStyles('AMOUR8', activeBreakpoints).top}
         left={getCurrentStyles('AMOUR8', activeBreakpoints).left}
@@ -661,10 +661,10 @@ const AmourGallery = ({ onBack }) => {
         zIndex={getCurrentStyles('AMOUR8', activeBreakpoints).zIndex}
         isVisible={visibleImages[7] !== false}
       >
-        <Box 
-          component="img" 
+        <Box
+          component="img"
           src={images[6]} /* Imagen 8 es índice 6 en array actualizado */
-          alt="ADELAMOUR 8" 
+          alt="ADELAMOUR 8"
           loading="lazy"
           sx={{
             objectFit: "cover",
@@ -680,9 +680,9 @@ const AmourGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
-      
+
       {/* Loading screen component */}
-      <GalleryLoadingScreen 
+      <GalleryLoadingScreen
         title="A del Amour"
         year="2024"
         loading={loading}
@@ -692,26 +692,26 @@ const AmourGallery = ({ onBack }) => {
         textColor={galleryTheme.text}
         progressColor={galleryTheme.text}
       />
-      
+
       {/* Scroll progress bar */}
-      <ScrollProgressBar 
+      <ScrollProgressBar
         ref={progressBarRef}
-        data-scroll-progress 
-        sx={{ 
+        data-scroll-progress
+        sx={{
           opacity: loading ? 0 : 1
-        }} 
+        }}
       />
-      
+
       {/* Navigation arrow */}
-      <NavigationArrow 
-        onBack={onBack} 
+      <NavigationArrow
+        onBack={onBack}
         containerRef={containerRef}
         colors={galleryTheme}
         isLoading={loading}
       />
-      
-      <GalleryContainer 
-        ref={containerRef} 
+
+      <GalleryContainer
+        ref={containerRef}
         scrollPosition={scrollLeft}
         style={{ cursor: 'grab' }}
       >

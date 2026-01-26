@@ -145,17 +145,17 @@ const EnzoGallery = ({ onBack }) => {
 
   // Images for ENZO X gallery
   const images = useMemo(() => [
-    '/images/X/@enzocimillo_ex-_1.jpg',
-    '/images/X/@enzocimillo_ex-_2.jpg',
-    '/images/X/@enzocimillo_ex-_3.jpg',
-    '/images/X/@enzocimillo_ex-_4.jpg',
-    '/images/X/@enzocimillo_ex-_5.jpg',
-    '/images/X/@enzocimillo_ex-_6.jpg',
-    '/images/X/@enzocimillo_ex-_7.jpg',
-    '/images/X/@enzocimillo_ex-_8.jpg',
-    '/images/X/@enzocimillo_ex-_9.jpg',
-    '/images/X/@enzocimillo_ex-_10.jpg',
-    '/images/X/@enzocimillo_ex-_11.jpg',
+    '/images/X/webp/@enzocimillo_ex-_1.webp',
+    '/images/X/webp/@enzocimillo_ex-_2.webp',
+    '/images/X/webp/@enzocimillo_ex-_3.webp',
+    '/images/X/webp/@enzocimillo_ex-_4.webp',
+    '/images/X/webp/@enzocimillo_ex-_5.webp',
+    '/images/X/webp/@enzocimillo_ex-_6.webp',
+    '/images/X/webp/@enzocimillo_ex-_7.webp',
+    '/images/X/webp/@enzocimillo_ex-_8.webp',
+    '/images/X/webp/@enzocimillo_ex-_9.webp',
+    '/images/X/webp/@enzocimillo_ex-_10.webp',
+    '/images/X/webp/@enzocimillo_ex-_11.webp',
   ], []);
 
   // Visibility check

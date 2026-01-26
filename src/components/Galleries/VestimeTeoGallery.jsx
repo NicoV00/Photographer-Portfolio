@@ -103,7 +103,7 @@ const GalleryContent = styled(Box)(({ theme }) => ({
     width: '5200px',
   },
   [theme.breakpoints.down('xs')]: {
-     width: '4800px',
+    width: '4800px',
   },
 }));
 
@@ -149,9 +149,9 @@ const VestimeTeoGallery = ({ onBack }) => {
   const imageRefs = useRef([]);
 
   const images = [
-    '/images/TEO/V1.jpg', '/images/TEO/V2.jpg', '/images/TEO/asd.jpg',
-    '/images/TEO/V6.jpg', '/images/TEO/V8.jpg', '/images/TEO/V9.jpg',
-    '/images/TEO/V5.jpg', '/images/TEO/V7.jpg',
+    '/images/TEO/webp/V1.webp', '/images/TEO/webp/V2.webp', '/images/TEO/webp/asd.webp',
+    '/images/TEO/webp/V6.webp', '/images/TEO/webp/V8.webp', '/images/TEO/webp/V9.webp',
+    '/images/TEO/webp/V5.webp', '/images/TEO/webp/V7.webp',
   ];
 
   const theme = useTheme();
@@ -169,21 +169,21 @@ const VestimeTeoGallery = ({ onBack }) => {
       lg: { top: "50%", left: "380px", height: "70%", innerMaxWidth: "500px", zIndex: 2 },
       md: { top: "50%", left: "250px", height: "75%", innerMaxWidth: "400px", zIndex: 2 },
       sm: { top: "50%", left: "120px", height: "85%", innerMaxWidth: "350px", zIndex: 2 },
-      xs: { top: "50%", left: "80px",  height: "80%", innerMaxWidth: "80vw", zIndex: 2 },
+      xs: { top: "50%", left: "80px", height: "80%", innerMaxWidth: "80vw", zIndex: 2 },
     },
     V2: { // img index 1
       xl: { top: "50%", left: "1100px", height: "70%", innerMaxWidth: "550px", zIndex: 2 },
-      lg: { top: "50%", left: "950px",  height: "70%", innerMaxWidth: "500px", zIndex: 2 },
-      md: { top: "50%", left: "750px",  height: "75%", innerMaxWidth: "400px", zIndex: 2 },
-      sm: { top: "50%", left: "700px",  height: "85%", innerMaxWidth: "350px", zIndex: 2 },
-      xs: { top: "50%", left: "550px",  height: "80%", innerMaxWidth: "80vw", zIndex: 2 },
+      lg: { top: "50%", left: "950px", height: "70%", innerMaxWidth: "500px", zIndex: 2 },
+      md: { top: "50%", left: "750px", height: "75%", innerMaxWidth: "400px", zIndex: 2 },
+      sm: { top: "50%", left: "700px", height: "85%", innerMaxWidth: "350px", zIndex: 2 },
+      xs: { top: "50%", left: "550px", height: "80%", innerMaxWidth: "80vw", zIndex: 2 },
     },
     asd: { // img index 2 - AJUSTADO
       xl: { top: "50%", left: "1900px", height: "100%", innerMaxWidth: "none", zIndex: 2 }, // Desktop: 100% height, sin restricción explícita de maxWidth interno
       lg: { top: "50%", left: "1700px", height: "100%", innerMaxWidth: "none", zIndex: 2 }, // Desktop: 100% height
       md: { top: "50%", left: "1400px", height: "100%", innerMaxWidth: "none", zIndex: 2 },  // Tablet: 100% height
       sm: { top: "45%", left: "1300px", height: "100%", innerMaxWidth: "1100px", zIndex: 2 },// Mobile: 100% height como solicitado
-      xs: { top: "45%", left: "1100px", height: "100%", innerMaxWidth: "90vw",   zIndex: 2 }, // Mobile: 100% height
+      xs: { top: "45%", left: "1100px", height: "100%", innerMaxWidth: "90vw", zIndex: 2 }, // Mobile: 100% height
     },
     V6: { // img index 3
       xl: { top: "50%", left: "3950px", height: "70%", innerMaxWidth: "550px", zIndex: 2 },
@@ -218,7 +218,7 @@ const VestimeTeoGallery = ({ onBack }) => {
       lg: { top: "50%", left: "6100px", height: "100%", innerMaxWidth: "650px", zIndex: 2 },
       md: { top: "48%", left: "5200px", height: "100%", innerMaxWidth: "600px", zIndex: 2 },
       sm: { top: "45%", left: "4700px", height: "100%", innerMaxWidth: "600px", zIndex: 2 },
-      xs: { top: "45%", left: "4200px", height: "95%",  innerMaxWidth: "90vw",  zIndex: 2 },
+      xs: { top: "45%", left: "4200px", height: "95%", innerMaxWidth: "90vw", zIndex: 2 },
     },
   };
 
@@ -274,7 +274,7 @@ const VestimeTeoGallery = ({ onBack }) => {
   // Loading progress animation effect
   useEffect(() => {
     let interval;
-    
+
     if (loading) {
       interval = setInterval(() => {
         setLoadProgress(prev => {
@@ -287,7 +287,7 @@ const VestimeTeoGallery = ({ onBack }) => {
         });
       }, 250);
     }
-    
+
     return () => clearInterval(interval);
   }, [loading]);
 
@@ -412,9 +412,9 @@ const VestimeTeoGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
-      
+
       {/* Loading screen component */}
-      <GalleryLoadingScreen 
+      <GalleryLoadingScreen
         title="La Notte, Vestimeteo"
         year="2024"
         loading={loading}
@@ -424,23 +424,23 @@ const VestimeTeoGallery = ({ onBack }) => {
         textColor={galleryTheme.text}
         progressColor={galleryTheme.text}
       />
-      
+
       <ScrollProgressBar
         ref={progressBarRef}
         data-scroll-progress
-        sx={{ 
+        sx={{
           opacity: loading ? 0 : 1,
           width: `${scrollProgress}%`
         }}
       />
-      
+
       <NavigationArrow
         onBack={onBack}
         containerRef={containerRef}
         colors={galleryTheme}
         isLoading={loading}
       />
-      
+
       <GalleryContainer
         ref={containerRef}
         scrollPosition={scrollLeft}
