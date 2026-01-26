@@ -197,7 +197,16 @@ function App() {
   const [collection, setCollection] = useState("");
   // Check sessionStorage to see if intro was already shown in this session
   const [showIntro, setShowIntro] = useState(() => {
+    // Check if we are on a gallery route directly
+    const isGalleryRoute = window.location.pathname.startsWith('/gallery/');
     const introShown = sessionStorage.getItem('introShown');
+
+    if (isGalleryRoute) {
+      // If we land on a gallery, we consider the intro "shown" (skipped) for future navigations
+      sessionStorage.setItem('introShown', 'true');
+      return false;
+    }
+
     return introShown !== 'true'; // Show intro only if NOT shown before in this session
   });
   const containerRef = useRef(null);
@@ -433,6 +442,8 @@ function App() {
     if (transitionInProgressRef.current) return;
     transitionInProgressRef.current = true;
 
+    // Mark intro as shown in session storage so it doesn't show again on reload
+    sessionStorage.setItem('introShown', 'true');
 
     console.log("Iniciando transición sin retrasos");
 
