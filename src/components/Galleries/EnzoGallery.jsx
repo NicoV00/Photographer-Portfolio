@@ -70,14 +70,14 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
 const GalleryContent = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  width: '9300px', // Adjusted for 11 images like other galleries
+  width: '9300px',
   height: '100%',
   padding: '40px',
   paddingRight: '300px',
   position: 'relative',
   transform: 'translateZ(0)',
   [theme.breakpoints.down('sm')]: {
-    width: '9600px', // Reduced for mobile
+    width: '9600px',
     flexDirection: 'row',
     height: '100%',
     padding: '20px',
@@ -111,9 +111,9 @@ const ImageItem = styled(Box, {
   zIndex: zIndex,
   marginBottom: '0',
   opacity: isVisible ? 1 : 0,
-  transform: 'translateZ(0)',
-  transition: 'opacity 0.5s ease',
-  willChange: 'opacity',
+  transform: isVisible ? 'translateZ(0)' : 'translateZ(0) scale(0.98)',
+  transition: 'opacity 0.5s ease, transform 0.5s ease',
+  willChange: 'transform, opacity',
   backfaceVisibility: 'hidden',
   '& img': {
     width: '100%',
@@ -158,7 +158,7 @@ const EnzoGallery = ({ onBack }) => {
     '/images/X/webp/@enzocimillo_ex-_11.webp',
   ], []);
 
-  // Visibility check
+  // Visibility check with increased preload margin
   const checkVisibility = useCallback(() => {
     if (!containerRef.current) return;
 
@@ -166,7 +166,7 @@ const EnzoGallery = ({ onBack }) => {
     const containerRect = container.getBoundingClientRect();
     const containerWidth = containerRect.width;
 
-    const preloadMargin = containerWidth * 0.8;
+    const preloadMargin = containerWidth * 1.2;
 
     const newVisibility = {};
 
@@ -244,11 +244,13 @@ const EnzoGallery = ({ onBack }) => {
   // Optimize browser performance and cleanup on unmount
   useEffect(() => {
     if (!loading) {
+      document.body.style.willChange = 'scroll-position';
       document.body.style.overscrollBehavior = 'none';
       document.documentElement.style.scrollBehavior = 'smooth';
     }
 
     return () => {
+      document.body.style.willChange = '';
       document.body.style.overscrollBehavior = '';
       document.documentElement.style.scrollBehavior = '';
 
@@ -257,6 +259,32 @@ const EnzoGallery = ({ onBack }) => {
       }
     };
   }, [loading]);
+
+  // CRITICAL: Detect real mobile devices (especially iOS Safari) and apply fixes
+  useEffect(() => {
+    const detectRealMobile = () => {
+      const ua = navigator.userAgent;
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+    };
+    
+    if (detectRealMobile()) {
+      document.documentElement.style.fontSize = '14px';
+      document.body.style.overscrollBehavior = 'none';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    return () => {
+      document.documentElement.style.fontSize = '';
+      document.body.style.overscrollBehavior = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   // Set up IntersectionObserver for visibility detection
   useEffect(() => {
@@ -267,7 +295,7 @@ const EnzoGallery = ({ onBack }) => {
     if ('IntersectionObserver' in window) {
       const options = {
         root: containerRef.current,
-        rootMargin: '200px',
+        rootMargin: '300px',
         threshold: 0.1
       };
 
