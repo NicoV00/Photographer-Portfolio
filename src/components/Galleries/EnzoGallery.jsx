@@ -85,7 +85,7 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   },
 }));
 
-// Image item with absolute positioning
+// Image item with CSS breakpoints (like MaisonGallery)
 const ImageItem = styled(Box, {
   shouldForwardProp: (prop) =>
     !['isMobile', 'top', 'left', 'isVisible', 'mobileTop', 'mobileLeft', 'mobileHeight', 'mobileWidth'].includes(prop)
@@ -96,7 +96,6 @@ const ImageItem = styled(Box, {
   width,
   height,
   zIndex = 1,
-  isMobile = false,
   isVisible = true,
   mobileTop,
   mobileLeft,
@@ -104,10 +103,10 @@ const ImageItem = styled(Box, {
   mobileWidth
 }) => ({
   position: 'absolute',
-  top: isMobile ? mobileTop || top : top,
-  left: isMobile ? mobileLeft || (left ? `${parseInt(left) * 0.6}px` : left) : left,
-  width: isMobile ? mobileWidth || (width === 'auto' ? 'auto' : width ? `${parseInt(width) * 0.7}px` : width) : width,
-  height: isMobile ? mobileHeight || (height === 'auto' ? 'auto' : height ? (height.includes('vh') ? `${parseInt(height) * 0.85}vh` : `${parseInt(height) * 0.7}px`) : height) : height,
+  top: top,
+  left: left,
+  width: width,
+  height: height,
   zIndex: zIndex,
   marginBottom: '0',
   opacity: isVisible ? 1 : 0,
@@ -123,6 +122,16 @@ const ImageItem = styled(Box, {
     boxShadow: 'none',
     backfaceVisibility: 'hidden',
     transform: 'translateZ(0)',
+  },
+  // CSS breakpoints for mobile (like MaisonGallery)
+  [theme.breakpoints.down('sm')]: {
+    top: mobileTop || top,
+    left: mobileLeft || (left ? `${parseInt(left) * 0.6}px` : left),
+    width: mobileWidth || (width === 'auto' ? 'auto' : width ? `${parseInt(width) * 0.7}px` : width),
+    height: mobileHeight || (height === 'auto' ? 'auto' : height ? (height.includes('vh') ? `${parseInt(height) * 0.9}vh` : `${parseInt(height) * 0.7}px`) : height),
+    '& img': {
+      boxShadow: 'none',
+    }
   }
 }));
 
@@ -338,10 +347,9 @@ const EnzoGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[0] !== false}
-        isMobile={isMobile}
         mobileLeft="0px"
         mobileHeight="100vh"
-      >
+        mobileWidth="150vw"      >
         <Box component="img" src={images[0]} alt="ex- 1" loading="eager" />
       </ImageItem>
 
@@ -353,9 +361,10 @@ const EnzoGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[1] !== false}
-        isMobile={isMobile}
         mobileLeft="850px"
-        mobileHeight="90vh"
+        mobileHeight="80vh"
+        mobileWidth="200vw"
+
       >
         <Box component="img" src={images[1]} alt="ex- 2" loading="lazy" />
       </ImageItem>
@@ -368,9 +377,9 @@ const EnzoGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[2] !== false}
-        isMobile={isMobile}
-        mobileLeft="2000px"
-        mobileHeight="90vh"
+        mobileLeft="1800px"
+        mobileHeight="80vh"
+        mobileWidth="130vw"
       >
         <Box component="img" src={images[2]} alt="ex- 3" loading="lazy" />
       </ImageItem>
@@ -383,9 +392,9 @@ const EnzoGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[3] !== false}
-        isMobile={isMobile}
-        mobileLeft="2950px"
+        mobileLeft="2800px"
         mobileHeight="60vh"
+        mobileWidth="100vw"
       >
         <Box component="img" src={images[3]} alt="ex- 4" loading="lazy" />
       </ImageItem>
@@ -398,9 +407,10 @@ const EnzoGallery = ({ onBack }) => {
         width="auto"
         zIndex={3}
         isVisible={visibleImages[4] !== false}
-        isMobile={isMobile}
-        mobileLeft="3430px"
+        mobileLeft="3300px"
         mobileHeight="60vh"
+        mobileWidth="100vw"
+        
       >
         <Box component="img" src={images[4]} alt="ex- 5" loading="lazy" />
       </ImageItem>
@@ -413,9 +423,9 @@ const EnzoGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[5] !== false}
-        isMobile={isMobile}
         mobileLeft="4100px"
         mobileHeight="100vh"
+        mobileWidth="305vw"
       >
         <Box component="img" src={images[5]} alt="ex- 6" loading="lazy" />
       </ImageItem>
@@ -428,7 +438,6 @@ const EnzoGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[6] !== false}
-        isMobile={isMobile}
         mobileLeft="5420px"
         mobileHeight="100vh"
       >
@@ -443,9 +452,9 @@ const EnzoGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[7] !== false}
-        isMobile={isMobile}
         mobileLeft="6130px"
         mobileHeight="100vh"
+        
       >
         <Box component="img" src={images[7]} alt="ex- 8" loading="lazy" />
       </ImageItem>
@@ -458,9 +467,9 @@ const EnzoGallery = ({ onBack }) => {
         width="auto"
         zIndex={3}
         isVisible={visibleImages[8] !== false}
-        isMobile={isMobile}
-        mobileLeft="7280px"
-        mobileHeight="90vh"
+        mobileLeft="7400px"
+        mobileHeight="80vh"
+        mobileWidth="140vw"
       >
         <Box component="img" src={images[8]} alt="ex- 9" loading="lazy" />
       </ImageItem>
@@ -473,9 +482,10 @@ const EnzoGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[9] !== false}
-        isMobile={isMobile}
-        mobileLeft="8050px"
-        mobileHeight="90vh"
+        mobileLeft="8120px"
+        mobileHeight="80vh"
+        mobileWidth="140vw"
+
       >
         <Box component="img" src={images[9]} alt="ex- 10" loading="lazy" />
       </ImageItem>
@@ -488,9 +498,9 @@ const EnzoGallery = ({ onBack }) => {
         width="auto"
         zIndex={2}
         isVisible={visibleImages[10] !== false}
-        isMobile={isMobile}
         mobileLeft="8850px"
         mobileHeight="100vh"
+        mobileWidth="160vw"
       >
         <Box component="img" src={images[10]} alt="ex- 11" loading="lazy" />
       </ImageItem>
